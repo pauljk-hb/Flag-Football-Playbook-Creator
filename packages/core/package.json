@@ -1,0 +1,19 @@
+{
+  "name": "@playbook/core",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Die Core-Bibliothek für das Playbook-Projekt.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "fabric": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/fabric": "^5.3.11",
+    "typescript": "^7.0.2"
+  }
+}

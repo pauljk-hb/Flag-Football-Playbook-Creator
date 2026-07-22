@@ -1,0 +1,59 @@
+# =========================
+# Node & Dependencies
+# =========================
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json.swp
+
+# =========================
+# Build Outputs & Cache
+# =========================
+dist/
+build/
+out/
+.vite/
+.eslintcache
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+# Database (Prisma & SQLite)
+# =========================
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/dev.db
+
+# =========================
+# OS / macOS Spezifisch
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# =========================
+# IDEs & Editoren
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Logs & Testing
+# =========================
+logs
+*.log
+coverage/

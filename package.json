@@ -1,0 +1,15 @@
+{
+  "name": "playbook-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -c \"cyan,magenta,yellow\" -n \"core,front,back\" \"npm run dev -w @playbook/core\" \"npm run dev -w frontend\" \"npm run dev -w backend\"",
+    "build": "npm run build -w @playbook/core && npm run build -w frontend && npm run build -w backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
