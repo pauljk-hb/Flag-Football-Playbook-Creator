@@ -32,4 +32,5 @@ export interface FieldPreset {
     id: string;
     name: string;
     lines: FieldLineConfig[];
+    anchor: { x: number, y: number };
 }

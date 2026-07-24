@@ -3,6 +3,7 @@ import { BaseEntity } from './BaseEntity.js';
 import type { RouteEntity } from './RouteEntity';
 import type { ICommand } from '../types/history.js';
 import { MovePlayerCommand } from '../history/commands/MoveCommands.js';
+import { DEFAULT_LOS_Y } from '../data/presets/fields.js';
 
 export interface PlayerConfig {
   id?: string;
@@ -108,6 +109,25 @@ export class PlayerEntity extends BaseEntity {
     this.fabricObject.on('moving', () => this.onMove());
 
     this.fabricObject.on('modified', () => this.onMoveComplete());
+
+    this.fabricObject.on('selected', () => {
+      this.fabricObject.set('shadow', new fabric.Shadow({
+        color: '#FFD700', // Goldgelbes Leuchten
+        blur: 15,
+        offsetX: 0,
+        offsetY: 0
+      }));
+      if (this.fabricObject.canvas) {
+        this.fabricObject.canvas.requestRenderAll();
+      }
+    });
+
+    this.fabricObject.on('deselected', () => {
+      this.fabricObject.set('shadow', null); // Leuchten entfernen
+      if (this.fabricObject.canvas) {
+        this.fabricObject.canvas.requestRenderAll();
+      }
+    });
   }
 
   public setPosition(x: number, y: number): void {
@@ -132,8 +152,15 @@ export class PlayerEntity extends BaseEntity {
   }
 
   private onMove(): void {
-    const currentX = this.fabricObject.left ?? 0;
-    const currentY = this.fabricObject.top ?? 0;
+    const SNAP_THRESHOLD = 15;
+    
+    let currentX = this.fabricObject.left ?? 0;
+    let currentY = this.fabricObject.top ?? 0;
+
+    if (Math.abs(currentY - DEFAULT_LOS_Y) < SNAP_THRESHOLD) {
+      currentY = DEFAULT_LOS_Y;
+      this.fabricObject.set({ top: currentY }); 
+    }
 
     const dx = currentX - this.lastPosition.x;
     const dy = currentY - this.lastPosition.y;

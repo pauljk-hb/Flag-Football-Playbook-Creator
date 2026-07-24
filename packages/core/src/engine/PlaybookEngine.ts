@@ -1,5 +1,5 @@
 import * as fabric from 'fabric';
-import { EntityManager } from './EntityManager';
+import { EntityManager } from '../manager/EntityManager';
 import { PlayerEntity, type PlayerConfig } from '../entities/PlayerEntity';
 import { RouteFactory } from '../math/RouteFactory';
 import { HistoryManager } from '../history/HistoryManager';
@@ -8,11 +8,16 @@ import { AssignRouteCommand } from '../history/commands/AssignRouteCommand';
 import { SYSTEM_ROUTES } from '../data/presets/routes';
 import { SYSTEM_FORMATIONS } from '../data/presets/formations';
 import { SYSTEM_PLAYERS } from '../data/presets/players';
+import { FieldManager } from '../manager/FieldManager';
+import { SYSTEM_FIELDS } from '../data/presets/fields';
 
 export class PlaybookEngine {
   private canvas: fabric.Canvas | null = null;
   public readonly entityManager: EntityManager;
   public readonly history: HistoryManager;
+
+  private fieldManager: FieldManager | null = null;
+  private currentFieldPresetId: string = 'STANDARD';
 
   public readonly LOGICAL_WIDTH = 800;
   public readonly LOGICAL_HEIGHT = 600;
@@ -33,6 +38,9 @@ export class PlaybookEngine {
       selection: false,
     });
     
+    this.fieldManager = new FieldManager(this.canvas);
+    this.fieldManager.drawField('STANDARD');
+
     this.canvas.renderAll();
   }
 
@@ -165,25 +173,39 @@ export class PlaybookEngine {
     this.history.redo();
   }
 
-  public loadFormation(formationId: string, originX: number, originY: number): void {
-    // 1. Formation aus dem Katalog holen (später erweitern wir das um User-Presets)
+  public loadFormation(formationId: string, customX?: number, customY?: number): void {
     const formation = SYSTEM_FORMATIONS[formationId];
-    if (!formation) return;
+    
+    if (!formation) {
+      console.warn(`Formation ${formationId} nicht gefunden!`);
+      return;
+    }
 
-    // Optional: Vorheriges Feld aufräumen
-    // this.clearField(); 
+    let originX = customX;
+    let originY = customY;
 
-    // 2. Spieler iterieren und absolute Positionen berechnen
+    if (originX === undefined || originY === undefined) {
+        const currentFieldId = this.currentFieldPresetId || 'STANDARD';
+        const fieldConfig = SYSTEM_FIELDS[currentFieldId];
+        
+        originX = fieldConfig ? fieldConfig.anchor.x : 400; 
+        originY = fieldConfig ? fieldConfig.anchor.y : 600; 
+    }
+
+    this.clearAllPlayers(); 
+
     formation.positions.forEach(pos => {
       const playerPreset = SYSTEM_PLAYERS[pos.playerPresetId];
-      if (!playerPreset) return;
+      if (!playerPreset) {
+          console.warn(`Spieler-Preset ${pos.playerPresetId} fehlt!`);
+          return;
+      }
 
       const absoluteX = originX + pos.dx;
       const absoluteY = originY + pos.dy;
 
-      // 3. Spieler auf dem Canvas platzieren
       this.addPlayer({
-        id: playerPreset.id, // ID mitgeben, damit wir wissen, wer das ist
+        id: playerPreset.id, 
         x: absoluteX,
         y: absoluteY,
         label: playerPreset.label,
@@ -193,6 +215,46 @@ export class PlaybookEngine {
     });
 
     this.renderCanvas();
+  }
+
+  public clearAllPlayers(): void {
+    if (!this.entityManager || !this.canvas) return;
+
+    // 1. Hole alle aktuellen Spieler aus dem Manager
+    const players = this.entityManager.getAllPlayers();
+
+    // 2. Entferne die Fabric-Objekte jedes Spielers vom Canvas
+    players.forEach(player => {
+        // HINWEIS: Hier musst du die Eigenschaft anpassen, in der dein 
+        // PlayerEntity das Fabric-Objekt (z.B. die Group) speichert. 
+        // Ich nenne es hier beispielhaft 'fabricObject' oder 'group'.
+        
+        if (player.fabricObject) { // <- Passe den Namen ggf. an deine PlayerEntity an
+            this.canvas!.remove(player.fabricObject);
+        }
+
+        // Falls der Spieler schon eine Route zugewiesen hat, 
+        // muss die Linie ebenfalls vom Canvas!
+        if (player.route && player.route.fabricObject) {
+            this.canvas!.remove(player.route.fabricObject);
+        }
+
+        // Alternativ: Wenn deine PlayerEntity eine eigene Zerstör-Methode hat
+        // (z.B. player.removeFromCanvas(this.canvas)), rufe diese hier auf.
+    });
+
+    // 3. Jetzt erst die interne Datenstruktur leeren
+    this.entityManager.clear();
+    
+    // 4. Canvas aktualisieren, damit die Geister verschwinden
+    this.canvas.requestRenderAll();
+}
+
+  public changeFieldPreset(presetId: string) {
+    this.currentFieldPresetId = presetId;
+    if (this.fieldManager) {
+      this.fieldManager.drawField(presetId);
+    }
   }
 
   // ==========================================

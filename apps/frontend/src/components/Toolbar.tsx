@@ -77,10 +77,44 @@ export function Toolbar() {
         </div>
         <div>
             <button
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                onClick={() => engine.assignRouteToSelectedPlayer('OUT')}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => engine.loadFormation('EMPTY_LEFT')}
             >
-                Out Route anfügen
+                Empty Left
+            </button>
+            <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => engine.loadFormation('EMPTY_RIGHT')}
+            >
+                Empty Right
+            </button>
+            <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => engine.loadFormation('TOWER_LEFT')}
+            >
+                Tower Left
+            </button>
+            <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => engine.loadFormation('TOWER_RIGHT')}
+            >
+                Tower Right
+            </button>
+            <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => engine.clearAllPlayers()
+
+                }
+            >
+                Alle Spieler entfernen
+            </button>
+        </div>
+        <div>
+            <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('QUICK_OUT')}
+            >
+                Quick Out Route anfügen
             </button>
              <button
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
@@ -90,17 +124,60 @@ export function Toolbar() {
             </button>
              <button
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                onClick={() => engine.assignRouteToSelectedPlayer('COME_BACK')}
+                onClick={() => engine.assignRouteToSelectedPlayer('COMEBACK')}
             >
                 Come Back Route anfügen
             </button>
-
             <button
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                onClick={() => engine.loadFormation('I_FORM', 400, 450)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('HITCH')}
             >
-                I-Form laden
+                Hitch Route anfügen
             </button>
+             <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('IN')}
+            >
+                IN Route anfügen
+            </button>
+             <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('OUT')}
+            >
+                Out Route anfügen
+            </button>
+            <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('POST')}
+            >
+                Post Route anfügen
+            </button>
+             <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('CORNER')}
+            >
+                Corner Route anfügen
+            </button>
+             <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => engine.assignRouteToSelectedPlayer('GO')}
+            >
+                Go / Fly Route anfügen
+            </button>
+        </div>
+        <div>
+            <button
+    className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+    onClick={() => engine.changeFieldPreset('TWO_POINT_TRY')}
+>
+    Zeige 2-Point Try Feld
+</button>
+<button
+    className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+    onClick={() => engine.changeFieldPreset('STANDARD')}
+>
+    Standard Feld
+</button>
         </div>
         </div>
     );

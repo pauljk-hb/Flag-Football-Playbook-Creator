@@ -1,7 +1,7 @@
 import * as fabric from 'fabric';
 import type { ICommand } from '../../types/history.js';
 import type { PlayerEntity } from '../../entities/PlayerEntity.js';
-import type { EntityManager } from '../../engine/EntityManager.js';
+import type { EntityManager } from '../../manager/EntityManager.js';
 
 export class AddPlayerCommand implements ICommand {
   constructor(
