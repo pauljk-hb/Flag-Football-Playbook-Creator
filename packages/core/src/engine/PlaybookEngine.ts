@@ -10,11 +10,14 @@ import { SYSTEM_FORMATIONS } from '../data/presets/formations';
 import { SYSTEM_PLAYERS } from '../data/presets/players';
 import { FieldManager } from '../manager/FieldManager';
 import { SYSTEM_FIELDS } from '../data/presets/fields';
+import { FormationManager } from '../manager/FormationManager';
+import { LoadFormationCommand } from '../history/commands/LoadFormationCommand';
 
 export class PlaybookEngine {
   private canvas: fabric.Canvas | null = null;
   public readonly entityManager: EntityManager;
   public readonly history: HistoryManager;
+  public formationManager!: FormationManager;
 
   private fieldManager: FieldManager | null = null;
   private currentFieldPresetId: string = 'STANDARD';
@@ -37,6 +40,12 @@ export class PlaybookEngine {
       backgroundColor: '#f8fafc',
       selection: false,
     });
+
+    this.formationManager = new FormationManager(
+      this.entityManager, 
+      this.canvas, 
+      this.currentFieldPresetId
+    );
     
     this.fieldManager = new FieldManager(this.canvas);
     this.fieldManager.drawField('STANDARD');
@@ -174,81 +183,15 @@ export class PlaybookEngine {
   }
 
   public loadFormation(formationId: string, customX?: number, customY?: number): void {
-    const formation = SYSTEM_FORMATIONS[formationId];
+    const command = new LoadFormationCommand(
+      this.formationManager, 
+      formationId, 
+      customX, 
+      customY
+    );
     
-    if (!formation) {
-      console.warn(`Formation ${formationId} nicht gefunden!`);
-      return;
-    }
-
-    let originX = customX;
-    let originY = customY;
-
-    if (originX === undefined || originY === undefined) {
-        const currentFieldId = this.currentFieldPresetId || 'STANDARD';
-        const fieldConfig = SYSTEM_FIELDS[currentFieldId];
-        
-        originX = fieldConfig ? fieldConfig.anchor.x : 400; 
-        originY = fieldConfig ? fieldConfig.anchor.y : 600; 
-    }
-
-    this.clearAllPlayers(); 
-
-    formation.positions.forEach(pos => {
-      const playerPreset = SYSTEM_PLAYERS[pos.playerPresetId];
-      if (!playerPreset) {
-          console.warn(`Spieler-Preset ${pos.playerPresetId} fehlt!`);
-          return;
-      }
-
-      const absoluteX = originX + pos.dx;
-      const absoluteY = originY + pos.dy;
-
-      this.addPlayer({
-        id: playerPreset.id, 
-        x: absoluteX,
-        y: absoluteY,
-        label: playerPreset.label,
-        color: playerPreset.color,
-        shape: playerPreset.shape
-      });
-    });
-
-    this.renderCanvas();
+    this.history.execute(command);
   }
-
-  public clearAllPlayers(): void {
-    if (!this.entityManager || !this.canvas) return;
-
-    // 1. Hole alle aktuellen Spieler aus dem Manager
-    const players = this.entityManager.getAllPlayers();
-
-    // 2. Entferne die Fabric-Objekte jedes Spielers vom Canvas
-    players.forEach(player => {
-        // HINWEIS: Hier musst du die Eigenschaft anpassen, in der dein 
-        // PlayerEntity das Fabric-Objekt (z.B. die Group) speichert. 
-        // Ich nenne es hier beispielhaft 'fabricObject' oder 'group'.
-        
-        if (player.fabricObject) { // <- Passe den Namen ggf. an deine PlayerEntity an
-            this.canvas!.remove(player.fabricObject);
-        }
-
-        // Falls der Spieler schon eine Route zugewiesen hat, 
-        // muss die Linie ebenfalls vom Canvas!
-        if (player.route && player.route.fabricObject) {
-            this.canvas!.remove(player.route.fabricObject);
-        }
-
-        // Alternativ: Wenn deine PlayerEntity eine eigene Zerstör-Methode hat
-        // (z.B. player.removeFromCanvas(this.canvas)), rufe diese hier auf.
-    });
-
-    // 3. Jetzt erst die interne Datenstruktur leeren
-    this.entityManager.clear();
-    
-    // 4. Canvas aktualisieren, damit die Geister verschwinden
-    this.canvas.requestRenderAll();
-}
 
   public changeFieldPreset(presetId: string) {
     this.currentFieldPresetId = presetId;
