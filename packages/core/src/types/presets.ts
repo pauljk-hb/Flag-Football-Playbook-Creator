@@ -9,6 +9,7 @@ export interface RoutePreset {
   id: string;
   name: string;
   waypoints: { dx: number; dy: number }[]; 
+  breakDirection?: 'inside' | 'outside' | 'straight';
 }
 
 export interface FormationPreset {
