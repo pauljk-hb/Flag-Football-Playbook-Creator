@@ -12,6 +12,7 @@ import { FieldManager } from '../manager/FieldManager';
 import { SYSTEM_FIELDS } from '../data/presets/fields';
 import { FormationManager } from '../manager/FormationManager';
 import { LoadFormationCommand } from '../history/commands/LoadFormationCommand';
+import type { SavedPlay, SavedPlayerData } from '../types/interfaces';
 
 export class PlaybookEngine {
   private canvas: fabric.Canvas | null = null;
@@ -193,6 +194,72 @@ export class PlaybookEngine {
     this.history.execute(command);
   }
 
+  /**
+   * Exportiert den gesamten aktuellen Zustand als JSON-String.
+   */
+  /*
+    public savePlay(playName: string): string {
+    const players = this.entityManager.getAllPlayers();
+    
+    const savedPlayers: SavedPlayerData[] = players.map(player => {
+      const config: PlayerConfig = {
+        id: player.id,
+        x: player.x,
+        y: player.y,
+        label: player.label,
+        color: player.color,
+        shape: player.shape
+      };
+
+      let routeData = undefined;
+      
+      // Prüfen, ob eine Route existiert und Punkte hat
+      if (player.route && player.route.fabricObject && player.route.fabricObject.points) {
+        routeData = {
+          presetId: (player.route as any).presetId || null,
+          // Speichere die exakten X/Y Koordinaten des Fabric.js Objekts ab
+          points: player.route.fabricObject.points.map(p => ({ x: p.x, y: p.y }))
+        };
+      }
+
+      return { config, routeData };
+    });
+
+    const playData: SavedPlay = {
+      id: crypto.randomUUID(), // Einzigartige ID
+      name: playName,
+      fieldPresetId: this.currentFieldPresetId,
+      players: savedPlayers
+    };
+
+    return JSON.stringify(playData, null, 2);
+  }
+  */
+  /**
+   * Lädt einen zuvor gespeicherten Spielzug auf das Feld.
+   */
+  /*
+  public loadPlay(jsonString: string): void {
+    this.requireCanvas();
+    
+    try {
+      const playData: SavedPlay = JSON.parse(jsonString);
+      
+      const command = new LoadPlayCommand(
+        this,
+        this.formationManager,
+        this.canvas!, // Wird für die internen Route-Commands benötigt
+        playData
+      );
+
+      // Führt das Command aus und schließt es als einen Eintrag in die History ein
+      this.history.execute(command);
+      
+    } catch (error) {
+      console.error("Fehler beim Laden des Spielzugs. Überprüfe das JSON-Format.", error);
+    }
+  }
+*/
   public changeFieldPreset(presetId: string) {
     this.currentFieldPresetId = presetId;
     if (this.fieldManager) {

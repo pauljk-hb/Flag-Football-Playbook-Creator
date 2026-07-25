@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { PlaybookEngine } from '@playbook/core';
 import { usePlaybook } from '../contexts/PlaybookContext';
-import "../temp-style.css"
+import "../temp-style.css";
 
 export function PlaybookCanvas() {
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -18,7 +18,6 @@ export function PlaybookCanvas() {
 
         const resizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
-                // Übergibt die exakte verfügbare Pixel-Breite an die Engine
                 engineInstance.handleResize(entry.contentRect.width);
             }
         });
@@ -33,13 +32,12 @@ export function PlaybookCanvas() {
     }, [setEngine]);
 
     return (
-        <>
-       <div ref={wrapperRef} className="max-w-sm overflow-hidden playbook">
+        // Der Wrapper füllt den gesamten verfügbaren Platz der Mitte aus
+        <div 
+            ref={wrapperRef} 
+            className="w-full max-h-full overflow-hidden playbook shadow-lg bg-white rounded-md"
+        >
             <canvas ref={canvasRef} />
         </div>
-        <div className="max-w-sm overflow-hidden">
-
-        </div>
-        </>
     );
 }

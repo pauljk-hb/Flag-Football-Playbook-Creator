@@ -1,17 +1,20 @@
-export type EntityId = string;
+import type { PlayerConfig } from "../entities/PlayerEntity";
 
 export interface Point {
   x: number;
   y: number;
 }
 
-export interface PlayerDTO {
-  id: EntityId;
-  position: Point;
+export interface SavedPlayerData {
+  config: PlayerConfig;
+  routeData?: {
+    points: Point[];
+  };
 }
 
-export interface RouteDTO {
-  id: EntityId;
-  playerId: EntityId;
-  waypoints: Point[]; 
+export interface SavedPlay {
+  id: string;
+  name: string;
+  fieldPresetId: string;
+  players: SavedPlayerData[];
 }

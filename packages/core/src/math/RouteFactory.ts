@@ -28,4 +28,40 @@ export class RouteFactory {
       color: playerColor,
     });
   }
+
+  /**
+   * Erstellt eine Route basierend auf exakten Array-Punkten
+   */
+  public static createFromPoints(
+    originX: number, 
+    originY: number, 
+    points: {x: number, y: number}[], 
+    color: string,
+  ): RouteEntity {
+    const route = new RouteEntity({
+      points: points,
+      color: color
+    });
+    
+    return route;
+  }
+
+  /**
+   * Spiegelt die X-Koordinaten einer Route.
+   * Da die Punkte absolute Canvas-Koordinaten sind, spiegeln wir sie um den Startpunkt (originX).
+   */
+  private static mirrorRoutePoints(
+    originX: number, 
+    points: {x: number, y: number}[]
+  ): {x: number, y: number}[] {
+    return points.map(p => {
+      // Abstand des Punktes zum Startpunkt der Route berechnen
+      const dx = p.x - originX;
+      // Den Abstand invertieren (-dx) und wieder auf den Startpunkt addieren
+      return {
+        x: originX - dx, 
+        y: p.y
+      };
+    });
+  }
 }
