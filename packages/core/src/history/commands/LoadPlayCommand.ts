@@ -1,48 +1,61 @@
-import * as fabric from 'fabric';
-import type { ICommand } from '../../types/history';
-import type { PlaybookEngine } from '../../engine/PlaybookEngine';
-import type { FormationManager } from '../../manager/FormationManager';
-import type { SavedPlay } from '../../types/interfaces';
-import type { PlayerEntity } from '../../entities/PlayerEntity';
-import { RouteFactory } from '../../math/RouteFactory';
-import { AssignRouteCommand } from './AssignRouteCommand';
+import type { ICommand } from "../../types/history";
+import type { EntityManager } from "../../managers/EntityManager";
+import type { FormationManager } from "../../managers/FormationManager";
+import type { FieldManager } from "../../managers/FieldManager";
+import type { CanvasManager } from "../../managers/CanvasManager";
+import type { HistoryManager } from "../HistoryManager";
+import type { SavedPlay } from "../../types/interfaces";
+import type { PlayerEntity } from "../../entities/PlayerEntity";
+import { RouteFactory } from "../../factories/RouteFactory";
+import { AssignRouteCommand } from "./AssignRouteCommand";
 
 export class LoadPlayCommand implements ICommand {
   private previousPlayers: PlayerEntity[] = [];
   private previousFieldPreset: string;
 
   constructor(
-    private engine: PlaybookEngine,
+    private entityManager: EntityManager,
     private formationManager: FormationManager,
-    private canvas: fabric.Canvas,
-    private playData: SavedPlay
+    private fieldManager: FieldManager,
+    private canvasManager: CanvasManager,
+    private history: HistoryManager,
+    private playData: SavedPlay,
   ) {
-    // Welches Feld war vorher aktiv? (Cast auf any, falls currentFieldPresetId private ist)
-    this.previousFieldPreset = (this.engine as any).currentFieldPresetId || 'STANDARD'; 
+    this.previousFieldPreset = this.fieldManager.getCurrentPresetId();
   }
 
   public execute(): void {
-    // 1. Vorherigen Zustand für Undo sichern (nur beim ersten Ausführen)
     if (this.previousPlayers.length === 0) {
       this.previousPlayers = this.formationManager.getAllPlayers();
     }
 
-    // 2. Aktuelles Feld komplett räumen
-    this.formationManager.clearAllPlayers();
+    this.previousPlayers.forEach((player) => {
+      player.getFabricObjects().forEach((obj) => {
+        this.canvasManager.remove(obj);
+      });
+      if (player.route) {
+        player.route.getFabricObjects().forEach((obj) => {
+          this.canvasManager.remove(obj);
+        });
+      }
+    });
 
-    // 3. Feld-Typ anpassen
-    this.engine.changeFieldPreset(this.playData.fieldPresetId);
+    this.formationManager.clearField();
 
-    // 4. Gespeicherte Spieler & exakte Routen laden
-    this.playData.players.forEach(savedPlayer => {
-      // engine.addPlayer triggert den AddPlayerCommand intern nicht im HistoryStack, 
-      // solange HistoryManager.isExecutingCommand = true ist!
-      const playerId = this.engine.addPlayer(savedPlayer.config);
-      const playerEntity = this.engine.entityManager.getPlayer(playerId);
+    this.fieldManager.drawField(this.playData.fieldPresetId);
 
-      // Falls der Spieler eine Route hatte, laden wir die exakten Punkte
-      if (playerEntity && savedPlayer.routeData && savedPlayer.routeData.points) {
-        
+    this.playData.players.forEach((savedPlayer) => {
+      const playerEntity = this.entityManager.createPlayer(
+        savedPlayer.config,
+        (command) => this.history.execute(command),
+      );
+
+      playerEntity.getFabricObjects().forEach((obj) => {
+        this.canvasManager.add(obj);
+        this.canvasManager.bringObjectToFront(obj);
+      });
+
+      if (savedPlayer.routeData?.points) {
         const newRouteEntity = RouteFactory.createFromPoints(
           playerEntity.x,
           playerEntity.y,
@@ -50,37 +63,54 @@ export class LoadPlayCommand implements ICommand {
           playerEntity.color,
         );
 
-        // Damit zukünftige Änderungen an der geladenen Route im Undo-Stack landen
         newRouteEntity.onCommandGenerated = (command) => {
-          this.engine.history.execute(command);
+          this.history.execute(command);
         };
 
-        const oldRouteEntity = playerEntity.route;
-
-        // Route manuell zuweisen (ohne neuen History-Eintrag, da wir bereits im LoadCommand sind)
         const command = new AssignRouteCommand(
-          playerEntity, 
-          newRouteEntity, 
-          oldRouteEntity, 
-          this.canvas
+          playerEntity,
+          newRouteEntity,
+          null, // oldRoute ist null, da der Spieler komplett neu ist
+          this.canvasManager,
         );
-        command.execute(); 
+        command.execute();
       }
     });
-
-    this.canvas.requestRenderAll();
   }
 
   public undo(): void {
-    // 1. Geladenen Spielzug entfernen
-    this.formationManager.clearAllPlayers();
+    const currentPlayers = this.formationManager.getAllPlayers();
+    currentPlayers.forEach((player) => {
+      player.getFabricObjects().forEach((obj) => {
+        this.canvasManager.remove(obj);
+      });
+      if (player.route) {
+        player.route.getFabricObjects().forEach((obj) => {
+          this.canvasManager.remove(obj);
+        });
+      }
+    });
 
-    // 2. Altes Feld wiederherstellen
-    this.engine.changeFieldPreset(this.previousFieldPreset);
+    this.formationManager.clearField();
 
-    // 3. Alte Spieler wiederherstellen
+    this.fieldManager.drawField(this.previousFieldPreset);
+
     if (this.previousPlayers.length > 0) {
       this.formationManager.restorePlayers(this.previousPlayers);
+
+      this.previousPlayers.forEach((player) => {
+        player.getFabricObjects().forEach((obj) => {
+          this.canvasManager.add(obj);
+          this.canvasManager.bringObjectToFront(obj);
+        });
+
+        if (player.route) {
+          player.route.getFabricObjects().forEach((obj) => {
+            this.canvasManager.add(obj);
+            this.canvasManager.sendToBack(obj);
+          });
+        }
+      });
     }
   }
 }

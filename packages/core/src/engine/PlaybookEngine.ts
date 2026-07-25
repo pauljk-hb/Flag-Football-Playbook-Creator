@@ -1,215 +1,183 @@
-import * as fabric from "fabric";
-import { EntityManager } from "../manager/EntityManager";
-import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
-import { RouteFactory } from "../math/RouteFactory";
+import { EntityManager } from "../managers/EntityManager";
 import { HistoryManager } from "../history/HistoryManager";
+import { CanvasManager } from "../managers/CanvasManager";
+import { SelectionManager } from "../managers/SelectionManager";
+import { FieldManager } from "../managers/FieldManager";
+import { FormationManager } from "../managers/FormationManager";
+
+import type { PlayerConfig } from "../entities/PlayerEntity";
+import type { ICommand } from "../types/history";
+
+// Commands
 import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
-import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
-import { SYSTEM_ROUTES } from "../data/presets/routes";
-import { SYSTEM_FORMATIONS } from "../data/presets/formations";
-import { SYSTEM_PLAYERS } from "../data/presets/players";
-import { FieldManager } from "../manager/FieldManager";
-import { SYSTEM_FIELDS } from "../data/presets/fields";
-import { FormationManager } from "../manager/FormationManager";
-import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
-import type { SavedPlay, SavedPlayerData } from "../types/interfaces";
 import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
+import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
+import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
 
 export class PlaybookEngine {
-  private canvas: fabric.Canvas | null = null;
+  // === Manager ===
+  public readonly historyManager: HistoryManager;
   public readonly entityManager: EntityManager;
-  public readonly history: HistoryManager;
+
+  private canvasManager: CanvasManager;
+  private selectionManager!: SelectionManager;
+  private fieldManager!: FieldManager;
   public formationManager!: FormationManager;
 
-  private fieldManager: FieldManager | null = null;
   private currentFieldPresetId: string = "STANDARD";
 
-  public readonly LOGICAL_WIDTH = 800;
-  public readonly LOGICAL_HEIGHT = 600;
-
   constructor() {
+    this.historyManager = new HistoryManager();
+    this.canvasManager = new CanvasManager();
     this.entityManager = new EntityManager();
-    this.history = new HistoryManager();
   }
 
-  /**
-   * Wird von React im useEffect aufgerufen.
-   */
   public init(canvasElement: HTMLCanvasElement): void {
-    this.canvas = new fabric.Canvas(canvasElement, {
-      width: 800,
-      height: 600,
-      backgroundColor: "#f8fafc",
-      selection: false,
-    });
+    this.canvasManager.init(canvasElement);
+
+    this.fieldManager = new FieldManager(this.canvasManager);
+    this.selectionManager = new SelectionManager(
+      this.canvasManager,
+      this.entityManager,
+    );
 
     this.formationManager = new FormationManager(
       this.entityManager,
-      this.canvas,
+      this.canvasManager,
       this.currentFieldPresetId,
+      this.handleEntityCommand,
     );
 
-    this.fieldManager = new FieldManager(this.canvas);
-    this.fieldManager.drawField("STANDARD");
-
-    this.canvas.renderAll();
-  }
-
-  /**
-   * Cleanup für den React Unmount
-   */
-  public dispose(): void {
-    if (this.canvas) {
-      this.canvas.dispose();
-      this.canvas = null;
-    }
-  }
-
-  /**
-   * Wird von React aufgerufen, wenn sich das Fenster oder der Container ändert.
-   * Passt die Canvas-Größe und den Zoom an, behält aber die logischen Koordinaten.
-   */
-  public handleResize(containerWidth: number): void {
-    if (!this.canvas) return;
-
-    const scale = containerWidth / this.LOGICAL_WIDTH;
-    const newHeight = this.LOGICAL_HEIGHT * scale;
-
-    this.canvas.setDimensions({
-      width: containerWidth,
-      height: newHeight,
+    this.historyManager.subscribe(() => {
+      this.canvasManager.requestRender();
     });
 
-    this.canvas.setZoom(scale);
-
-    this.canvas.requestRenderAll();
+    this.fieldManager.drawField(this.currentFieldPresetId);
+    this.canvasManager.requestRender();
   }
 
-  // ==========================================
-  // DOMAIN METHODEN (Aufgerufen von React)
-  // ==========================================
+  public dispose(): void {
+    this.canvasManager.dispose();
+  }
+
+  public handleResize(containerWidth: number): void {
+    this.canvasManager.handleResize(containerWidth);
+  }
+
+  /**
+   * Wird an Entitäten (Player/Route) übergeben, damit deren Drag & Drop
+   * oder Resize-Events saubere Commands in unserer History erzeugen.
+   */
+  private handleEntityCommand = (command: ICommand) => {
+    this.historyManager.execute(command);
+  };
 
   /**
    * Fügt einen neuen Spieler hinzu.
-   * @returns Die ID des erstellten Spielers
    */
   public addPlayer(config: PlayerConfig): string {
-    this.requireCanvas();
-
-    const player = new PlayerEntity(config);
-
-    player.onCommandGenerated = (command) => {
-      this.history.execute(command);
-    };
+    const player = this.entityManager.createPlayer(
+      config,
+      this.handleEntityCommand,
+    );
 
     const command = new AddPlayerCommand(
       player,
-      this.canvas!,
+      this.canvasManager,
       this.entityManager,
     );
-    this.history.execute(command);
+    this.historyManager.execute(command);
 
     return player.id;
   }
 
+  /**
+   * Entfernt einen Spieler anhand seiner ID.
+   */
   public removePlayer(playerId: string): void {
     const player = this.entityManager.getPlayer(playerId);
     if (!player) return;
 
     const command = new RemovePlayerCommand(
       player,
-      this.canvas!,
+      this.canvasManager,
       this.entityManager,
     );
-    this.history.execute(command);
+    this.historyManager.execute(command);
   }
 
+  /**
+   * Entfernt den aktuell auf dem Canvas markierten Spieler.
+   */
   public removeSelectedPlayer(): void {
-    const selectedId = this.getSelectedPlayerId();
+    const selectedId = this.selectionManager.getSelectedPlayerId();
     if (!selectedId) {
       console.warn("Es ist kein Spieler ausgewählt!");
       return;
     }
-
     this.removePlayer(selectedId);
   }
 
   /**
-   * Weist einem Spieler eine vorgefertigte oder leere Route zu.
+   * Weist einem bestimmten Spieler eine Route zu.
    */
   public assignRouteToPlayer(playerId: string, routePresetId: string): void {
     const player = this.entityManager.getPlayer(playerId);
     if (!player) return;
 
-    const routePreset = SYSTEM_ROUTES[routePresetId];
-    if (!routePreset) {
-      console.warn(`Route Preset ${routePresetId} nicht gefunden.`);
-      return;
-    }
-
-    const newRouteEntity = RouteFactory.createFromPreset(
-      player.x,
-      player.y,
-      routePreset,
-      player.color,
+    const newRoute = this.entityManager.createRoute(
+      playerId,
+      routePresetId,
+      this.handleEntityCommand,
     );
+    if (!newRoute) return;
 
-    newRouteEntity.onCommandGenerated = (command) => {
-      this.history.execute(command);
-    };
-
-    const oldRouteEntity = player.route;
+    const oldRoute = player.route;
 
     const command = new AssignRouteCommand(
       player,
-      newRouteEntity,
-      oldRouteEntity,
-      this.canvas!,
+      newRoute,
+      oldRoute,
+      this.canvasManager,
     );
 
-    this.history.execute(command);
-
-    this.renderCanvas();
+    this.historyManager.execute(command);
   }
 
   /**
-   * Gibt die ID des aktuell ausgewählten Spielers zurück.
-   */
-  public getSelectedPlayerId(): string | null {
-    if (!this.canvas) return null;
-
-    const activeObject = this.canvas.getActiveObject();
-    if (!activeObject) return null;
-
-    const player = this.entityManager
-      .getAllPlayers()
-      .find((p) => p.fabricObject === activeObject);
-
-    return player ? player.id : null;
-  }
-
-  /**
-   * Weist dem aktuell ausgewählten Spieler eine Route zu.
+   * Weist dem aktuell markierten Spieler eine Route zu.
    */
   public assignRouteToSelectedPlayer(routePresetId: string): void {
-    const selectedId = this.getSelectedPlayerId();
-
+    const selectedId = this.selectionManager.getSelectedPlayerId();
     if (!selectedId) {
       console.warn("Es ist kein Spieler ausgewählt!");
       return;
     }
-
     this.assignRouteToPlayer(selectedId, routePresetId);
   }
 
-  public undo(): void {
-    this.history.undo();
+  /**
+   * Löscht die Route des aktuell ausgewählten Spielers.
+   */
+  public deleteRoute(): void {
+    const selectedId = this.selectionManager.getSelectedPlayerId();
+    if (!selectedId) return;
+
+    const player = this.entityManager.getPlayer(selectedId);
+    if (!player || !player.route) return;
+
+    const command = new AssignRouteCommand(
+      player,
+      null as any,
+      player.route,
+      this.canvasManager,
+    );
+    this.historyManager.execute(command);
   }
 
-  public redo(): void {
-    this.history.redo();
-  }
-
+  /**
+   * Lädt eine komplette Formation auf das Feld.
+   */
   public loadFormation(
     formationId: string,
     customX?: number,
@@ -221,96 +189,39 @@ export class PlaybookEngine {
       customX,
       customY,
     );
-
-    this.history.execute(command);
+    this.historyManager.execute(command);
   }
 
   /**
-   * Exportiert den gesamten aktuellen Zustand als JSON-String.
+   * Ändert das Spielfeld-Design (z.B. Highschool, NFL, etc.).
    */
-  /*
-    public savePlay(playName: string): string {
-    const players = this.entityManager.getAllPlayers();
-    
-    const savedPlayers: SavedPlayerData[] = players.map(player => {
-      const config: PlayerConfig = {
-        id: player.id,
-        x: player.x,
-        y: player.y,
-        label: player.label,
-        color: player.color,
-        shape: player.shape
-      };
-
-      let routeData = undefined;
-      
-      // Prüfen, ob eine Route existiert und Punkte hat
-      if (player.route && player.route.fabricObject && player.route.fabricObject.points) {
-        routeData = {
-          presetId: (player.route as any).presetId || null,
-          // Speichere die exakten X/Y Koordinaten des Fabric.js Objekts ab
-          points: player.route.fabricObject.points.map(p => ({ x: p.x, y: p.y }))
-        };
-      }
-
-      return { config, routeData };
-    });
-
-    const playData: SavedPlay = {
-      id: crypto.randomUUID(), // Einzigartige ID
-      name: playName,
-      fieldPresetId: this.currentFieldPresetId,
-      players: savedPlayers
-    };
-
-    return JSON.stringify(playData, null, 2);
-  }
-  */
-  /**
-   * Lädt einen zuvor gespeicherten Spielzug auf das Feld.
-   */
-  /*
-  public loadPlay(jsonString: string): void {
-    this.requireCanvas();
-    
-    try {
-      const playData: SavedPlay = JSON.parse(jsonString);
-      
-      const command = new LoadPlayCommand(
-        this,
-        this.formationManager,
-        this.canvas!, // Wird für die internen Route-Commands benötigt
-        playData
-      );
-
-      // Führt das Command aus und schließt es als einen Eintrag in die History ein
-      this.history.execute(command);
-      
-    } catch (error) {
-      console.error("Fehler beim Laden des Spielzugs. Überprüfe das JSON-Format.", error);
-    }
-  }
-*/
-  public changeFieldPreset(presetId: string) {
+  public changeFieldPreset(presetId: string): void {
     this.currentFieldPresetId = presetId;
     if (this.fieldManager) {
       this.fieldManager.drawField(presetId);
+      this.canvasManager.requestRender();
     }
   }
 
-  // ==========================================
-  // HILFSMETHODEN
-  // ==========================================
-
-  private requireCanvas(): void {
-    if (!this.canvas) {
-      throw new Error("PlaybookEngine is not initialized. Call init() first.");
-    }
+  /**
+   * Gibt ID des aktuell ausgewählten Spielers zurück (oder null, falls keiner ausgewählt ist).
+   */
+  public getSelectedPlayerId(): string | null {
+    if (!this.selectionManager) return null;
+    return this.selectionManager.getSelectedPlayerId();
   }
 
-  private renderCanvas(): void {
-    if (this.canvas) {
-      this.canvas.requestRenderAll();
-    }
+  /**
+   * Macht die letzte Aktion rückgängig.
+   */
+  public undo(): void {
+    this.historyManager.undo();
+  }
+
+  /**
+   * Stellt die letzte rückgängig gemachte Aktion wieder her.
+   */
+  public redo(): void {
+    this.historyManager.redo();
   }
 }

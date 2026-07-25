@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { usePlaybook } from '../contexts/PlaybookContext';
+import { useState, useEffect } from "react";
+import { usePlaybook } from "../contexts/PlaybookContext";
 
 export function usePlaybookHistory() {
   const { engine } = usePlaybook();
@@ -9,12 +9,12 @@ export function usePlaybookHistory() {
   useEffect(() => {
     if (!engine) return;
 
-    setCanUndo(engine.history.canUndo());
-    setCanRedo(engine.history.canRedo());
+    setCanUndo(engine.historyManager.canUndo());
+    setCanRedo(engine.historyManager.canRedo());
 
-    const unsubscribe = engine.history.subscribe(() => {
-      setCanUndo(engine.history.canUndo());
-      setCanRedo(engine.history.canRedo());
+    const unsubscribe = engine.historyManager.subscribe(() => {
+      setCanUndo(engine.historyManager.canUndo());
+      setCanRedo(engine.historyManager.canRedo());
     });
 
     return unsubscribe;

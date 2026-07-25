@@ -1,24 +1,21 @@
-import * as fabric from 'fabric';
-import type { IEntity } from '../types/entities';
+import * as fabric from "fabric";
+import type { IEntity } from "../types/entities";
 
 export abstract class BaseEntity implements IEntity {
   public readonly id: string;
-  
   public abstract fabricObject: fabric.Object;
 
   constructor(id?: string) {
     this.id = id ?? crypto.randomUUID();
   }
 
-  public addToCanvas(canvas: fabric.Canvas): void {
-    if (this.fabricObject) {
-      canvas.add(this.fabricObject);
+  public getFabricObjects(): fabric.Object[] {
+    if (!this.fabricObject) {
+      throw new Error(
+        `FabricObject für Entität ${this.id} wurde nicht initialisiert!`,
+      );
     }
-  }
-
-  public removeFromCanvas(canvas: fabric.Canvas): void {
-    if (this.fabricObject) {
-      canvas.remove(this.fabricObject);
-    }
+    // Standardmäßig ist es nur das Hauptobjekt
+    return [this.fabricObject];
   }
 }

@@ -1,27 +1,54 @@
-import * as fabric from 'fabric';
-import type { ICommand } from '../../types/history.js';
-import type { PlayerEntity } from '../../entities/PlayerEntity.js';
-import type { RouteEntity } from '../../entities/RouteEntity.js';
+// history/commands/AssignRouteCommand.ts
+import type { ICommand } from "../../types/history";
+import type { PlayerEntity } from "../../entities/PlayerEntity";
+import type { RouteEntity } from "../../entities/RouteEntity";
+import type { CanvasManager } from "../../managers/CanvasManager";
 
 export class AssignRouteCommand implements ICommand {
   constructor(
     private player: PlayerEntity,
-    private newRoute: RouteEntity,
+    private newRoute: RouteEntity | null,
     private oldRoute: RouteEntity | null,
-    private canvas: fabric.Canvas
+    private canvasManager: CanvasManager,
   ) {}
 
-  public execute(): void {
-    this.player.setRoute(this.newRoute, this.canvas);
-    this.canvas.requestRenderAll();
+  execute(): void {
+    if (this.oldRoute) {
+      this.oldRoute.getFabricObjects().forEach((obj) => {
+        this.canvasManager.remove(obj);
+      });
+    }
+
+    this.player.route = this.newRoute;
+
+    if (this.newRoute) {
+      this.newRoute.getFabricObjects().forEach((obj) => {
+        this.canvasManager.add(obj);
+      });
+
+      this.player.getFabricObjects().forEach((obj) => {
+        this.canvasManager.bringObjectToFront(obj);
+      });
+    }
   }
 
-  public undo(): void {
-    if (this.oldRoute) {
-      this.player.setRoute(this.oldRoute, this.canvas);
-    } else {
-      this.player.removeRoute(this.canvas);
+  undo(): void {
+    if (this.newRoute) {
+      this.newRoute.getFabricObjects().forEach((obj) => {
+        this.canvasManager.remove(obj);
+      });
     }
-    this.canvas.requestRenderAll();
+
+    this.player.route = this.oldRoute;
+
+    if (this.oldRoute) {
+      this.oldRoute.getFabricObjects().forEach((obj) => {
+        this.canvasManager.add(obj);
+      });
+
+      this.player.getFabricObjects().forEach((obj) => {
+        this.canvasManager.bringObjectToFront(obj);
+      });
+    }
   }
 }

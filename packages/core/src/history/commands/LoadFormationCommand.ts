@@ -1,35 +1,44 @@
-import type { ICommand } from '../../types/history.js';
-import type { FormationManager } from '../../manager/FormationManager.js';
-import type { PlayerEntity } from '../../entities/PlayerEntity.js';
+// history/commands/LoadFormationCommand.ts
+import type { ICommand } from "../../types/history";
+import type { FormationManager } from "../../managers/FormationManager";
+import type { PlayerEntity } from "../../entities/PlayerEntity";
 
 export class LoadFormationCommand implements ICommand {
   private previousPlayers: PlayerEntity[] = [];
-    private formationPlayers: PlayerEntity[] = [];
+  private newFormationPlayers: PlayerEntity[] = [];
+  private isFirstExecution: boolean = true;
 
   constructor(
     private formationManager: FormationManager,
     private formationId: string,
     private customX?: number,
-    private customY?: number
+    private customY?: number,
   ) {}
 
-  public execute(): void {
-    if (this.previousPlayers.length === 0 && this.formationPlayers.length === 0) {
+  execute(): void {
+    if (this.isFirstExecution) {
       this.previousPlayers = this.formationManager.getAllPlayers();
+
+      this.formationManager.clearField();
+
+      this.formationManager.loadFormation(
+        this.formationId,
+        this.customX,
+        this.customY,
+      );
+
+      this.newFormationPlayers = this.formationManager.getAllPlayers();
+
+      this.isFirstExecution = false;
+    } else {
+      this.formationManager.clearField();
+      this.formationManager.restorePlayers(this.newFormationPlayers);
     }
-
-    this.formationManager.clearAllPlayers();
-
-    this.formationManager.applyFormationData(this.formationId, this.customX, this.customY);
-    
-    this.formationPlayers = this.formationManager.getAllPlayers();
   }
 
-  public undo(): void {
-    this.formationManager.clearAllPlayers();
+  undo(): void {
+    this.formationManager.clearField();
 
-    if (this.previousPlayers.length > 0) {
-      this.formationManager.restorePlayers(this.previousPlayers);
-    }
+    this.formationManager.restorePlayers(this.previousPlayers);
   }
 }
