@@ -271,6 +271,14 @@ export function Toolbar() {
       >
         <Delete className="h-4 w-4" />
       </Button>
+
+      <Button
+        variant="default"
+        size="icon"
+        onClick={() => engine.deleteRoute()}
+      >
+        <Delete className="h-4 w-4" />
+      </Button>
     </header>
   );
 }
