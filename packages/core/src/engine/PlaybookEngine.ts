@@ -29,7 +29,7 @@ export class PlaybookEngine {
   constructor() {
     this.historyManager = new HistoryManager();
     this.canvasManager = new CanvasManager();
-    this.entityManager = new EntityManager();
+    this.entityManager = new EntityManager(this.canvasManager);
   }
 
   public init(canvasElement: HTMLCanvasElement): void {

@@ -3,17 +3,18 @@ import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
 import { RouteFactory } from "../factories/RouteFactory";
 import { SYSTEM_ROUTES } from "../data/presets/routes";
 import type { ICommand } from "../types/history";
+import type { CanvasManager } from "./CanvasManager";
 
 export class EntityManager {
   private players: Map<string, PlayerEntity> = new Map();
 
-  constructor() {}
+  constructor(private canvasManager: CanvasManager) {}
 
   public createPlayer(
     config: PlayerConfig,
     onCommand: (cmd: ICommand) => void,
   ): PlayerEntity {
-    const player = new PlayerEntity(config);
+    const player = new PlayerEntity(config, this.canvasManager);
     player.onCommandGenerated = onCommand;
     return player;
   }

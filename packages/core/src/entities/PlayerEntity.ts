@@ -5,6 +5,11 @@ import type { RouteEntity } from "./RouteEntity";
 import type { ICommand } from "../types/history.js";
 import { MovePlayerCommand } from "../history/commands/MoveCommands.js";
 import { DEFAULT_LOS_Y } from "../data/presets/fields.js";
+import {
+  clampPositionWithinBounds,
+  snapToCoordinate,
+} from "../math/geometry.js";
+import type { CanvasManager } from "../managers/CanvasManager.js";
 
 export interface PlayerConfig {
   id?: string;
@@ -18,6 +23,7 @@ export interface PlayerConfig {
 export class PlayerEntity extends BaseEntity {
   public fabricObject: fabric.Group;
   public route: RouteEntity | null = null;
+  private canvasManager: CanvasManager;
 
   public readonly label: string;
   public readonly color: string;
@@ -27,8 +33,9 @@ export class PlayerEntity extends BaseEntity {
 
   public onCommandGenerated?: (command: ICommand) => void;
 
-  constructor(config: PlayerConfig) {
+  constructor(config: PlayerConfig, canvasManager: CanvasManager) {
     super(config.id);
+    this.canvasManager = canvasManager;
 
     this.label = config.label;
     this.color = config.color;
@@ -143,9 +150,32 @@ export class PlayerEntity extends BaseEntity {
     let currentX = this.fabricObject.left ?? 0;
     let currentY = this.fabricObject.top ?? 0;
 
-    if (Math.abs(currentY - DEFAULT_LOS_Y) < SNAP_THRESHOLD) {
-      currentY = DEFAULT_LOS_Y;
-      this.fabricObject.set({ top: currentY });
+    currentY = snapToCoordinate(currentY, DEFAULT_LOS_Y, SNAP_THRESHOLD);
+
+    const { width, height } = this.canvasManager.getCanvasDimensions();
+
+    const isCenterOrigin =
+      this.fabricObject.originX === "center" &&
+      this.fabricObject.originY === "center";
+
+    const clamped = clampPositionWithinBounds(
+      currentX,
+      currentY,
+      this.fabricObject.getScaledWidth(),
+      this.fabricObject.getScaledHeight(),
+      width,
+      height,
+      isCenterOrigin,
+    );
+
+    currentX = clamped.x;
+    currentY = clamped.y;
+
+    if (
+      currentX !== (this.fabricObject.left ?? 0) ||
+      currentY !== (this.fabricObject.top ?? 0)
+    ) {
+      this.fabricObject.set({ left: currentX, top: currentY });
     }
 
     const dx = currentX - this.lastPosition.x;

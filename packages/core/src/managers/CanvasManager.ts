@@ -16,6 +16,10 @@ export class CanvasManager {
     return this.canvas;
   }
 
+  public getCanvasDimensions(): { width: number; height: number } {
+    return { width: this.LOGICAL_WIDTH, height: this.LOGICAL_HEIGHT };
+  }
+
   public dispose(): void {
     if (this.canvas) {
       this.canvas.dispose();

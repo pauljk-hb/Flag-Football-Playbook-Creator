@@ -57,6 +57,21 @@ export function snapToGrid(value: number, gridSize: number = 10): number {
 }
 
 /**
+ * Rastet einen Wert (z.B. eine Koordinate) auf ein Ziel ein,
+ * wenn er sich innerhalb des Schwellenwerts (Threshold) befindet.
+ */
+export function snapToCoordinate(
+  value: number,
+  target: number,
+  threshold: number,
+): number {
+  if (Math.abs(value - target) < threshold) {
+    return target;
+  }
+  return value;
+}
+
+/**
  * Wandelt einen relativen (lokalen) Punkt einer Polyline in einen
  * absoluten Punkt auf dem gesamten Spielfeld (Canvas) um.
  */
@@ -164,5 +179,21 @@ export function clampPositionWithinBounds(
   return {
     x: Math.max(minX, Math.min(x, maxX)),
     y: Math.max(minY, Math.min(y, maxY)),
+  };
+}
+
+/**
+ * Zwingt eine einzelne X/Y-Koordinate in die Grenzen des Canvas.
+ * @param padding Puffer zum Rand (z.B. nützlich, damit Pfeilspitzen nicht halb abgeschnitten werden).
+ */
+export function clampPoint(
+  p: IPoint,
+  boundsWidth: number,
+  boundsHeight: number,
+  padding: number = 0,
+): IPoint {
+  return {
+    x: Math.max(padding, Math.min(p.x, boundsWidth - padding)),
+    y: Math.max(padding, Math.min(p.y, boundsHeight - padding)),
   };
 }
