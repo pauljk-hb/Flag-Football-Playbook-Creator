@@ -24,6 +24,7 @@ import {
   Route as RouteIcon,
   Map as MapIcon,
   ChevronDown,
+  Delete,
 } from "lucide-react";
 
 export function Toolbar() {
@@ -262,6 +263,14 @@ export function Toolbar() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Button
+        variant="default"
+        size="icon"
+        onClick={() => engine.removeSelectedPlayer()}
+      >
+        <Delete className="h-4 w-4" />
+      </Button>
     </header>
   );
 }

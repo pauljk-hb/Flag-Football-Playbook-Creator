@@ -1,18 +1,19 @@
-import * as fabric from 'fabric';
-import { EntityManager } from '../manager/EntityManager';
-import { PlayerEntity, type PlayerConfig } from '../entities/PlayerEntity';
-import { RouteFactory } from '../math/RouteFactory';
-import { HistoryManager } from '../history/HistoryManager';
-import { AddPlayerCommand } from '../history/commands/AddPlayerCommand';
-import { AssignRouteCommand } from '../history/commands/AssignRouteCommand';
-import { SYSTEM_ROUTES } from '../data/presets/routes';
-import { SYSTEM_FORMATIONS } from '../data/presets/formations';
-import { SYSTEM_PLAYERS } from '../data/presets/players';
-import { FieldManager } from '../manager/FieldManager';
-import { SYSTEM_FIELDS } from '../data/presets/fields';
-import { FormationManager } from '../manager/FormationManager';
-import { LoadFormationCommand } from '../history/commands/LoadFormationCommand';
-import type { SavedPlay, SavedPlayerData } from '../types/interfaces';
+import * as fabric from "fabric";
+import { EntityManager } from "../manager/EntityManager";
+import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
+import { RouteFactory } from "../math/RouteFactory";
+import { HistoryManager } from "../history/HistoryManager";
+import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
+import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
+import { SYSTEM_ROUTES } from "../data/presets/routes";
+import { SYSTEM_FORMATIONS } from "../data/presets/formations";
+import { SYSTEM_PLAYERS } from "../data/presets/players";
+import { FieldManager } from "../manager/FieldManager";
+import { SYSTEM_FIELDS } from "../data/presets/fields";
+import { FormationManager } from "../manager/FormationManager";
+import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
+import type { SavedPlay, SavedPlayerData } from "../types/interfaces";
+import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
 
 export class PlaybookEngine {
   private canvas: fabric.Canvas | null = null;
@@ -21,7 +22,7 @@ export class PlaybookEngine {
   public formationManager!: FormationManager;
 
   private fieldManager: FieldManager | null = null;
-  private currentFieldPresetId: string = 'STANDARD';
+  private currentFieldPresetId: string = "STANDARD";
 
   public readonly LOGICAL_WIDTH = 800;
   public readonly LOGICAL_HEIGHT = 600;
@@ -38,18 +39,18 @@ export class PlaybookEngine {
     this.canvas = new fabric.Canvas(canvasElement, {
       width: 800,
       height: 600,
-      backgroundColor: '#f8fafc',
+      backgroundColor: "#f8fafc",
       selection: false,
     });
 
     this.formationManager = new FormationManager(
-      this.entityManager, 
-      this.canvas, 
-      this.currentFieldPresetId
+      this.entityManager,
+      this.canvas,
+      this.currentFieldPresetId,
     );
-    
+
     this.fieldManager = new FieldManager(this.canvas);
-    this.fieldManager.drawField('STANDARD');
+    this.fieldManager.drawField("STANDARD");
 
     this.canvas.renderAll();
   }
@@ -74,9 +75,9 @@ export class PlaybookEngine {
     const scale = containerWidth / this.LOGICAL_WIDTH;
     const newHeight = this.LOGICAL_HEIGHT * scale;
 
-    this.canvas.setDimensions({ 
-      width: containerWidth, 
-      height: newHeight 
+    this.canvas.setDimensions({
+      width: containerWidth,
+      height: newHeight,
     });
 
     this.canvas.setZoom(scale);
@@ -100,11 +101,37 @@ export class PlaybookEngine {
     player.onCommandGenerated = (command) => {
       this.history.execute(command);
     };
-    
-    const command = new AddPlayerCommand(player, this.canvas!, this.entityManager);
+
+    const command = new AddPlayerCommand(
+      player,
+      this.canvas!,
+      this.entityManager,
+    );
     this.history.execute(command);
 
     return player.id;
+  }
+
+  public removePlayer(playerId: string): void {
+    const player = this.entityManager.getPlayer(playerId);
+    if (!player) return;
+
+    const command = new RemovePlayerCommand(
+      player,
+      this.canvas!,
+      this.entityManager,
+    );
+    this.history.execute(command);
+  }
+
+  public removeSelectedPlayer(): void {
+    const selectedId = this.getSelectedPlayerId();
+    if (!selectedId) {
+      console.warn("Es ist kein Spieler ausgewählt!");
+      return;
+    }
+
+    this.removePlayer(selectedId);
   }
 
   /**
@@ -124,7 +151,7 @@ export class PlaybookEngine {
       player.x,
       player.y,
       routePreset,
-      player.color
+      player.color,
     );
 
     newRouteEntity.onCommandGenerated = (command) => {
@@ -134,14 +161,14 @@ export class PlaybookEngine {
     const oldRouteEntity = player.route;
 
     const command = new AssignRouteCommand(
-      player, 
-      newRouteEntity, 
-      oldRouteEntity, 
-      this.canvas!
+      player,
+      newRouteEntity,
+      oldRouteEntity,
+      this.canvas!,
     );
-    
+
     this.history.execute(command);
-    
+
     this.renderCanvas();
   }
 
@@ -150,13 +177,13 @@ export class PlaybookEngine {
    */
   public getSelectedPlayerId(): string | null {
     if (!this.canvas) return null;
-    
+
     const activeObject = this.canvas.getActiveObject();
     if (!activeObject) return null;
 
-    const player = this.entityManager.getAllPlayers().find(
-      (p) => p.fabricObject === activeObject
-    );
+    const player = this.entityManager
+      .getAllPlayers()
+      .find((p) => p.fabricObject === activeObject);
 
     return player ? player.id : null;
   }
@@ -166,9 +193,9 @@ export class PlaybookEngine {
    */
   public assignRouteToSelectedPlayer(routePresetId: string): void {
     const selectedId = this.getSelectedPlayerId();
-    
+
     if (!selectedId) {
-      console.warn('Es ist kein Spieler ausgewählt!');
+      console.warn("Es ist kein Spieler ausgewählt!");
       return;
     }
 
@@ -183,14 +210,18 @@ export class PlaybookEngine {
     this.history.redo();
   }
 
-  public loadFormation(formationId: string, customX?: number, customY?: number): void {
+  public loadFormation(
+    formationId: string,
+    customX?: number,
+    customY?: number,
+  ): void {
     const command = new LoadFormationCommand(
-      this.formationManager, 
-      formationId, 
-      customX, 
-      customY
+      this.formationManager,
+      formationId,
+      customX,
+      customY,
     );
-    
+
     this.history.execute(command);
   }
 
@@ -273,7 +304,7 @@ export class PlaybookEngine {
 
   private requireCanvas(): void {
     if (!this.canvas) {
-      throw new Error('PlaybookEngine is not initialized. Call init() first.');
+      throw new Error("PlaybookEngine is not initialized. Call init() first.");
     }
   }
 
