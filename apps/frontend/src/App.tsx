@@ -1,5 +1,5 @@
-import { EditorLayout } from './components/layouts/EditorLayout';
-import { PlaybookProvider } from './contexts/PlaybookContext';
+import { EditorLayout } from "./layouts/EditorLayout";
+import { PlaybookProvider } from "./contexts/PlaybookContext";
 
 function App() {
   return (

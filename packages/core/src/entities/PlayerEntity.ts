@@ -10,6 +10,7 @@ import {
   snapToCoordinate,
 } from "../math/geometry.js";
 import type { CanvasManager } from "../managers/CanvasManager.js";
+import type { SavedPlayer } from "../types/interfaces.js";
 
 export interface PlayerConfig {
   id?: string;
@@ -27,6 +28,7 @@ export class PlayerEntity extends BaseEntity {
 
   public readonly label: string;
   public readonly color: string;
+  public readonly shape: "circle" | "square";
 
   private lastPosition: { x: number; y: number };
   private dragStartPos: { x: number; y: number } | null = null;
@@ -39,6 +41,7 @@ export class PlayerEntity extends BaseEntity {
 
     this.label = config.label;
     this.color = config.color;
+    this.shape = config.shape;
 
     let backgroundShape: fabric.Object;
 
@@ -142,6 +145,18 @@ export class PlayerEntity extends BaseEntity {
     }
 
     this.lastPosition = { x, y };
+  }
+
+  public serialize(): SavedPlayer {
+    return {
+      id: this.id,
+      x: this.x,
+      y: this.y,
+      color: this.color,
+      shape: this.shape,
+      label: this.label,
+      route: this.route ? this.route.serialize() : null,
+    };
   }
 
   private onMove(): void {

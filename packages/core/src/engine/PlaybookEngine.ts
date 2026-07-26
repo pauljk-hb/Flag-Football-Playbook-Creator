@@ -13,11 +13,13 @@ import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
 import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
 import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
 import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
+import { PlayManager } from "../managers/PlayManager";
 
 export class PlaybookEngine {
   // === Manager ===
   public readonly historyManager: HistoryManager;
   public readonly entityManager: EntityManager;
+  private playManager: PlayManager;
 
   private canvasManager: CanvasManager;
   private selectionManager!: SelectionManager;
@@ -30,6 +32,11 @@ export class PlaybookEngine {
     this.historyManager = new HistoryManager();
     this.canvasManager = new CanvasManager();
     this.entityManager = new EntityManager(this.canvasManager);
+    this.playManager = new PlayManager(
+      this.entityManager,
+      this.canvasManager,
+      this.historyManager,
+    );
   }
 
   public init(canvasElement: HTMLCanvasElement): void {
@@ -209,6 +216,38 @@ export class PlaybookEngine {
   public getSelectedPlayerId(): string | null {
     if (!this.selectionManager) return null;
     return this.selectionManager.getSelectedPlayerId();
+  }
+
+  /**
+   * Generiert einen JSON-String des aktuellen Spielfelds.
+   */
+  public savePlay(playName: string): string {
+    const playId = `play_${Date.now()}`;
+
+    const savedPlay = this.playManager.savePlay(playId, playName);
+
+    return JSON.stringify(savedPlay);
+  }
+
+  /**
+   * Lädt ein Spielfeld anhand eines JSON-Strings.
+   */
+  public loadPlay(jsonString: string): boolean {
+    try {
+      const savedPlay = JSON.parse(jsonString);
+
+      const onCommand = (cmd: ICommand) => {
+        this.historyManager.execute(cmd);
+      };
+
+      this.playManager.loadPlay(savedPlay, onCommand);
+      this.fieldManager.drawField(this.currentFieldPresetId);
+
+      return true;
+    } catch (error) {
+      console.error("Fehler beim Laden des Plays:", error);
+      return false;
+    }
   }
 
   /**

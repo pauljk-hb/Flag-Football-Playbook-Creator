@@ -8,6 +8,7 @@ import {
 import { setupRouteControls } from "./controls/routeControls.js";
 import { MoveRouteCommand } from "../history/commands/MoveCommands.js";
 import type { ICommand } from "../types/history.js";
+import type { SavedRoute } from "../types/interfaces.js";
 
 export interface RouteConfig {
   id?: string;
@@ -65,6 +66,14 @@ export class RouteEntity extends BaseEntity {
 
   public removeFromCanvas(canvas: fabric.Canvas): void {
     canvas.remove(this.fabricObject, this.arrowHead);
+  }
+
+  public serialize(): SavedRoute {
+    return {
+      id: this.id,
+      color: this.fabricObject.stroke as string,
+      points: this.fabricObject.points?.map((p) => ({ x: p.x, y: p.y })) || [],
+    };
   }
 
   public translate(dx: number, dy: number): void {

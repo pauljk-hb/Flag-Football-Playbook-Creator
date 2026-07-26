@@ -62,6 +62,10 @@ export class CanvasManager {
     this.canvas?.remove(object);
   }
 
+  public clear(): void {
+    this.canvas?.clear();
+  }
+
   /**
    * Schickt ein Objekt in den Hintergrund (z.B. für Routen).
    */

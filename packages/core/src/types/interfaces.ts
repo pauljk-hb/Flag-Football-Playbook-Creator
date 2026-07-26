@@ -1,20 +1,26 @@
-import type { PlayerConfig } from "../entities/PlayerEntity";
-
-export interface Point {
+export interface SavedPoint {
   x: number;
   y: number;
 }
 
-export interface SavedPlayerData {
-  config: PlayerConfig;
-  routeData?: {
-    points: Point[];
-  };
+export interface SavedRoute {
+  id: string;
+  points: SavedPoint[];
+  color: string;
+}
+
+export interface SavedPlayer {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
+  label: string;
+  shape: "circle" | "square";
+  route: SavedRoute | null;
 }
 
 export interface SavedPlay {
   id: string;
   name: string;
-  fieldPresetId: string;
-  players: SavedPlayerData[];
+  players: SavedPlayer[];
 }

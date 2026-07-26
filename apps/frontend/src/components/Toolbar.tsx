@@ -30,6 +30,7 @@ import {
 export function Toolbar() {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
+  const LOCAL_STORAGE_KEY = "football_play_slot_1";
 
   if (!engine) return null;
 
@@ -57,6 +58,27 @@ export function Toolbar() {
         "Konnte Route nicht zuweisen. Ist ein Spieler markiert?",
         error,
       );
+    }
+  };
+
+  const handleSave = () => {
+    const jsonString = engine.savePlay("Mein erster Spielzug");
+
+    localStorage.setItem(LOCAL_STORAGE_KEY, jsonString);
+    alert("Play gespeichert!");
+  };
+
+  const handleLoad = () => {
+    const jsonString = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+    if (!jsonString) {
+      alert("Kein Play gefunden!");
+      return;
+    }
+
+    const success = engine.loadPlay(jsonString);
+    if (!success) {
+      alert("Fehler beim Laden (Daten korrupt).");
     }
   };
 
@@ -279,6 +301,11 @@ export function Toolbar() {
       >
         <Delete className="h-4 w-4" />
       </Button>
+
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button onClick={handleSave}>💾 Speichern</button>
+        <button onClick={handleLoad}>📂 Laden</button>
+      </div>
     </header>
   );
 }
