@@ -5,11 +5,9 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
-import { FORMATION_PRESETS } from "@playbook/core";
 
 export function RouteAccordionItem() {
-  const { play, addPlayer, deletePlayer, addRoute, history } =
-    usePlaybookActions();
+  const { addRoute } = usePlaybookActions();
 
   return (
     <AccordionItem value="routes" className="px-4">
