@@ -250,6 +250,10 @@ export class PlaybookEngine {
     }
   }
 
+  public getAllSystemFormations(): string[] {
+    return this.formationManager.getAllSystemFormations();
+  }
+
   /**
    * Macht die letzte Aktion rückgängig.
    */

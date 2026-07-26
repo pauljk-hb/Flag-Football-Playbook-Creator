@@ -7,6 +7,7 @@ import type { EntityManager } from "./EntityManager";
 import type { CanvasManager } from "./CanvasManager";
 import type { PlayerEntity } from "../entities/PlayerEntity";
 import type { ICommand } from "../types/history";
+import { SYSTEM_FORMATIONS } from "../data/presets/formations";
 
 export class FormationManager {
   constructor(
@@ -126,5 +127,9 @@ export class FormationManager {
 
   public getAllPlayers(): PlayerEntity[] {
     return this.entityManager.getAllPlayers();
+  }
+
+  public getAllSystemFormations(): string[] {
+    return Object.keys(SYSTEM_FORMATIONS);
   }
 }

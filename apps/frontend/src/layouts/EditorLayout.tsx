@@ -1,6 +1,6 @@
-import { Toolbar } from "../components/Toolbar";
-import { PlaybookCanvas } from "../components/PlaybookCanvas";
-import { PropertiesSidebar } from "../components/PropertiesSidebar";
+import { Toolbar } from "../components/editor/Toolbar";
+import { PlaybookCanvas } from "../components/editor/PlaybookCanvas";
+import { PropertiesSidebar } from "../components/editor/PropertiesSidebar";
 
 export function EditorLayout() {
   return (
