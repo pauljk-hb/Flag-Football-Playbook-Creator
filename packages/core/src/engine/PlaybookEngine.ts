@@ -5,7 +5,7 @@ import { SelectionManager } from "../managers/SelectionManager";
 import { FieldManager } from "../managers/FieldManager";
 import { FormationManager } from "../managers/FormationManager";
 
-import type { PlayerConfig } from "../entities/PlayerEntity";
+import type { PlayerConfig, PlayerEntity } from "../entities/PlayerEntity";
 import type { ICommand } from "../types/history";
 
 // Commands
@@ -164,22 +164,28 @@ export class PlaybookEngine {
   }
 
   /**
-   * Löscht die Route des aktuell ausgewählten Spielers.
+   * Löscht die Route mithilfe der ID
    */
-  public deleteRoute(): void {
-    const selectedId = this.selectionManager.getSelectedPlayerId();
+  public deleteRoute(routeID: string): void {
+    const players = this.entityManager.getAllPlayers();
+    for (const player of players) {
+      if (player.route && player.route.id === routeID) {
+        const command = new AssignRouteCommand(
+          player,
+          null as any,
+          player.route,
+          this.canvasManager,
+        );
+        this.historyManager.execute(command);
+      }
+    }
+    console.warn("Keine Route gefunden");
+  }
+
+  public deleteSelectedRoute(): void {
+    const selectedId = this.selectionManager.getSelectedRouteId();
     if (!selectedId) return;
-
-    const player = this.entityManager.getPlayer(selectedId);
-    if (!player || !player.route) return;
-
-    const command = new AssignRouteCommand(
-      player,
-      null as any,
-      player.route,
-      this.canvasManager,
-    );
-    this.historyManager.execute(command);
+    this.deleteRoute(selectedId);
   }
 
   /**

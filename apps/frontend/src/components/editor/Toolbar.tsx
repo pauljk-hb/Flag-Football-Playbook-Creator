@@ -209,7 +209,7 @@ export function Toolbar() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => engine.deleteRoute()}
+          onClick={() => engine.deleteSelectedRoute()}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
