@@ -102,8 +102,8 @@ export function usePlaybookActions() {
   };
 
   const play = {
-    load: () => {
-      const jsonString = localStorage.getItem("PLay1");
+    load: (id: string) => {
+      const jsonString = localStorage.getItem(id);
 
       if (!jsonString) {
         alert("Kein Play gefunden!");
@@ -115,11 +115,11 @@ export function usePlaybookActions() {
         alert("Fehler beim Laden (Daten korrupt).");
       }
     },
-    save: () => {
+    save: (id: string) => {
       if (!engine) return;
-      const jsonString = engine.savePlay("Mein erster Spielzug");
+      const jsonString = engine.getPlayData();
 
-      localStorage.setItem("Play1", jsonString);
+      localStorage.setItem(id, jsonString);
     },
   };
 

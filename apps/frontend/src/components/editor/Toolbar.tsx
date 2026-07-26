@@ -16,12 +16,18 @@ import {
   Trash2,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
+import { useState } from "react";
 
 export function Toolbar() {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
-  const { play, addPlayer, deletePlayer, addRoute, history } =
-    usePlaybookActions();
+  const { play, addPlayer, addRoute, history } = usePlaybookActions();
+
+  const [saveId, setSaveId] = useState("");
+
+  function handleChange(e: any) {
+    setSaveId(e.target.value);
+  }
 
   if (!engine) return null;
 
@@ -212,10 +218,17 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
 
-        <Button onClick={() => play.save()}>
+        <input
+          type="text"
+          value={saveId}
+          onChange={handleChange}
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+
+        <Button onClick={() => play.save(saveId)}>
           <Save className="h-4 w-4" />
         </Button>
-        <Button variant="secondary" onClick={() => play.load()}>
+        <Button variant="secondary" onClick={() => play.load(saveId)}>
           <Folder className="h-4 w-4" />
         </Button>
       </div>

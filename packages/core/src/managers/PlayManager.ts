@@ -16,12 +16,10 @@ export class PlayManager {
   /**
    * Nimmt den aktuellen Zustand des Feldes und speichert ihn in einem JSON-kompatiblen Objekt.
    */
-  public savePlay(playId: string, playName: string): SavedPlay {
+  public savePlayData(): SavedPlay {
     const players = this.entityManager.getAllPlayers();
 
     return {
-      id: playId,
-      name: playName,
       players: players.map((player) => player.serialize()),
     };
   }
@@ -29,7 +27,7 @@ export class PlayManager {
   /**
    * Lädt einen Spielzug. Setzt das Feld komplett zurück und baut es anhand der Daten neu auf.
    */
-  public loadPlay(
+  public loadPlayData(
     savedPlay: SavedPlay,
     onCommand: (cmd: ICommand) => void,
   ): void {

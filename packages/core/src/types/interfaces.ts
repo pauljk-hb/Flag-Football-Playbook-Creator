@@ -20,7 +20,5 @@ export interface SavedPlayer {
 }
 
 export interface SavedPlay {
-  id: string;
-  name: string;
   players: SavedPlayer[];
 }

@@ -241,10 +241,8 @@ export class PlaybookEngine {
   /**
    * Generiert einen JSON-String des aktuellen Spielfelds.
    */
-  public savePlay(playName: string): string {
-    const playId = `play_${Date.now()}`;
-
-    const savedPlay = this.playManager.savePlay(playId, playName);
+  public getPlayData(): string {
+    const savedPlay = this.playManager.savePlayData();
 
     return JSON.stringify(savedPlay);
   }
@@ -260,7 +258,7 @@ export class PlaybookEngine {
         this.historyManager.execute(cmd);
       };
 
-      this.playManager.loadPlay(savedPlay, onCommand);
+      this.playManager.loadPlayData(savedPlay, onCommand);
       this.fieldManager.drawField(this.currentFieldPresetId);
 
       return true;
