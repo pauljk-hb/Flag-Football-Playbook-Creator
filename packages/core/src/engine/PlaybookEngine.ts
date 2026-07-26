@@ -5,7 +5,7 @@ import { SelectionManager } from "../managers/SelectionManager";
 import { FieldManager } from "../managers/FieldManager";
 import { FormationManager } from "../managers/FormationManager";
 
-import type { PlayerConfig, PlayerEntity } from "../entities/PlayerEntity";
+import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
 import type { ICommand } from "../types/history";
 
 // Commands
@@ -14,6 +14,7 @@ import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
 import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
 import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
 import { PlayManager } from "../managers/PlayManager";
+import { RouteEntity } from "../entities/RouteEntity";
 
 export class PlaybookEngine {
   // === Manager ===
@@ -186,6 +187,19 @@ export class PlaybookEngine {
     const selectedId = this.selectionManager.getSelectedRouteId();
     if (!selectedId) return;
     this.deleteRoute(selectedId);
+  }
+
+  public deleteSelectedObject(): void {
+    const selected = this.selectionManager.getSelectedObject();
+
+    if (!selected) return;
+
+    if (selected instanceof RouteEntity) {
+      this.deleteRoute(selected.id);
+    }
+    if (selected instanceof PlayerEntity) {
+      this.removePlayer(selected.id);
+    }
   }
 
   /**
