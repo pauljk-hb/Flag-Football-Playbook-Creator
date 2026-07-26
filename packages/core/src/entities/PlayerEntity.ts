@@ -117,7 +117,8 @@ export class PlayerEntity extends BaseEntity {
       this.fabricObject.set(
         "shadow",
         new fabric.Shadow({
-          color: "#FFD700",
+          color: "#ffc800",
+
           blur: 15,
           offsetX: 0,
           offsetY: 0,
