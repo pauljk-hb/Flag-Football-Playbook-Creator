@@ -4,6 +4,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { usePlaybook } from "@/contexts/PlaybookContext";
 import { FORMATION_PRESETS } from "@playbook/core";
 
@@ -31,6 +32,13 @@ export function FormationAccordionItem() {
             </Button>
           </div>
         ))}
+        <Separator orientation="horizontal" className="w-full my-4" />
+
+        <p className="text-xs text-muted-foreground">Eigene Formationen</p>
+
+        <Button variant="secondary" className="w-full h-10">
+          Formation speichern
+        </Button>
       </AccordionContent>
     </AccordionItem>
   );
