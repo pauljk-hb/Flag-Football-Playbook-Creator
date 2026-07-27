@@ -15,6 +15,7 @@ import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
 import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
 import { PlayManager } from "../managers/PlayManager";
 import { RouteEntity } from "../entities/RouteEntity";
+import type { ThumbnailOptions } from "../types/interfaces";
 
 export class PlaybookEngine {
   // === Manager ===
@@ -254,6 +255,8 @@ export class PlaybookEngine {
     try {
       const savedPlay = JSON.parse(jsonString);
 
+      console.log("Core Json Load", savedPlay);
+
       const onCommand = (cmd: ICommand) => {
         this.historyManager.execute(cmd);
       };
@@ -270,6 +273,10 @@ export class PlaybookEngine {
 
   public getAllSystemFormations(): string[] {
     return this.formationManager.getAllSystemFormations();
+  }
+
+  public generateThumbnail(options: ThumbnailOptions = {}): string {
+    return this.canvasManager.generateThumbnail();
   }
 
   /**

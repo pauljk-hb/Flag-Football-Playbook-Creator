@@ -3,6 +3,7 @@ import { SYSTEM_PLAYERS } from "@playbook/core/dist/data/presets/players";
 
 export function usePlaybookActions() {
   const { engine } = usePlaybook();
+  const context = usePlaybook();
 
   const addPlayer = {
     qb: () => {
@@ -102,26 +103,30 @@ export function usePlaybookActions() {
   };
 
   const play = {
-    load: (id: string) => {
-      const jsonString = localStorage.getItem(id);
-
-      if (!jsonString) {
-        alert("Kein Play gefunden!");
+    load: (jsonCanvasData: string) => {
+      const currentEngine = context.engine;
+      console.log("usePLaybookaction", currentEngine);
+      if (!currentEngine) {
+        console.warn("Engine noch nicht initzalisiert");
         return;
       }
-      if (!engine) return;
-      const success = engine.loadPlay(jsonString);
+      console.log("frontend übergeben an core", jsonCanvasData);
+      const success = currentEngine.loadPlay(jsonCanvasData);
       if (!success) {
-        alert("Fehler beim Laden (Daten korrupt).");
+        console.warn("Enigne konnte nicht play laden");
       }
     },
-    save: (id: string) => {
-      if (!engine) return;
-      const jsonString = engine.getPlayData();
-
-      localStorage.setItem(id, jsonString);
+    exportCanvasJSON: (): string => {
+      if (!engine) return "";
+      return engine.getPlayData();
+    },
+    exportThumbnail: (): string => {
+      if (!engine) return "";
+      return engine.generateThumbnail();
     },
   };
+
+  const getAllPLays = () => {};
 
   const addPlayerFromPreset = (presetId: string) => {
     try {
@@ -163,5 +168,6 @@ export function usePlaybookActions() {
     addRoute,
     applyFormation,
     history,
+    getAllPLays,
   };
 }

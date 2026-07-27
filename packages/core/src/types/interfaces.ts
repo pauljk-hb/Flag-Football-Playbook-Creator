@@ -22,3 +22,9 @@ export interface SavedPlayer {
 export interface SavedPlay {
   players: SavedPlayer[];
 }
+
+export interface ThumbnailOptions {
+  format?: "png" | "jpeg" | "webp";
+  quality?: number;
+  multiplier?: number;
+}

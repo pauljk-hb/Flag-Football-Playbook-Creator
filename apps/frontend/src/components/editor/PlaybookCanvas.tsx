@@ -2,7 +2,11 @@ import { useEffect, useRef } from "react";
 import { PlaybookEngine } from "@playbook/core";
 import { usePlaybook } from "../../contexts/PlaybookContext";
 
-export function PlaybookCanvas() {
+interface PlaybookCanvasProps {
+  initialPlayData?: any; // Das 'data' Objekt aus der API
+}
+
+export function PlaybookCanvas({ initialPlayData }: PlaybookCanvasProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { setEngine } = usePlaybook();
@@ -12,6 +16,16 @@ export function PlaybookCanvas() {
 
     const engineInstance = new PlaybookEngine();
     engineInstance.init(canvasRef.current);
+
+    if (initialPlayData) {
+      const dataString =
+        typeof initialPlayData === "string"
+          ? initialPlayData
+          : JSON.stringify(initialPlayData);
+
+      const success = engineInstance.loadPlay(dataString);
+      if (!success) console.warn("Engine konnte Play nicht laden.");
+    }
 
     setEngine(engineInstance);
 
@@ -28,12 +42,11 @@ export function PlaybookCanvas() {
       engineInstance.dispose();
       setEngine(null);
     };
-  }, [setEngine]);
-
+  }, []);
   return (
     <div
       ref={wrapperRef}
-      className=" max-h-full overflow-hidden shadow-lg bg-white rounded-md"
+      className="w-2/3 overflow-hidden shadow-lg bg-white rounded-md"
     >
       <canvas ref={canvasRef} />
     </div>

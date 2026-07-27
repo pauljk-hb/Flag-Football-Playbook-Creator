@@ -1,4 +1,5 @@
 import * as fabric from "fabric";
+import type { ThumbnailOptions } from "../types/interfaces";
 
 export class CanvasManager {
   private canvas: fabric.Canvas | null = null;
@@ -64,6 +65,28 @@ export class CanvasManager {
 
   public clear(): void {
     this.canvas?.clear();
+  }
+
+  /**
+   * Generiert ein Base64-Vorschaubild (Data-URL) des aktuellen Canvas.
+   */
+  public generateThumbnail(options: ThumbnailOptions = {}): string {
+    const {
+      format = "png",
+      quality = 0.8,
+      multiplier = 0.5, // 0.5 ist ideal für Thumbnails/Vorschaubilder
+    } = options;
+
+    this.canvas!.discardActiveObject();
+    this.canvas!.requestRenderAll();
+
+    const dataUrl = this.canvas!.toDataURL({
+      format,
+      quality,
+      multiplier,
+    });
+
+    return dataUrl;
   }
 
   /**

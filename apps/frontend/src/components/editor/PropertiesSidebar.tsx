@@ -4,7 +4,19 @@ import { FormationAccordionItem } from "./propertieSidebar/FormationsAccordionIt
 import { FieldAccordionItem } from "./propertieSidebar/FieldAccordionItem";
 import { RouteAccordionItem } from "./propertieSidebar/RouteAccordionItem";
 
-export function PropertiesSidebar() {
+interface SidebarProps {
+  title: string;
+  onTitleChange: (title: string) => void;
+  description: string;
+  onDescriptionChange: (title: string) => void;
+}
+
+export function PropertiesSidebar({
+  title,
+  onTitleChange,
+  description,
+  onDescriptionChange,
+}: SidebarProps) {
   return (
     <aside className="w-100 border-l bg-card overflow-y-auto shrink-0">
       <div className="p-4 border-b bg-muted/30">
@@ -12,7 +24,12 @@ export function PropertiesSidebar() {
       </div>
 
       <Accordion defaultValue={["general"]} className="w-full">
-        <GeneralAccordionItem />
+        <GeneralAccordionItem
+          title={title}
+          onTitleChange={onTitleChange}
+          description={description}
+          onDescriptionChange={onDescriptionChange}
+        />
 
         <FormationAccordionItem />
 

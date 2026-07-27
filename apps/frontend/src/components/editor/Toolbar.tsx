@@ -18,7 +18,12 @@ import {
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { useState } from "react";
 
-export function Toolbar() {
+interface ToolbarProps {
+  title: string;
+  onSave: () => void;
+}
+
+export function Toolbar({ title, onSave }: ToolbarProps) {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
   const { play, addPlayer, addRoute, history } = usePlaybookActions();
@@ -33,7 +38,7 @@ export function Toolbar() {
 
   return (
     <header className="px-4 border-b py-2">
-      <h2>Play- Editor</h2>
+      <h2>{title}</h2>
       <div className="flex items-center gap-2 bg-card shrink-0">
         {/* GRUPPE 1: Verlauf (Undo/Redo) */}
         <div className="flex items-center gap-1">
@@ -218,18 +223,8 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
 
-        <input
-          type="text"
-          value={saveId}
-          onChange={handleChange}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        />
-
-        <Button onClick={() => play.save(saveId)}>
+        <Button onClick={() => onSave()}>
           <Save className="h-4 w-4" />
-        </Button>
-        <Button variant="secondary" onClick={() => play.load(saveId)}>
-          <Folder className="h-4 w-4" />
         </Button>
       </div>
     </header>
