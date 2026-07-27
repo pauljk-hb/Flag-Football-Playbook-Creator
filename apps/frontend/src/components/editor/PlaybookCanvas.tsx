@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { PlaybookEngine } from "@playbook/core";
-import { usePlaybook } from "../../contexts/PlaybookContext";
+import { usePlaybook } from "@/hooks/usePlaybook";
 
 interface PlaybookCanvasProps {
-  initialPlayData?: any; // Das 'data' Objekt aus der API
+  initialPlayData?: any;
 }
 
 export function PlaybookCanvas({ initialPlayData }: PlaybookCanvasProps) {
@@ -42,7 +42,8 @@ export function PlaybookCanvas({ initialPlayData }: PlaybookCanvasProps) {
       engineInstance.dispose();
       setEngine(null);
     };
-  }, []);
+  }, [setEngine]);
+
   return (
     <div
       ref={wrapperRef}

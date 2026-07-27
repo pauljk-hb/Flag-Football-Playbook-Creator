@@ -16,7 +16,7 @@ export function EditorLayout() {
   const [playTitle, setPlayTitle] = useState("Unbenanntes Play");
   const [playDescription, setPlayDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // <-- NEU: Blockiert UI bis Daten da sind
+  const [isLoading, setIsLoading] = useState(true);
 
   const [rawPlayData, setRawPlayData] = useState<Play | null>(null);
 
@@ -26,7 +26,6 @@ export function EditorLayout() {
       if (id) {
         try {
           const data = await api.plays.getById(id);
-          console.log("rawPlay-data", data);
           if (data) {
             setRawPlayData(data);
             setPlayTitle(data.title);
@@ -40,7 +39,7 @@ export function EditorLayout() {
         setPlayDescription("");
         setRawPlayData(null);
       }
-      setIsLoading(false); // Daten sind da, Editor darf rendern
+      setIsLoading(false);
     }
 
     loadData();
@@ -56,7 +55,7 @@ export function EditorLayout() {
         title: playTitle,
         description: playDescription,
         thumbnail: thumbnailString,
-        data: canvasData, // Canvas liefert stringierten JSON
+        data: canvasData,
       };
 
       if (id) {
@@ -72,7 +71,6 @@ export function EditorLayout() {
     }
   };
 
-  // Zeige Ladebildschirm, während die ID ausgelesen wird
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -84,11 +82,12 @@ export function EditorLayout() {
   return (
     <div className="flex flex-col h-screen bg-background">
       <Toolbar title={playTitle} onSave={handleSave} />
+
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative bg-slate-50 flex items-center justify-center p-4">
-          {/* Daten werden als Prop direkt in den Canvas gereicht */}
           <PlaybookCanvas initialPlayData={rawPlayData?.data} />
         </main>
+
         <PropertiesSidebar
           title={playTitle}
           onTitleChange={setPlayTitle}

@@ -2,11 +2,10 @@ import { api } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePlaybook } from "@/contexts/PlaybookContext";
 import type { Play } from "@/types/interface";
 import { Layers } from "lucide-react";
 import { useEffect, useState } from "react";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function Playbook() {
   const navigate = useNavigate();
@@ -64,7 +63,7 @@ export function Playbook() {
       </header>
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 flex flex-col gap-6">
         {plays.map((play) => (
-          <Card key={play.id} className="overflow-hidden w-64">
+          <Card key={play.id} className="overflow-hidden">
             <div className="aspect-4/3 w-full bg-muted flex items-center justify-center border-b">
               {play.thumbnail ? (
                 <img

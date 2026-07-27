@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { usePlaybook } from "@/contexts/PlaybookContext";
+import { usePlaybook } from "@/hooks/usePlaybook";
 import { FORMATION_PRESETS } from "@playbook/core";
 
 export function FormationAccordionItem() {

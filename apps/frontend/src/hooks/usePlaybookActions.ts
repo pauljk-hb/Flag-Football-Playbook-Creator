@@ -1,9 +1,8 @@
-import { usePlaybook } from "@/contexts/PlaybookContext";
 import { SYSTEM_PLAYERS } from "@playbook/core/dist/data/presets/players";
+import { usePlaybook } from "./usePlaybook";
 
 export function usePlaybookActions() {
   const { engine } = usePlaybook();
-  const context = usePlaybook();
 
   const addPlayer = {
     qb: () => {
@@ -103,19 +102,6 @@ export function usePlaybookActions() {
   };
 
   const play = {
-    load: (jsonCanvasData: string) => {
-      const currentEngine = context.engine;
-      console.log("usePLaybookaction", currentEngine);
-      if (!currentEngine) {
-        console.warn("Engine noch nicht initzalisiert");
-        return;
-      }
-      console.log("frontend übergeben an core", jsonCanvasData);
-      const success = currentEngine.loadPlay(jsonCanvasData);
-      if (!success) {
-        console.warn("Enigne konnte nicht play laden");
-      }
-    },
     exportCanvasJSON: (): string => {
       if (!engine) return "";
       return engine.getPlayData();

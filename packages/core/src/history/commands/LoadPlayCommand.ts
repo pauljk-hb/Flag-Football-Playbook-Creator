@@ -42,11 +42,11 @@ export class LoadPlayCommand implements ICommand {
 
     this.formationManager.clearField();
 
-    this.fieldManager.drawField(this.playData.fieldPresetId);
+    //this.fieldManager.drawField(this.playData.fieldPresetId);
 
     this.playData.players.forEach((savedPlayer) => {
       const playerEntity = this.entityManager.createPlayer(
-        savedPlayer.config,
+        savedPlayer,
         (command) => this.history.execute(command),
       );
 
@@ -55,11 +55,11 @@ export class LoadPlayCommand implements ICommand {
         this.canvasManager.bringObjectToFront(obj);
       });
 
-      if (savedPlayer.routeData?.points) {
+      if (savedPlayer.route?.points) {
         const newRouteEntity = RouteFactory.createFromPoints(
           playerEntity.x,
           playerEntity.y,
-          savedPlayer.routeData.points,
+          savedPlayer.route.points,
           playerEntity.color,
         );
 

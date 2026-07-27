@@ -1,5 +1,5 @@
-import * as fabric from 'fabric';
-import type { RouteEntity } from '../RouteEntity.js';
+import * as fabric from "fabric";
+import type { RouteEntity } from "../RouteEntity.js";
 
 const STRETCH_HANDLE_OFFSET_Y = -25;
 const VERTICAL_TOLERANCE = 15;
@@ -15,7 +15,7 @@ export function setupRouteControls(entity: RouteEntity): void {
     if (index === 0) return;
 
     const prevPoint = poly.points[index - 1];
-    if (!prevPoint) return; 
+    if (!prevPoint) return;
 
     const isVertical = Math.abs(point.x - prevPoint.x) < VERTICAL_TOLERANCE;
 
@@ -27,7 +27,10 @@ export function setupRouteControls(entity: RouteEntity): void {
   });
 }
 
-function createStretchControl(entity: RouteEntity, index: number): fabric.Control {
+function createStretchControl(
+  entity: RouteEntity,
+  index: number,
+): fabric.Control {
   return new fabric.Control({
     positionHandler: (dim, finalMatrix, fabricObject) => {
       const polyObj = fabricObject as fabric.Polyline;
@@ -36,43 +39,56 @@ function createStretchControl(entity: RouteEntity, index: number): fabric.Contro
 
       const offsetPt = new fabric.Point(
         pt.x - (polyObj.pathOffset?.x ?? 0),
-        pt.y - (polyObj.pathOffset?.y ?? 0) + STRETCH_HANDLE_OFFSET_Y
+        pt.y - (polyObj.pathOffset?.y ?? 0) + STRETCH_HANDLE_OFFSET_Y,
       );
 
       const vpt = polyObj.canvas?.viewportTransform ?? [1, 0, 0, 1, 0, 0];
       return fabric.util.transformPoint(
         offsetPt,
-        fabric.util.multiplyTransformMatrices(vpt, polyObj.calcTransformMatrix())
+        fabric.util.multiplyTransformMatrices(
+          vpt,
+          polyObj.calcTransformMatrix(),
+        ),
       );
     },
 
     actionHandler: (eventData, transform, x, y) => {
       const polyObj = transform.target as fabric.Polyline;
+      if (!polyObj.points) return false;
+
       const mouseLocal = fabric.util.transformPoint(
         new fabric.Point(x, y),
-        fabric.util.invertTransform(polyObj.calcTransformMatrix())
+        fabric.util.invertTransform(polyObj.calcTransformMatrix()),
       );
 
-      const newY = mouseLocal.y + (polyObj.pathOffset?.y ?? 0) - STRETCH_HANDLE_OFFSET_Y;
+      const newY =
+        mouseLocal.y + (polyObj.pathOffset?.y ?? 0) - STRETCH_HANDLE_OFFSET_Y;
       const dy = newY - (polyObj.points[index]?.y ?? 0);
 
-      const newPoints = polyObj.points.map(p => ({ x: p.x, y: p.y }));
+      const newPoints = polyObj.points.map((p) => ({ x: p.x, y: p.y }));
 
       for (let i = index; i < newPoints.length; i++) {
-        newPoints[i].y += dy;
+        const point = newPoints[i];
+        if (point) {
+          point.y += dy;
+        }
       }
 
       entity.updatePoints(newPoints);
       return true;
     },
 
-    cursorStyle: 'ns-resize',
-    actionName: 'stretchRoute',
-    render: renderStretchControl
+    cursorStyle: "ns-resize",
+    actionName: "stretchRoute",
+    render: renderStretchControl,
   });
 }
 
-function createNormalControl(entity: RouteEntity, index: number, hasStretch: boolean): fabric.Control {
+function createNormalControl(
+  entity: RouteEntity,
+  index: number,
+  hasStretch: boolean,
+): fabric.Control {
   return new fabric.Control({
     positionHandler: (dim, finalMatrix, fabricObject) => {
       const polyObj = fabricObject as fabric.Polyline;
@@ -81,13 +97,16 @@ function createNormalControl(entity: RouteEntity, index: number, hasStretch: boo
 
       const offsetPt = new fabric.Point(
         pt.x - (polyObj.pathOffset?.x ?? 0),
-        pt.y - (polyObj.pathOffset?.y ?? 0)
+        pt.y - (polyObj.pathOffset?.y ?? 0),
       );
 
       const vpt = polyObj.canvas?.viewportTransform ?? [1, 0, 0, 1, 0, 0];
       return fabric.util.transformPoint(
         offsetPt,
-        fabric.util.multiplyTransformMatrices(vpt, polyObj.calcTransformMatrix())
+        fabric.util.multiplyTransformMatrices(
+          vpt,
+          polyObj.calcTransformMatrix(),
+        ),
       );
     },
 
@@ -95,27 +114,31 @@ function createNormalControl(entity: RouteEntity, index: number, hasStretch: boo
       const polyObj = transform.target as fabric.Polyline;
       const mouseLocal = fabric.util.transformPoint(
         new fabric.Point(x, y),
-        fabric.util.invertTransform(polyObj.calcTransformMatrix())
+        fabric.util.invertTransform(polyObj.calcTransformMatrix()),
       );
 
-      const newPoints = polyObj.points.map(p => ({ x: p.x, y: p.y }));
+      const newPoints = polyObj.points.map((p) => ({ x: p.x, y: p.y }));
 
       newPoints[index] = {
         x: mouseLocal.x + (polyObj.pathOffset?.x ?? 0),
-        y: mouseLocal.y + (polyObj.pathOffset?.y ?? 0)
+        y: mouseLocal.y + (polyObj.pathOffset?.y ?? 0),
       };
 
       entity.updatePoints(newPoints);
       return true;
     },
 
-    cursorStyle: 'pointer',
-    actionName: 'modifyPolygon',
-    render: renderNormalControl
+    cursorStyle: "pointer",
+    actionName: "modifyPolygon",
+    render: renderNormalControl,
   });
 }
 
-function renderStretchControl(ctx: CanvasRenderingContext2D, left: number, top: number): void {
+function renderStretchControl(
+  ctx: CanvasRenderingContext2D,
+  left: number,
+  top: number,
+): void {
   ctx.save();
   ctx.translate(left, top);
   ctx.beginPath();
@@ -123,22 +146,26 @@ function renderStretchControl(ctx: CanvasRenderingContext2D, left: number, top: 
   ctx.lineTo(7, 7);
   ctx.lineTo(-7, 7);
   ctx.closePath();
-  ctx.fillStyle = '#f59e0b';
+  ctx.fillStyle = "#f59e0b";
   ctx.fill();
   ctx.lineWidth = 1.5;
-  ctx.strokeStyle = '#ffffff';
+  ctx.strokeStyle = "#ffffff";
   ctx.stroke();
   ctx.restore();
 }
 
-function renderNormalControl(ctx: CanvasRenderingContext2D, left: number, top: number): void {
+function renderNormalControl(
+  ctx: CanvasRenderingContext2D,
+  left: number,
+  top: number,
+): void {
   ctx.save();
   ctx.beginPath();
   ctx.arc(left, top, 6, 0, 2 * Math.PI, false);
-  ctx.fillStyle = '#3b82f6';
+  ctx.fillStyle = "#3b82f6";
   ctx.fill();
   ctx.lineWidth = 1.5;
-  ctx.strokeStyle = '#ffffff';
+  ctx.strokeStyle = "#ffffff";
   ctx.stroke();
   ctx.restore();
 }

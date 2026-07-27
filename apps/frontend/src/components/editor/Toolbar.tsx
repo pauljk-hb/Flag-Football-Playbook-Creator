@@ -1,4 +1,3 @@
-import { usePlaybook } from "../../contexts/PlaybookContext";
 import { usePlaybookHistory } from "../../hooks/usePlaybookHistory";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,14 +8,13 @@ import {
   Redo2,
   UserPlus,
   Route as RouteIcon,
-  Map as MapIcon,
   Save,
-  Folder,
-  UserMinus,
   Trash2,
+  ChevronLeft,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { usePlaybook } from "@/hooks/usePlaybook";
 
 interface ToolbarProps {
   title: string;
@@ -26,19 +24,25 @@ interface ToolbarProps {
 export function Toolbar({ title, onSave }: ToolbarProps) {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
-  const { play, addPlayer, addRoute, history } = usePlaybookActions();
-
-  const [saveId, setSaveId] = useState("");
-
-  function handleChange(e: any) {
-    setSaveId(e.target.value);
-  }
+  const { addPlayer, addRoute, history } = usePlaybookActions();
+  const navigate = useNavigate();
 
   if (!engine) return null;
 
   return (
     <header className="px-4 border-b py-2">
-      <h2>{title}</h2>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate("/")}
+          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
+          title="Zurück zur Übersicht"
+          aria-label="Zurück"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+      </div>
       <div className="flex items-center gap-2 bg-card shrink-0">
         {/* GRUPPE 1: Verlauf (Undo/Redo) */}
         <div className="flex items-center gap-1">
@@ -214,7 +218,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
 
         <Button
-          variant="outline"
+          variant="secondary"
           size="icon"
           onClick={() => engine.deleteSelectedObject()}
         >
@@ -223,7 +227,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
 
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
 
-        <Button onClick={() => onSave()}>
+        <Button variant="secondary" onClick={() => onSave()}>
           <Save className="h-4 w-4" />
         </Button>
       </div>

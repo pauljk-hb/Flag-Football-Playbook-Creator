@@ -4,7 +4,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { usePlaybook } from "@/contexts/PlaybookContext";
+import { usePlaybook } from "@/hooks/usePlaybook";
 
 export function FieldAccordionItem() {
   const { engine } = usePlaybook();

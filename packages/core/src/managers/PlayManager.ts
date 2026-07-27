@@ -5,12 +5,14 @@ import type { SavedPlay } from "../types/interfaces.js";
 import type { ICommand } from "../types/history.js";
 import { RouteEntity } from "../entities/RouteEntity.js";
 import type { HistoryManager } from "../history/HistoryManager.js";
+import type { FieldManager } from "./FieldManager.js";
 
 export class PlayManager {
   constructor(
     private entityManager: EntityManager,
     private canvasManager: CanvasManager,
     private historyManager: HistoryManager,
+    private fieldManager: FieldManager,
   ) {}
 
   /**
@@ -20,6 +22,7 @@ export class PlayManager {
     const players = this.entityManager.getAllPlayers();
 
     return {
+      fieldPresetId: this.fieldManager.getCurrentPresetId(),
       players: players.map((player) => player.serialize()),
     };
   }
@@ -34,6 +37,10 @@ export class PlayManager {
     this.historyManager.clear();
     this.entityManager.clear();
     this.canvasManager.clear();
+
+    console.log("load PLay with: ", savedPlay.fieldPresetId);
+
+    this.fieldManager.drawField(savedPlay.fieldPresetId);
 
     for (const savedPlayer of savedPlay.players) {
       const player = this.entityManager.createPlayer(

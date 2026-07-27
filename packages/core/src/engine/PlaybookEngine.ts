@@ -25,7 +25,7 @@ export class PlaybookEngine {
 
   private canvasManager: CanvasManager;
   private selectionManager!: SelectionManager;
-  private fieldManager!: FieldManager;
+  private fieldManager: FieldManager;
   public formationManager!: FormationManager;
 
   private currentFieldPresetId: string = "STANDARD";
@@ -34,17 +34,19 @@ export class PlaybookEngine {
     this.historyManager = new HistoryManager();
     this.canvasManager = new CanvasManager();
     this.entityManager = new EntityManager(this.canvasManager);
+    this.fieldManager = new FieldManager(this.canvasManager);
+
     this.playManager = new PlayManager(
       this.entityManager,
       this.canvasManager,
       this.historyManager,
+      this.fieldManager,
     );
   }
 
   public init(canvasElement: HTMLCanvasElement): void {
     this.canvasManager.init(canvasElement);
 
-    this.fieldManager = new FieldManager(this.canvasManager);
     this.selectionManager = new SelectionManager(
       this.canvasManager,
       this.entityManager,

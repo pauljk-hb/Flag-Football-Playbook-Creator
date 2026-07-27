@@ -20,6 +20,7 @@ export interface SavedPlayer {
 }
 
 export interface SavedPlay {
+  fieldPresetId: string;
   players: SavedPlayer[];
 }
 
