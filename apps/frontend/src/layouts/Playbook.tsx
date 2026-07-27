@@ -61,7 +61,8 @@ export function Playbook() {
           </div>
         </div>
       </header>
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 flex flex-col gap-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {" "}
         {plays.map((play) => (
           <Card key={play.id} className="overflow-hidden">
             <div className="aspect-4/3 w-full bg-muted flex items-center justify-center border-b">
@@ -83,7 +84,11 @@ export function Playbook() {
               <div className="flex items-center justify-between">
                 <Badge>Badge</Badge>
                 <span className="text-xs text-muted-foreground">
-                  Formation XY
+                  {new Date(play.updatedAt).toLocaleDateString("de-DE", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </span>
               </div>
               <CardTitle className="pt-1">{play.title}</CardTitle>
