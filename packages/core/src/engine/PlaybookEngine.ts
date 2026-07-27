@@ -15,7 +15,7 @@ import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
 import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
 import { PlayManager } from "../managers/PlayManager";
 import { RouteEntity } from "../entities/RouteEntity";
-import type { ThumbnailOptions } from "../types/interfaces";
+import type { SavedPlay, ThumbnailOptions } from "../types/interfaces";
 
 export class PlaybookEngine {
   // === Manager ===
@@ -255,7 +255,7 @@ export class PlaybookEngine {
    */
   public loadPlay(jsonString: string): boolean {
     try {
-      const savedPlay = JSON.parse(jsonString);
+      const savedPlay: SavedPlay = JSON.parse(jsonString);
 
       console.log("Core Json Load", savedPlay);
 
@@ -264,7 +264,7 @@ export class PlaybookEngine {
       };
 
       this.playManager.loadPlayData(savedPlay, onCommand);
-      this.fieldManager.drawField(this.currentFieldPresetId);
+      this.fieldManager.drawField(savedPlay.fieldPresetId);
 
       return true;
     } catch (error) {
