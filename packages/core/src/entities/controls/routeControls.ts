@@ -1,5 +1,6 @@
 import * as fabric from "fabric";
 import type { RouteEntity } from "../RouteEntity.js";
+import type { RouteNode } from "../../types/interfaces.js";
 
 const STRETCH_HANDLE_OFFSET_Y = -25;
 const VERTICAL_TOLERANCE = 15;
@@ -27,60 +28,65 @@ export function setupRouteControls(entity: RouteEntity): void {
   });
 }
 
-function createStretchControl(
+export function createStretchControl(
   entity: RouteEntity,
   index: number,
 ): fabric.Control {
   return new fabric.Control({
     positionHandler: (dim, finalMatrix, fabricObject) => {
-      const polyObj = fabricObject as fabric.Polyline;
-      const pt = polyObj.points?.[index];
-      if (!pt) return new fabric.Point(0, 0);
+      const pathObj = fabricObject as fabric.Path;
+      const node = entity.nodes[index];
+      if (!node) return new fabric.Point(0, 0);
 
       const offsetPt = new fabric.Point(
-        pt.x - (polyObj.pathOffset?.x ?? 0),
-        pt.y - (polyObj.pathOffset?.y ?? 0) + STRETCH_HANDLE_OFFSET_Y,
+        node.x - (pathObj.pathOffset?.x ?? 0),
+        node.y - (pathObj.pathOffset?.y ?? 0) + STRETCH_HANDLE_OFFSET_Y,
       );
 
-      const vpt = polyObj.canvas?.viewportTransform ?? [1, 0, 0, 1, 0, 0];
+      const vpt = pathObj.canvas?.viewportTransform ?? [1, 0, 0, 1, 0, 0];
       return fabric.util.transformPoint(
         offsetPt,
         fabric.util.multiplyTransformMatrices(
           vpt,
-          polyObj.calcTransformMatrix(),
+          pathObj.calcTransformMatrix(),
         ),
       );
     },
 
     actionHandler: (eventData, transform, x, y) => {
-      const polyObj = transform.target as fabric.Polyline;
-      if (!polyObj.points) return false;
+      const pathObj = transform.target as fabric.Path;
+      if (!entity.nodes) return false;
 
       const mouseLocal = fabric.util.transformPoint(
         new fabric.Point(x, y),
-        fabric.util.invertTransform(polyObj.calcTransformMatrix()),
+        fabric.util.invertTransform(pathObj.calcTransformMatrix()),
       );
 
       const newY =
-        mouseLocal.y + (polyObj.pathOffset?.y ?? 0) - STRETCH_HANDLE_OFFSET_Y;
-      const dy = newY - (polyObj.points[index]?.y ?? 0);
+        mouseLocal.y + (pathObj.pathOffset?.y ?? 0) - STRETCH_HANDLE_OFFSET_Y;
+      const dy = newY - (entity.nodes[index]?.y ?? 0);
 
-      const newPoints = polyObj.points.map((p) => ({ x: p.x, y: p.y }));
+      // Deep copy des Zustands
+      const newNodes = JSON.parse(JSON.stringify(entity.nodes)) as RouteNode[];
 
-      for (let i = index; i < newPoints.length; i++) {
-        const point = newPoints[i];
-        if (point) {
-          point.y += dy;
+      // Die Stretch-Schleife: Verschiebt diesen Node und alle folgenden
+      for (let i = index; i < newNodes.length; i++) {
+        const node = newNodes[i];
+        if (node) {
+          node.y += dy;
+          // Die Kurven-Handles müssen synchron mitwandern
+          if (node.controlPointIn) node.controlPointIn.y += dy;
+          if (node.controlPointOut) node.controlPointOut.y += dy;
         }
       }
 
-      entity.updatePoints(newPoints);
+      entity.updateNodes(newNodes);
       return true;
     },
 
     cursorStyle: "ns-resize",
     actionName: "stretchRoute",
-    render: renderStretchControl,
+    render: renderStretchControl, // Bleibt gleich
   });
 }
 

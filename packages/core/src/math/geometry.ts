@@ -1,3 +1,4 @@
+import type { RouteNode } from "../types/interfaces";
 import type { BoundingBox, IPoint, PolylineMetrics } from "../types/math";
 
 /**
@@ -112,43 +113,33 @@ export function calculatePolylineMetrics(
  * anhand des letzten Liniensegments einer Route.
  */
 export function calculateArrowheadMetrics(
-  points: IPoint[],
-  elementLeft: number,
-  elementTop: number,
-  pathOffset: IPoint,
-): { x: number; y: number; angle: number } {
-  if (!points || points.length < 2) {
-    return { x: elementLeft, y: elementTop, angle: 0 };
+  nodes: RouteNode[],
+  left: number,
+  top: number,
+  pathOffset: { x: number; y: number },
+) {
+  const lastNode = nodes[nodes.length - 1];
+  const prevNode = nodes[nodes.length - 2];
+
+  // Bestimmen, welcher Punkt für den Einflugwinkel genutzt wird
+  let p1;
+  if (lastNode.type === SegmentType.CURVE && lastNode.controlPointIn) {
+    p1 = lastNode.controlPointIn; // Bei Kurven: Winkel aus dem Bezier-Handle
+  } else {
+    p1 = prevNode; // Bei Linien: Vorheriger Knotenpunkt
   }
 
-  const p1Local = points[points.length - 2]!;
-  const p2Local = points[points.length - 1]!;
+  // Koordinaten in die absolute Canvas-Position umrechnen
+  const absX2 = lastNode.x - pathOffset.x + left;
+  const absY2 = lastNode.y - pathOffset.y + top;
+  const absX1 = p1.x - pathOffset.x + left;
+  const absY1 = p1.y - pathOffset.y + top;
 
-  const p1Abs = localToAbsolutePosition(
-    p1Local,
-    elementLeft,
-    elementTop,
-    pathOffset,
-  );
-  const p2Abs = localToAbsolutePosition(
-    p2Local,
-    elementLeft,
-    elementTop,
-    pathOffset,
-  );
+  // Winkel berechnen (Y geht nach unten, daher Y2-Y1)
+  const radians = Math.atan2(absY2 - absY1, absX2 - absX1);
+  const angle = radians * (180 / Math.PI) + 90; // +90 weil Fabric-Dreiecke nach oben zeigen
 
-  // Basis-Winkel berechnen
-  const baseAngle = calculateAngleInDegrees(p1Abs, p2Abs);
-
-  // Vektor-Winkel (Math.atan2) beginnt rechts. SVG/Fabric-Dreiecke zeigen oft
-  // standardmäßig nach oben. Daher +90 Grad, damit die Spitze in Laufrichtung zeigt.
-  const adjustedAngle = baseAngle + 90;
-
-  return {
-    x: p2Abs.x,
-    y: p2Abs.y,
-    angle: adjustedAngle,
-  };
+  return { x: absX2, y: absY2, angle };
 }
 
 /**

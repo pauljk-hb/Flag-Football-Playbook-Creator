@@ -3,9 +3,24 @@ export interface SavedPoint {
   y: number;
 }
 
+export enum SegmentType {
+  LINE = "line",
+  CURVE = "curve",
+}
+
+export interface RouteNode {
+  id: string;
+  x: number;
+  y: number;
+  type: SegmentType;
+
+  controlPointIn?: { x: number; y: number };
+  controlPointOut?: { x: number; y: number };
+}
+
 export interface SavedRoute {
   id: string;
-  points: SavedPoint[];
+  points: RouteNode[];
   color: string;
 }
 
