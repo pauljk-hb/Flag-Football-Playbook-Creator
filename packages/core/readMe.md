@@ -1,3 +1,5 @@
+# Class Diagramm Core Package
+
 ````mermaid
 classDiagram
     %% --- SCHICHT 1: API (Fassade) ---
