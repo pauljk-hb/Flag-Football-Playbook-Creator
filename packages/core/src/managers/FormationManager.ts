@@ -1,6 +1,6 @@
 import {
   FORMATION_PRESETS,
-  FIELDS_PRESETS,
+  FIELD_PRESETS,
   PLAYER_PRESETS,
 } from "../data/presets/index";
 import type { EntityManager } from "./EntityManager";
@@ -60,7 +60,7 @@ export class FormationManager {
 
     if (originX === undefined || originY === undefined) {
       const fieldConfig =
-        FIELDS_PRESETS[this.currentFieldPresetId] || FIELDS_PRESETS["STANDARD"];
+        FIELD_PRESETS[this.currentFieldPresetId] || FIELD_PRESETS["STANDARD"];
       originX = fieldConfig ? fieldConfig.anchor.x : 400;
       originY = fieldConfig ? fieldConfig.anchor.y : 600;
     }
@@ -123,13 +123,5 @@ export class FormationManager {
         });
       }
     });
-  }
-
-  public getAllPlayers(): PlayerEntity[] {
-    return this.entityManager.getAllPlayers();
-  }
-
-  public getAllSystemFormations(): string[] {
-    return Object.keys(SYSTEM_FORMATIONS);
   }
 }

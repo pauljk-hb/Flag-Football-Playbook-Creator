@@ -1,10 +1,18 @@
 import * as fabric from "fabric";
 import type { ThumbnailOptions } from "../types/interfaces";
+import type { BaseEntity } from "../entities/BaseEntity";
+import { RouteEntity } from "../entities/RouteEntity";
+import { PlayerEntity } from "../entities/PlayerEntity";
+
+export const CANVAS_SIZE = {
+  width: 800,
+  height: 600,
+};
 
 export class CanvasManager {
   private canvas: fabric.Canvas | null = null;
-  public readonly LOGICAL_WIDTH = 800;
-  public readonly LOGICAL_HEIGHT = 600;
+  public readonly LOGICAL_WIDTH = CANVAS_SIZE.width;
+  public readonly LOGICAL_HEIGHT = CANVAS_SIZE.height;
 
   public init(canvasElement: HTMLCanvasElement): fabric.Canvas {
     this.canvas = new fabric.Canvas(canvasElement, {
@@ -55,12 +63,26 @@ export class CanvasManager {
     return this.canvas;
   }
 
-  public add(object: fabric.Object): void {
-    this.canvas?.add(object);
+  public addEntity(entity: BaseEntity): void {
+    const objects = entity.getFabricObjects();
+    this.canvas?.add(...objects);
+    this.requestRender();
   }
 
-  public remove(object: fabric.Object): void {
+  public removeEntity(entity: BaseEntity): void {
+    const objects = entity.getFabricObjects();
+    this.canvas?.remove(...objects);
+    this.requestRender();
+  }
+
+  public addFabricObject(object: fabric.Object): void {
+    this.canvas?.add(object);
+    this.requestRender();
+  }
+
+  public removeFabricObject(object: fabric.Object): void {
     this.canvas?.remove(object);
+    this.requestRender();
   }
 
   public clear(): void {
@@ -99,7 +121,10 @@ export class CanvasManager {
   /**
    * Holt ein Objekt in den Vordergrund (z.B. für Spieler).
    */
-  public bringObjectToFront(object: fabric.Object): void {
-    this.canvas?.bringObjectToFront(object);
+  public bringObjectToFront(object: BaseEntity): void {
+    const [firstObject] = object.getFabricObjects();
+    if (!firstObject) return;
+
+    this.canvas?.bringObjectToFront(firstObject);
   }
 }

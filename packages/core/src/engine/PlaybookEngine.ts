@@ -1,28 +1,37 @@
-import { EntityManager } from "../managers/EntityManager";
 import { HistoryManager } from "../history/HistoryManager";
 import { CanvasManager } from "../managers/CanvasManager";
 import { SelectionManager } from "../managers/SelectionManager";
 import { FieldManager } from "../managers/FieldManager";
 import { FormationManager } from "../managers/FormationManager";
-
 import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
 import type { ICommand } from "../types/history";
-
-// Commands
 import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
 import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
-import { AssignRouteCommand } from "../history/commands/AssignRouteCommand";
 import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
 import { PlayManager } from "../managers/PlayManager";
 import { RouteEntity } from "../entities/RouteEntity";
-import type { SavedPlay, ThumbnailOptions } from "../types/interfaces";
+import {
+  SegmentType,
+  type RouteNode,
+  type SavedPlay,
+  type ThumbnailOptions,
+} from "../types/interfaces";
+import {
+  FIELD_PRESETS,
+  FORMATION_PRESETS,
+  ROUTE_PRESETS,
+} from "../data/presets";
+import {
+  MovePlayerCommand,
+  MoveRouteCommand,
+} from "../history/commands/MoveCommands";
+import { AddRouteCommand } from "../history/commands/AddRouteCommand";
+import type { RoutePreset } from "../types/presets";
+import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 
 export class PlaybookEngine {
-  // === Manager ===
-  public readonly historyManager: HistoryManager;
-  public readonly entityManager: EntityManager;
+  private historyManager: HistoryManager;
   private playManager: PlayManager;
-
   private canvasManager: CanvasManager;
   private selectionManager!: SelectionManager;
   private fieldManager: FieldManager;
@@ -33,31 +42,28 @@ export class PlaybookEngine {
   constructor() {
     this.historyManager = new HistoryManager();
     this.canvasManager = new CanvasManager();
-    this.entityManager = new EntityManager(this.canvasManager);
     this.fieldManager = new FieldManager(this.canvasManager);
 
     this.playManager = new PlayManager(
-      this.entityManager,
       this.canvasManager,
       this.historyManager,
       this.fieldManager,
     );
   }
 
+  /*------------------------*/
+  /*  Funktionen für außen  */
+  /*------------------------*/
+
   public init(canvasElement: HTMLCanvasElement): void {
     this.canvasManager.init(canvasElement);
 
     this.selectionManager = new SelectionManager(
       this.canvasManager,
-      this.entityManager,
+      this.playManager,
     );
 
-    this.formationManager = new FormationManager(
-      this.entityManager,
-      this.canvasManager,
-      this.currentFieldPresetId,
-      this.handleEntityCommand,
-    );
+    this.selectionManager.setupSelectionEvents();
 
     this.historyManager.subscribe(() => {
       this.canvasManager.requestRender();
@@ -76,120 +82,55 @@ export class PlaybookEngine {
   }
 
   /**
-   * Wird an Entitäten (Player/Route) übergeben, damit deren Drag & Drop
-   * oder Resize-Events saubere Commands in unserer History erzeugen.
-   */
-  private handleEntityCommand = (command: ICommand) => {
-    this.historyManager.execute(command);
-  };
-
-  /**
    * Fügt einen neuen Spieler hinzu.
    */
-  public addPlayer(config: PlayerConfig): string {
-    const player = this.entityManager.createPlayer(
-      config,
-      this.handleEntityCommand,
-    );
-
+  public addPlayer(config: PlayerConfig): void {
+    const playerEntity = new PlayerEntity(config);
     const command = new AddPlayerCommand(
-      player,
+      playerEntity,
       this.canvasManager,
-      this.entityManager,
+      this.playManager,
     );
     this.historyManager.execute(command);
 
-    return player.id;
+    playerEntity.onMoveComplete = (playerId, startX, startY, endX, endY) => {
+      const command = new MovePlayerCommand(
+        playerId,
+        startX,
+        startY,
+        endX,
+        endY,
+        this.playManager,
+        this.canvasManager,
+      );
+
+      this.historyManager.execute(command);
+    };
   }
 
-  /**
-   * Entfernt einen Spieler anhand seiner ID.
-   */
-  public removePlayer(playerId: string): void {
-    const player = this.entityManager.getPlayer(playerId);
-    if (!player) return;
-
-    const command = new RemovePlayerCommand(
-      player,
-      this.canvasManager,
-      this.entityManager,
-    );
-    this.historyManager.execute(command);
-  }
-
-  /**
-   * Entfernt den aktuell auf dem Canvas markierten Spieler.
-   */
-  public removeSelectedPlayer(): void {
-    const selectedId = this.selectionManager.getSelectedPlayerId();
-    if (!selectedId) {
+  public addRouteFromPreset(preset: RoutePreset): void {
+    const player = this.selectionManager.getSelectedObject();
+    if (!player || !(player instanceof PlayerEntity)) {
       console.warn("Es ist kein Spieler ausgewählt!");
       return;
     }
-    this.removePlayer(selectedId);
-  }
 
-  /**
-   * Weist einem bestimmten Spieler eine Route zu.
-   */
-  public assignRouteToPlayer(playerId: string, routePresetId: string): void {
-    const player = this.entityManager.getPlayer(playerId);
-    if (!player) return;
+    const startX = player.x;
+    const startY = player.y;
 
-    const newRoute = this.entityManager.createRoute(
-      playerId,
-      routePresetId,
-      this.handleEntityCommand,
-    );
-    if (!newRoute) return;
+    const absoluteNodes: RouteNode[] = [];
 
-    const oldRoute = player.route;
+    absoluteNodes.push({ x: startX, y: startY, type: SegmentType.STRAIGHT });
 
-    const command = new AssignRouteCommand(
-      player,
-      newRoute,
-      oldRoute,
-      this.canvasManager,
-    );
-
-    this.historyManager.execute(command);
-  }
-
-  /**
-   * Weist dem aktuell markierten Spieler eine Route zu.
-   */
-  public assignRouteToSelectedPlayer(routePresetId: string): void {
-    const selectedId = this.selectionManager.getSelectedPlayerId();
-    if (!selectedId) {
-      console.warn("Es ist kein Spieler ausgewählt!");
-      return;
+    for (const wp of preset.waypoints) {
+      absoluteNodes.push({
+        x: absoluteNodes[absoluteNodes.length - 1].x + wp.dx,
+        y: absoluteNodes[absoluteNodes.length - 1].y + wp.dy,
+        type: SegmentType.STRAIGHT,
+      });
     }
-    this.assignRouteToPlayer(selectedId, routePresetId);
-  }
 
-  /**
-   * Löscht die Route mithilfe der ID
-   */
-  public deleteRoute(routeID: string): void {
-    const players = this.entityManager.getAllPlayers();
-    for (const player of players) {
-      if (player.route && player.route.id === routeID) {
-        const command = new AssignRouteCommand(
-          player,
-          null as any,
-          player.route,
-          this.canvasManager,
-        );
-        this.historyManager.execute(command);
-      }
-    }
-    console.warn("Keine Route gefunden");
-  }
-
-  public deleteSelectedRoute(): void {
-    const selectedId = this.selectionManager.getSelectedRouteId();
-    if (!selectedId) return;
-    this.deleteRoute(selectedId);
+    this.addRoute(player, absoluteNodes);
   }
 
   public deleteSelectedObject(): void {
@@ -234,14 +175,6 @@ export class PlaybookEngine {
   }
 
   /**
-   * Gibt ID des aktuell ausgewählten Spielers zurück (oder null, falls keiner ausgewählt ist).
-   */
-  public getSelectedPlayerId(): string | null {
-    if (!this.selectionManager) return null;
-    return this.selectionManager.getSelectedPlayerId();
-  }
-
-  /**
    * Generiert einen JSON-String des aktuellen Spielfelds.
    */
   public getPlayData(): string {
@@ -273,8 +206,16 @@ export class PlaybookEngine {
     }
   }
 
+  public getAllSystemRoutes(): string[] {
+    return Object.keys(ROUTE_PRESETS);
+  }
+
   public getAllSystemFormations(): string[] {
-    return this.formationManager.getAllSystemFormations();
+    return Object.keys(FORMATION_PRESETS);
+  }
+
+  public getAllSystemFields(): string[] {
+    return Object.keys(FIELD_PRESETS);
   }
 
   public generateThumbnail(options: ThumbnailOptions = {}): string {
@@ -293,5 +234,98 @@ export class PlaybookEngine {
    */
   public redo(): void {
     this.historyManager.redo();
+  }
+
+  public canUndo(): boolean {
+    return this.historyManager.canUndo();
+  }
+
+  public canRedo(): boolean {
+    return this.historyManager.canRedo();
+  }
+
+  public subscribeToHistoryChanges(callback: () => void): () => void {
+    const unsubscribe = this.historyManager.subscribe(callback);
+    return unsubscribe;
+  }
+
+  /*-------------------*/
+  /*  Hilfsfunktionen  */
+  /*-------------------*/
+
+  /**
+   * Entfernt einen Spieler anhand seiner ID.
+   */
+  private removePlayer(playerId: string): void {
+    this.playManager.getAllRoutesFromPlayer(playerId).forEach((route) => {
+      const removeRouteCommand = new RemoveRouteCommand(
+        route.id,
+        this.playManager,
+        this.canvasManager,
+      );
+      this.historyManager.execute(removeRouteCommand);
+    });
+
+    const command = new RemovePlayerCommand(
+      playerId,
+      this.playManager,
+      this.canvasManager,
+    );
+    this.historyManager.execute(command);
+  }
+
+  /**
+   * Weist einem bestimmten Spieler eine Route zu.
+   */
+  private addRoute(
+    player: PlayerEntity,
+    nodes: RouteNode[],
+    routeType: string = "default",
+  ): void {
+    const existingRoute = this.playManager.getRouteByPlayerAndType(
+      player.id,
+      routeType,
+    );
+
+    const routeEntity = new RouteEntity({
+      playerId: player.id,
+      nodes: JSON.parse(JSON.stringify(nodes)),
+      routeType: routeType,
+      color: player.color,
+    });
+
+    const command = new AddRouteCommand(
+      routeEntity,
+      this.playManager,
+      this.canvasManager,
+      existingRoute || null,
+    );
+
+    this.historyManager.execute(command);
+
+    routeEntity.onNodesModified = (routeId, oldNodes, newNodes) => {
+      const moveCommand = new MoveRouteCommand(
+        routeId,
+        oldNodes,
+        newNodes,
+        this.playManager,
+        this.canvasManager,
+      );
+      this.historyManager.execute(moveCommand);
+    };
+
+    this.canvasManager.bringObjectToFront(player);
+  }
+
+  /**
+   * Löscht die Route mithilfe der ID
+   */
+  private deleteRoute(routeID: string): void {
+    const command = new RemoveRouteCommand(
+      routeID,
+      this.playManager,
+      this.canvasManager,
+    );
+    this.historyManager.execute(command);
   }
 }

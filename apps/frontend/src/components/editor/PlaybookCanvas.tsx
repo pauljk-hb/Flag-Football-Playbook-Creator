@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { PlaybookEngine } from "@playbook/core";
 import { usePlaybook } from "@/hooks/usePlaybook";
+import { PlaybookAPI } from "@playbook/core";
 
 interface PlaybookCanvasProps {
   initialPlayData?: any;
@@ -14,9 +14,7 @@ export function PlaybookCanvas({ initialPlayData }: PlaybookCanvasProps) {
   useEffect(() => {
     if (!canvasRef.current || !wrapperRef.current) return;
 
-    const engineInstance = new PlaybookEngine();
-    engineInstance.init(canvasRef.current);
-
+    const engineInstance = new PlaybookAPI(canvasRef.current);
     if (initialPlayData) {
       const dataString =
         typeof initialPlayData === "string"

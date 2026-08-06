@@ -1,16 +1,12 @@
 // entities/PlayerEntity.ts
 import * as fabric from "fabric";
 import { BaseEntity } from "./BaseEntity.js";
-import type { RouteEntity } from "./RouteEntity";
-import type { ICommand } from "../types/history.js";
-import { MovePlayerCommand } from "../history/commands/MoveCommands.js";
-import { DEFAULT_LOS_Y } from "../data/presets/fields.js";
 import {
   clampPositionWithinBounds,
   snapToCoordinate,
-} from "../math/geometry.js";
-import type { CanvasManager } from "../managers/CanvasManager.js";
-import type { SavedPlayer } from "../types/interfaces.js";
+} from "../utils/geometry.js";
+import { DEFAULT_LOS_Y } from "../data/presets/fields.js";
+import { CANVAS_SIZE } from "../managers/CanvasManager.js";
 
 export interface PlayerConfig {
   id?: string;
@@ -22,23 +18,25 @@ export interface PlayerConfig {
 }
 
 export class PlayerEntity extends BaseEntity {
-  public fabricObject: fabric.Group;
-  public route: RouteEntity | null = null;
-  private canvasManager: CanvasManager;
+  public fabricGroup: fabric.Group;
 
-  public readonly label: string;
-  public readonly color: string;
-  public readonly shape: "circle" | "square";
+  public label: string;
+  public color: string;
+  public shape: "circle" | "square";
 
-  private lastPosition: { x: number; y: number };
-  private dragStartPos: { x: number; y: number } | null = null;
+  public onMoveComplete?: (
+    playerId: string,
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+  ) => void;
 
-  public onCommandGenerated?: (command: ICommand) => void;
+  private dragStartX: number = 0;
+  private dragStartY: number = 0;
 
-  constructor(config: PlayerConfig, canvasManager: CanvasManager) {
+  constructor(config: PlayerConfig) {
     super(config.id);
-    this.canvasManager = canvasManager;
-
     this.label = config.label;
     this.color = config.color;
     this.shape = config.shape;
@@ -73,7 +71,7 @@ export class PlayerEntity extends BaseEntity {
       fontFamily: "sans-serif",
     });
 
-    this.fabricObject = new fabric.Group([backgroundShape, text], {
+    this.fabricGroup = new fabric.Group([backgroundShape, text], {
       left: config.x,
       top: config.y,
       hasControls: false,
@@ -82,146 +80,120 @@ export class PlayerEntity extends BaseEntity {
       originY: "center",
     });
 
-    this.lastPosition = { x: config.x, y: config.y };
+    this.fabricGroup.set("id" as any, this.id);
     this.setupEvents();
   }
 
   public get x(): number {
-    return this.fabricObject.left ?? 0;
+    return this.fabricGroup.left ?? 0;
   }
 
   public get y(): number {
-    return this.fabricObject.top ?? 0;
-  }
-
-  public setRoute(route: RouteEntity): void {
-    this.route = route;
-  }
-
-  public removeRoute(): void {
-    this.route = null;
+    return this.fabricGroup.top ?? 0;
   }
 
   private setupEvents(): void {
-    this.fabricObject.on("mousedown", () => {
-      this.dragStartPos = {
-        x: this.fabricObject.left ?? 0,
-        y: this.fabricObject.top ?? 0,
-      };
+    this.fabricGroup.on("mousedown", () => {
+      this.dragStartX = this.fabricGroup.left ?? 0;
+      this.dragStartY = this.fabricGroup.top ?? 0;
     });
 
-    this.fabricObject.on("moving", () => this.onMove());
-    this.fabricObject.on("modified", () => this.onMoveComplete());
+    this.fabricGroup.on("selected", () => {
+      this.showControls();
+    });
 
-    this.fabricObject.on("selected", () => {
-      this.fabricObject.set(
-        "shadow",
-        new fabric.Shadow({
-          color: "#ffc800",
+    this.fabricGroup.on("deselected", () => {
+      this.hideControls();
+    });
 
-          blur: 15,
-          offsetX: 0,
-          offsetY: 0,
-        }),
+    this.fabricGroup.on("moving", () => {
+      const SNAP_THRESHOLD = 20;
+
+      const canvas = this.fabricGroup.canvas;
+      if (!canvas) return;
+
+      let currentX = this.fabricGroup.left ?? 0;
+      let currentY = this.fabricGroup.top ?? 0;
+
+      currentY = snapToCoordinate(currentY, DEFAULT_LOS_Y, SNAP_THRESHOLD);
+
+      const clamped = clampPositionWithinBounds(
+        currentX,
+        currentY,
+        this.fabricGroup.getScaledWidth(),
+        this.fabricGroup.getScaledHeight(),
+        CANVAS_SIZE.width,
+        CANVAS_SIZE.height,
+        this.fabricGroup.originX,
+        this.fabricGroup.originY,
       );
+
+      // --- 3. WERTE ZURÜCKSCHREIBEN ---
+      // Überschreibt die Mausposition mit den berechneten Limits
+      this.fabricGroup.set({
+        left: clamped.x,
+        top: clamped.y,
+      });
     });
 
-    this.fabricObject.on("deselected", () => {
-      this.fabricObject.set("shadow", null);
-    });
-  }
+    this.fabricGroup.on("modified", () => {
+      const currentX = this.fabricGroup.left ?? 0;
+      const currentY = this.fabricGroup.top ?? 0;
 
-  public setPosition(x: number, y: number): void {
-    const currentX = this.fabricObject.left ?? 0;
-    const currentY = this.fabricObject.top ?? 0;
-
-    const dx = x - currentX;
-    const dy = y - currentY;
-
-    this.fabricObject.set({ left: x, top: y });
-    this.fabricObject.setCoords();
-
-    if (this.route) {
-      this.route.translate(dx, dy);
-    }
-
-    this.lastPosition = { x, y };
-  }
-
-  public serialize(): SavedPlayer {
-    return {
-      id: this.id,
-      x: this.x,
-      y: this.y,
-      color: this.color,
-      shape: this.shape,
-      label: this.label,
-      route: this.route ? this.route.serialize() : null,
-    };
-  }
-
-  private onMove(): void {
-    const SNAP_THRESHOLD = 15;
-
-    let currentX = this.fabricObject.left ?? 0;
-    let currentY = this.fabricObject.top ?? 0;
-
-    currentY = snapToCoordinate(currentY, DEFAULT_LOS_Y, SNAP_THRESHOLD);
-
-    const { width, height } = this.canvasManager.getCanvasDimensions();
-
-    const isCenterOrigin =
-      this.fabricObject.originX === "center" &&
-      this.fabricObject.originY === "center";
-
-    const clamped = clampPositionWithinBounds(
-      currentX,
-      currentY,
-      this.fabricObject.getScaledWidth(),
-      this.fabricObject.getScaledHeight(),
-      width,
-      height,
-      isCenterOrigin,
-    );
-
-    currentX = clamped.x;
-    currentY = clamped.y;
-
-    if (
-      currentX !== (this.fabricObject.left ?? 0) ||
-      currentY !== (this.fabricObject.top ?? 0)
-    ) {
-      this.fabricObject.set({ left: currentX, top: currentY });
-    }
-
-    const dx = currentX - this.lastPosition.x;
-    const dy = currentY - this.lastPosition.y;
-
-    if (this.route) {
-      this.route.translate(dx, dy);
-    }
-
-    this.lastPosition = { x: currentX, y: currentY };
-  }
-
-  private onMoveComplete(): void {
-    if (!this.dragStartPos) return;
-
-    const currentPos = {
-      x: this.fabricObject.left ?? 0,
-      y: this.fabricObject.top ?? 0,
-    };
-
-    if (
-      this.dragStartPos.x !== currentPos.x ||
-      this.dragStartPos.y !== currentPos.y
-    ) {
-      if (this.onCommandGenerated) {
-        this.onCommandGenerated(
-          new MovePlayerCommand(this, this.dragStartPos, currentPos),
-        );
+      if (this.dragStartX !== currentX || this.dragStartY !== currentY) {
+        if (this.onMoveComplete) {
+          this.onMoveComplete(
+            this.id,
+            this.dragStartX,
+            this.dragStartY,
+            currentX,
+            currentY,
+          );
+        }
       }
+    });
+  }
+
+  /**
+   * Zwingend von BaseEntity gefordert:
+   * Gibt alle Fabric-Objekte zurück, die der CanvasManager zeichnen muss.
+   */
+  public getFabricObjects(): fabric.Object[] {
+    return [this.fabricGroup];
+  }
+
+  /**
+   * Wird vom MovePlayerCommand aufgerufen, wenn der Spieler bewegt wird.
+   */
+  public setPosition(x: number, y: number): void {
+    this.fabricGroup.set({ left: x, top: y });
+    this.fabricGroup.setCoords(); // Wichtig für Fabric, um die Hitbox upzudaten
+  }
+
+  /**
+   * Setzt eine neue Farbe.
+   * (Nützlich für UI-Aktionen "Farbe ändern" oder bei DarkMode-Switches).
+   */
+  public setColor(newColor: string): void {
+    this.color = newColor;
+    const circle = this.fabricGroup.item(0) as fabric.Circle;
+    if (circle) {
+      circle.set("fill", newColor);
     }
-    this.dragStartPos = null;
+  }
+
+  /**
+   * Wird aufgerufen, wenn das Objekt selektiert wird
+   * (Könnte später für Glowing-Effects etc. genutzt werden)
+   */
+  public showControls(): void {
+    const circle = this.fabricGroup.item(0) as fabric.Circle;
+    circle.set("strokeWidth", 4);
+    circle.set("stroke", "#FFD700");
+  }
+
+  public hideControls(): void {
+    const circle = this.fabricGroup.item(0) as fabric.Circle;
+    circle.set("strokeWidth", 0);
   }
 }

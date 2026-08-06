@@ -1,5 +1,6 @@
 import { SYSTEM_PLAYERS } from "@playbook/core/dist/data/presets/players";
 import { usePlaybook } from "./usePlaybook";
+import { ROUTE_PRESETS } from "@playbook/core";
 
 export function usePlaybookActions() {
   const { engine } = usePlaybook();
@@ -133,7 +134,7 @@ export function usePlaybookActions() {
   const handleAssignRoute = (routeId: string) => {
     if (!engine) return;
     try {
-      engine.assignRouteToSelectedPlayer(routeId);
+      engine.addRouteFromPreset(ROUTE_PRESETS[routeId]);
     } catch (error) {
       console.warn(
         "Konnte Route nicht zuweisen. Ist ein Spieler markiert?",

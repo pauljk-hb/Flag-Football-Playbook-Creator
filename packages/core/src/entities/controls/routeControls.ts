@@ -6,7 +6,7 @@ const STRETCH_HANDLE_OFFSET_Y = -25;
 const VERTICAL_TOLERANCE = 15;
 
 export function setupRouteControls(entity: RouteEntity): void {
-  const poly = entity.fabricObject;
+  const poly = entity.fabricGroup;
 
   poly.hasBorders = false;
   poly.hasControls = true;

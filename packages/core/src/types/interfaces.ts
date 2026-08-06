@@ -4,18 +4,22 @@ export interface SavedPoint {
 }
 
 export enum SegmentType {
-  LINE = "line",
-  CURVE = "curve",
+  STRAIGHT = "STRAIGHT",
+  CURVE = "CURVE",
 }
 
 export interface RouteNode {
-  id: string;
   x: number;
   y: number;
   type: SegmentType;
 
-  controlPointIn?: { x: number; y: number };
-  controlPointOut?: { x: number; y: number };
+  // Control Points für Bezier Curves (kommen an, z.B. C-Befehl in SVG)
+  cpInX?: number;
+  cpInY?: number;
+
+  // Optional: Falls ausgehende Control Points gebraucht werden
+  cpOutX?: number;
+  cpOutY?: number;
 }
 
 export interface SavedRoute {

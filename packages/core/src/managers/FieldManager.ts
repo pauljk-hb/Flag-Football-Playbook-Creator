@@ -59,14 +59,16 @@ export class FieldManager {
       });
 
       this.fieldObjects.push(fabricLine);
-      this.canvasManager.add(fabricLine);
+      this.canvasManager.addFabricObject(fabricLine);
 
       this.canvasManager.sendToBack(fabricLine);
     });
   }
 
   public clearField(): void {
-    this.fieldObjects.forEach((obj) => this.canvasManager.remove(obj));
+    this.fieldObjects.forEach((obj) =>
+      this.canvasManager.removeFabricObject(obj),
+    );
     this.fieldObjects = [];
   }
 }

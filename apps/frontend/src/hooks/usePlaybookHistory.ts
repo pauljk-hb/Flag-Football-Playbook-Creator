@@ -9,12 +9,12 @@ export function usePlaybookHistory() {
   useEffect(() => {
     if (!engine) return;
 
-    setCanUndo(engine.historyManager.canUndo());
-    setCanRedo(engine.historyManager.canRedo());
+    setCanUndo(engine.canUndo());
+    setCanRedo(engine.canRedo());
 
-    const unsubscribe = engine.historyManager.subscribe(() => {
-      setCanUndo(engine.historyManager.canUndo());
-      setCanRedo(engine.historyManager.canRedo());
+    const unsubscribe = engine.subscribeToHistoryChanges(() => {
+      setCanUndo(engine.canUndo());
+      setCanRedo(engine.canRedo());
     });
 
     return unsubscribe;

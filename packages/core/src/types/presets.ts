@@ -1,15 +1,17 @@
+import type { SegmentType } from "./interfaces";
+
 export interface PlayerPreset {
   id: string;
   label: string;
   color: string;
-  shape: 'circle' | 'square';
+  shape: "circle" | "square";
 }
 
 export interface RoutePreset {
   id: string;
   name: string;
-  waypoints: { dx: number; dy: number }[]; 
-  breakDirection?: 'inside' | 'outside' | 'straight';
+  waypoints: { dx: number; dy: number; type: SegmentType }[];
+  breakDirection?: "inside" | "outside" | "straight";
 }
 
 export interface FormationPreset {
@@ -25,13 +27,13 @@ export interface FormationPosition {
 }
 
 export interface FieldLineConfig {
-    yardsFromLos: number;
-    type: 'los' | 'yardline' | 'endzone';
+  yardsFromLos: number;
+  type: "los" | "yardline" | "endzone";
 }
 
 export interface FieldPreset {
-    id: string;
-    name: string;
-    lines: FieldLineConfig[];
-    anchor: { x: number, y: number };
+  id: string;
+  name: string;
+  lines: FieldLineConfig[];
+  anchor: { x: number; y: number };
 }

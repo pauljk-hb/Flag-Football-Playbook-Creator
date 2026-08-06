@@ -1,44 +1,31 @@
-// history/commands/RemovePlayerCommand.ts
-import type { ICommand } from "../../types/history";
 import type { PlayerEntity } from "../../entities/PlayerEntity";
+import { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
-import type { EntityManager } from "../../managers/EntityManager";
+import type { PlayManager } from "../../managers/PlayManager";
+import type { ICommand } from "../../types/history";
 
 export class RemovePlayerCommand implements ICommand {
+  private player: PlayerEntity;
+
   constructor(
-    private player: PlayerEntity,
-    private canvasManager: CanvasManager,
-    private entityManager: EntityManager,
-  ) {}
+    private playerId: string,
+    private playMngr: PlayManager,
+    private canvasMngr: CanvasManager,
+  ) {
+    this.player = this.playMngr.getEntity(this.playerId) as PlayerEntity;
+  }
 
   execute(): void {
-    this.entityManager.removePlayerFromMap(this.player.id);
-    this.player.getFabricObjects().forEach((obj) => {
-      this.canvasManager.remove(obj);
-    });
+    if (!this.player) return;
 
-    if (this.player.route) {
-      this.player.route.getFabricObjects().forEach((obj) => {
-        this.canvasManager.remove(obj);
-      });
-    }
+    this.canvasMngr.removeEntity(this.player);
+    this.playMngr.removeEntity(this.player.id);
   }
 
   undo(): void {
-    this.entityManager.addPlayerToMap(this.player);
-    this.player.getFabricObjects().forEach((obj) => {
-      this.canvasManager.add(obj);
-    });
+    if (!this.player) return;
 
-    if (this.player.route) {
-      this.player.route.getFabricObjects().forEach((obj) => {
-        this.canvasManager.add(obj);
-        this.canvasManager.sendToBack(obj);
-      });
-
-      this.player.getFabricObjects().forEach((obj) => {
-        this.canvasManager.bringObjectToFront(obj);
-      });
-    }
+    this.playMngr.addEntity(this.player);
+    this.canvasMngr.addEntity(this.player);
   }
 }

@@ -1,4 +1,4 @@
-import type { RouteNode } from "../types/interfaces";
+import { SegmentType, type RouteNode } from "../types/interfaces";
 import type { BoundingBox, IPoint, PolylineMetrics } from "../types/math";
 
 /**
@@ -112,34 +112,22 @@ export function calculatePolylineMetrics(
  * Berechnet die exakte absolute Position und den Rotationswinkel für eine Pfeilspitze
  * anhand des letzten Liniensegments einer Route.
  */
-export function calculateArrowheadMetrics(
-  nodes: RouteNode[],
-  left: number,
-  top: number,
-  pathOffset: { x: number; y: number },
-) {
+export function calculateArrowheadMetrics(nodes: RouteNode[]) {
   const lastNode = nodes[nodes.length - 1];
   const prevNode = nodes[nodes.length - 2];
 
-  // Bestimmen, welcher Punkt für den Einflugwinkel genutzt wird
-  let p1;
-  if (lastNode.type === SegmentType.CURVE && lastNode.controlPointIn) {
-    p1 = lastNode.controlPointIn; // Bei Kurven: Winkel aus dem Bezier-Handle
-  } else {
-    p1 = prevNode; // Bei Linien: Vorheriger Knotenpunkt
+  if (!lastNode || !prevNode) {
+    throw new Error("Not enough nodes to calculate arrowhead metrics.");
   }
 
-  // Koordinaten in die absolute Canvas-Position umrechnen
-  const absX2 = lastNode.x - pathOffset.x + left;
-  const absY2 = lastNode.y - pathOffset.y + top;
-  const absX1 = p1.x - pathOffset.x + left;
-  const absY1 = p1.y - pathOffset.y + top;
+  const absX = lastNode.x;
+  const absY = lastNode.y;
 
-  // Winkel berechnen (Y geht nach unten, daher Y2-Y1)
-  const radians = Math.atan2(absY2 - absY1, absX2 - absX1);
-  const angle = radians * (180 / Math.PI) + 90; // +90 weil Fabric-Dreiecke nach oben zeigen
+  const angle = calculateAngleInDegrees(prevNode, lastNode);
 
-  return { x: absX2, y: absY2, angle };
+  const finalAngle = angle + 90;
+
+  return { x: absX, y: absY, angle: finalAngle };
 }
 
 /**
@@ -151,21 +139,20 @@ export function clampPositionWithinBounds(
   y: number,
   objWidth: number,
   objHeight: number,
-  boundsWidth: number,
-  boundsHeight: number,
-  originIsCenter: boolean = false,
-): IPoint {
-  let minX = 0;
-  let minY = 0;
-  let maxX = boundsWidth - objWidth;
-  let maxY = boundsHeight - objHeight;
-
-  if (originIsCenter) {
-    minX = objWidth / 2;
-    minY = objHeight / 2;
-    maxX = boundsWidth - objWidth / 2;
-    maxY = boundsHeight - objHeight / 2;
-  }
+  canvasWidth: number,
+  canvasHeight: number,
+  originX: string = "center",
+  originY: string = "center",
+): { x: number; y: number } {
+  // Wenn der Ursprung in der Mitte ist, darf das Objekt nur bis zur Hälfte an den Rand
+  const minX = originX === "center" ? objWidth / 2 : 0;
+  const minY = originY === "center" ? objHeight / 2 : 0;
+  const maxX =
+    originX === "center" ? canvasWidth - objWidth / 2 : canvasWidth - objWidth;
+  const maxY =
+    originY === "center"
+      ? canvasHeight - objHeight / 2
+      : canvasHeight - objHeight;
 
   return {
     x: Math.max(minX, Math.min(x, maxX)),

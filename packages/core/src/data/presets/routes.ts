@@ -1,3 +1,4 @@
+import { SegmentType } from "../../types/interfaces.js";
 import type { RoutePreset } from "../../types/presets.js";
 import { PIXELS_PER_YARD } from "./fields.js";
 
@@ -9,15 +10,15 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
   QUICK_OUT: {
     id: "QUICK_OUT",
     name: "Quick Out",
-    waypoints: [{ dx: yards(-10), dy: yards(3) }],
+    waypoints: [{ dx: yards(-10), dy: yards(3), type: SegmentType.STRAIGHT }],
     breakDirection: "outside",
   },
   SLANT: {
     id: "SLANT",
     name: "Slant",
     waypoints: [
-      { dx: 0, dy: yards(2) },
-      { dx: yards(10), dy: yards(1) },
+      { dx: 0, dy: yards(2), type: SegmentType.STRAIGHT },
+      { dx: yards(10), dy: yards(1), type: SegmentType.STRAIGHT },
     ],
     breakDirection: "inside",
   },
@@ -25,8 +26,8 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     id: "COME_BACK",
     name: "Come Back",
     waypoints: [
-      { dx: 0, dy: yards(7) },
-      { dx: 20, dy: 20 },
+      { dx: 0, dy: yards(7), type: SegmentType.STRAIGHT },
+      { dx: 20, dy: 20, type: SegmentType.STRAIGHT },
     ],
     breakDirection: "outside",
   },
@@ -34,8 +35,8 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     id: "HITCH",
     name: "Hitch",
     waypoints: [
-      { dx: 0, dy: yards(7) },
-      { dx: -20, dy: 20 },
+      { dx: 0, dy: yards(7), type: SegmentType.STRAIGHT },
+      { dx: -20, dy: 20, type: SegmentType.STRAIGHT },
     ],
     breakDirection: "inside",
   },
@@ -43,8 +44,8 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     id: "IN",
     name: "In",
     waypoints: [
-      { dx: 0, dy: yards(7) },
-      { dx: yards(10), dy: 0 },
+      { dx: 0, dy: yards(7), type: SegmentType.STRAIGHT },
+      { dx: yards(10), dy: 0, type: SegmentType.STRAIGHT },
     ],
     breakDirection: "inside",
   },
@@ -52,8 +53,8 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     id: "OUT",
     name: "Out",
     waypoints: [
-      { dx: 0, dy: yards(7) },
-      { dx: yards(-10), dy: 0 },
+      { dx: 0, dy: yards(7), type: SegmentType.STRAIGHT },
+      { dx: yards(-10), dy: 0, type: SegmentType.STRAIGHT },
     ],
     breakDirection: "outside",
   },
@@ -61,8 +62,8 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     id: "POST",
     name: "Post",
     waypoints: [
-      { dx: 0, dy: yards(7) },
-      { dx: yards(4), dy: yards(4) },
+      { dx: 0, dy: yards(7), type: SegmentType.STRAIGHT },
+      { dx: yards(4), dy: yards(4), type: SegmentType.STRAIGHT },
     ],
     breakDirection: "inside",
   },
@@ -70,15 +71,15 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     id: "CORNER",
     name: "Corner",
     waypoints: [
-      { dx: 0, dy: yards(7) },
-      { dx: yards(-4), dy: yards(4) },
+      { dx: 0, dy: yards(7), type: SegmentType.STRAIGHT },
+      { dx: yards(-4), dy: yards(4), type: SegmentType.STRAIGHT },
     ],
     breakDirection: "outside",
   },
   GO: {
     id: "GO",
     name: "Go / Fly",
-    waypoints: [{ dx: 0, dy: yards(13) }],
+    waypoints: [{ dx: 0, dy: yards(13), type: SegmentType.STRAIGHT }],
     breakDirection: "straight",
   },
 };

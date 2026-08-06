@@ -21,7 +21,7 @@ export class RouteFactory {
     });
 
     // Shapes aufs Canvas legen
-    this.canvasManager.add(routeEntity.fabricObject);
+    this.canvasManager.add(routeEntity.fabricGroup);
     this.canvasManager.add(routeEntity.arrowHead);
 
     routeEntity.initializeControls(this.canvasManager.getRawCanvas());
@@ -84,7 +84,7 @@ export class RouteFactory {
     */
 
   private bindSelectionEvents(routeEntity: RouteEntity): void {
-    const path = routeEntity.fabricObject;
+    const path = routeEntity.fabricGroup;
 
     path.on("selected", () => {
       this.selectionManager.setCurrentSelection(routeEntity);

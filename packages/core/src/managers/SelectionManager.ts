@@ -1,54 +1,86 @@
 import type { BaseEntity } from "../entities/BaseEntity";
-import type { RouteEntity } from "../entities/RouteEntity";
+import { PlayerEntity } from "../entities/PlayerEntity";
+import { RouteEntity } from "../entities/RouteEntity";
 import type { CanvasManager } from "./CanvasManager";
-import type { EntityManager } from "./EntityManager";
+import type { PlayManager } from "./PlayManager";
+import * as fabric from "fabric";
 
 export class SelectionManager {
   constructor(
     private canvasManager: CanvasManager,
-    private entityManager: EntityManager,
+    private playManager: PlayManager,
   ) {}
 
   /**
-   * Gibt die ID des aktuell ausgewählten Spielers zurück.
+   * Initialisiert alle Klick- und Auswahl-Events auf dem Canvas.
+   * Muss einmalig nach der Canvas-Initialisierung aufgerufen werden.
    */
-  public getSelectedPlayerId(): string | null {
+  public setupSelectionEvents(): void {
     const canvas = this.canvasManager.getRawCanvas();
-    const activeObject = canvas.getActiveObject();
 
-    if (!activeObject) return null;
+    const handleSelection = (e: fabric.IEvent) => {
+      if (!e.selected || e.selected.length === 0) return;
+      const activeObject = e.selected[0];
 
-    const player = this.entityManager
-      .getAllPlayers()
-      .find((p) => p.fabricObject === activeObject);
+      if (activeObject.get("isRouteHandle" as keyof fabric.Object)) {
+        const parentRouteId = activeObject.get(
+          "parentRouteId" as keyof fabric.Object,
+        ) as string;
+        if (parentRouteId) {
+          const route = this.playManager.getEntity(parentRouteId);
+          if (route instanceof RouteEntity) {
+            route.showControls();
+            this.canvasManager.requestRender();
+          }
+        }
+        return; // Jetzt können wir sicher abbrechen
+      }
 
-    return player ? player.id : null;
+      // Wenn es kein Handle war, alles verstecken und neu auswerten
+      this.hideAllRouteControls();
+
+      const entityId = activeObject.get("id" as keyof fabric.Object) as string;
+      if (!entityId) return;
+
+      const entity = this.playManager.getEntity(entityId);
+
+      if (entity instanceof RouteEntity) {
+        entity.showControls();
+      } else if (entity instanceof PlayerEntity) {
+        const allEntities = this.playManager.getAllEntities();
+        allEntities.forEach((ent) => {
+          if (ent instanceof RouteEntity && ent.playerId === entity.id) {
+            ent.showControls();
+          }
+        });
+      }
+
+      this.canvasManager.requestRender();
+    };
+
+    canvas.on("selection:created", handleSelection);
+    canvas.on("selection:updated", handleSelection);
+
+    canvas.on("selection:cleared", () => {
+      this.hideAllRouteControls();
+      this.canvasManager.requestRender();
+    });
   }
 
-  /**
-   * Gibt die ID der aktuell ausgewählten Route zurück.
-   */
-  public getSelectedRouteId(): string | null {
-    const canvas = this.canvasManager.getRawCanvas();
-    const activeObject = canvas.getActiveObject();
+  private hideAllRouteControls(): void {
+    // Nimmt an, dass PlayManager eine Methode hat, um alle Entitäten zu bekommen
+    // Falls sie bei dir anders heißt, bitte anpassen (z.B. getEntities())
+    const allEntities = this.playManager.getAllEntities();
 
-    if (!activeObject) return null;
-
-    const players = this.entityManager.getAllPlayers();
-    let route: RouteEntity | null = null;
-
-    for (const player of players) {
-      if (player.route && player.route.fabricObject === activeObject) {
-        route = player.route;
+    for (const entity of allEntities) {
+      if (entity instanceof RouteEntity) {
+        entity.hideControls();
       }
     }
-
-    if (route === undefined) return null;
-    return route!.id;
   }
 
   /**
-   * Gibt die ID der aktuell ausgewählten Route zurück.
+   * Gibt die ID des aktuell ausgewählten Entity zurück.
    */
   public getSelectedObject(): BaseEntity | null {
     const canvas = this.canvasManager.getRawCanvas();
@@ -56,22 +88,12 @@ export class SelectionManager {
 
     if (!activeObject) return null;
 
-    const players = this.entityManager.getAllPlayers();
+    const entityId = activeObject.get("id" as any) as string;
 
-    let object: BaseEntity | undefined;
+    if (!entityId) return null;
 
-    object = players.find((p) => p.fabricObject === activeObject);
+    const entity = this.playManager.getEntity(entityId);
 
-    if (object != undefined) return object;
-
-    for (const player of players) {
-      if (player.route && player.route.fabricObject === activeObject) {
-        object = player.route;
-      }
-    }
-
-    if (object != undefined) return object;
-
-    return null;
+    return entity ?? null;
   }
 }

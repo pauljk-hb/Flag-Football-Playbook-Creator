@@ -1,35 +1,101 @@
-import type { ICommand } from '../../types/history.js';
-import type { PlayerEntity } from '../../entities/PlayerEntity.js';
-import type { RouteEntity } from '../../entities/RouteEntity.js';
+import type { PlayerEntity } from "../../entities/PlayerEntity";
+import { RouteEntity } from "../../entities/RouteEntity";
+import type { CanvasManager } from "../../managers/CanvasManager";
+import type { PlayManager } from "../../managers/PlayManager";
+import type { ICommand } from "../../types/history";
+import type { RouteNode } from "../../types/interfaces";
 
 export class MovePlayerCommand implements ICommand {
+  private dx: number;
+  private dy: number;
+
   constructor(
-    private player: PlayerEntity,
-    private startPos: { x: number; y: number },
-    private endPos: { x: number; y: number }
-  ) {}
+    private playerId: string,
+    private startX: number,
+    private startY: number,
+    private endX: number,
+    private endY: number,
+    private playMngr: PlayManager,
+    private canvasMngr: CanvasManager,
+  ) {
+    this.dx = this.endX - this.startX;
+    this.dy = this.endY - this.startY;
+  }
 
   public execute(): void {
-    this.player.setPosition(this.endPos.x, this.endPos.y);
+    const player = this.playMngr.getEntity<PlayerEntity>(this.playerId);
+    if (!player) return;
+
+    player.setPosition(this.endX, this.endY);
+
+    const allEntities = this.playMngr.getAllEntities();
+    allEntities.forEach((entity) => {
+      if (entity instanceof RouteEntity && entity.playerId === this.playerId) {
+        entity.translate(this.dx, this.dy);
+      }
+    });
+
+    this.canvasMngr.requestRender();
   }
 
   public undo(): void {
-    this.player.setPosition(this.startPos.x, this.startPos.y);
+    // 1. Spieler zurücksetzen
+    const player = this.playMngr.getEntity<PlayerEntity>(this.playerId);
+    if (!player) return;
+
+    player.setPosition(this.startX, this.startY);
+
+    // 2. WICHTIG: Alle zugehörigen Routen zurückbewegen! (-dx, -dy)
+    const allEntities = this.playMngr.getAllEntities();
+    allEntities.forEach((entity) => {
+      if (entity instanceof RouteEntity && entity.playerId === this.playerId) {
+        entity.translate(-this.dx, -this.dy);
+      }
+    });
+
+    this.canvasMngr.requestRender();
   }
 }
 
 export class MoveRouteCommand implements ICommand {
+  private oldNodes: RouteNode[];
+  private newNodes: RouteNode[];
+
   constructor(
-    private route: RouteEntity,
-    private oldPoints: { x: number; y: number }[],
-    private newPoints: { x: number; y: number }[]
-  ) {}
+    private routeId: string,
+    oldNodes: RouteNode[],
+    newNodes: RouteNode[],
+    private playMngr: PlayManager,
+    private canvasMngr: CanvasManager,
+  ) {
+    // Tiefe Kopie (Deep Copy) ist extrem wichtig, da Nodes Objekte sind!
+    this.oldNodes = JSON.parse(JSON.stringify(oldNodes));
+    this.newNodes = JSON.parse(JSON.stringify(newNodes));
+  }
 
   public execute(): void {
-    this.route.updatePoints(this.newPoints);
+    const route = this.playMngr.getEntity<RouteEntity>(this.routeId);
+    if (!route) return;
+
+    // Wir rufen nicht mehr updatePoints auf, sondern greifen direkt
+    // auf das Property zu und triggern das Neu-Zeichnen
+    route.nodes = JSON.parse(JSON.stringify(this.newNodes));
+
+    const canvas = route.getFabricObjects()[0]?.canvas;
+    route.applyNodes(this.newNodes, canvas);
+
+    this.canvasMngr.requestRender();
   }
 
   public undo(): void {
-    this.route.updatePoints(this.oldPoints);
+    const route = this.playMngr.getEntity<RouteEntity>(this.routeId);
+    if (!route) return;
+
+    route.nodes = JSON.parse(JSON.stringify(this.oldNodes));
+
+    const canvas = route.getFabricObjects()[0]?.canvas;
+    route.applyNodes(this.oldNodes, canvas);
+
+    this.canvasMngr.requestRender();
   }
 }
