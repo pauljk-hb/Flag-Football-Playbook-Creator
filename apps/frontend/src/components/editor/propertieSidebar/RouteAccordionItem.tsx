@@ -95,6 +95,30 @@ export function RouteAccordionItem() {
           >
             Go
           </Button>
+          <Button
+            variant="secondary"
+            className="h-24 text-xs"
+            title="Over"
+            onClick={() => addRoute.over()}
+          >
+            Over
+          </Button>
+          <Button
+            variant="secondary"
+            className="h-24 text-xs"
+            title="Under"
+            onClick={() => addRoute.under()}
+          >
+            Under
+          </Button>
+          <Button
+            variant="secondary"
+            className="h-24 text-xs"
+            title="Weel"
+            onClick={() => addRoute.weel()}
+          >
+            Weel
+          </Button>
         </div>
       </AccordionContent>
     </AccordionItem>

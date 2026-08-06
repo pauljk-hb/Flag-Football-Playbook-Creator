@@ -52,16 +52,16 @@ export class PlaybookAPI {
     this.engine.changeFieldPreset(presetId);
   }
 
-  public generatePlayData(): string {
-    return this.engine.getPlayData();
+  public exportPlay(): string {
+    return this.engine.exportPlay();
   }
 
   public generateThumbnail(options: ThumbnailOptions = {}): string {
     return this.engine.generateThumbnail(options);
   }
 
-  public loadPlay(jsonString: string): boolean {
-    return this.engine.loadPlay(jsonString);
+  public loadPlay(jsonString: string): void {
+    this.engine.loadPlay(jsonString);
   }
 
   //System Presets

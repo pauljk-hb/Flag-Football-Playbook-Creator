@@ -82,4 +82,48 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
     waypoints: [{ dx: 0, dy: yards(13), type: SegmentType.STRAIGHT }],
     breakDirection: "straight",
   },
+  OVER: {
+    id: "OVER",
+    name: "Over Route",
+    waypoints: [
+      {
+        dx: yards(18),
+        dy: yards(10),
+        type: SegmentType.CURVE,
+        cpInDx: -50,
+        cpInDy: yards(10),
+      },
+    ],
+  },
+  UNDER: {
+    id: "UNDER",
+    name: "Under Route",
+    waypoints: [
+      {
+        dx: yards(18),
+        dy: yards(4),
+        type: SegmentType.CURVE,
+        cpInDx: -50,
+        cpInDy: yards(4),
+      },
+    ],
+  },
+  WEEL: {
+    id: "WEEL",
+    name: "Weel Route",
+    waypoints: [
+      {
+        dx: yards(13),
+        dy: yards(5),
+        type: SegmentType.CURVE,
+        cpInDx: yards(13),
+        cpInDy: 0,
+      },
+      {
+        dx: yards(0),
+        dy: yards(7),
+        type: SegmentType.STRAIGHT,
+      },
+    ],
+  },
 };

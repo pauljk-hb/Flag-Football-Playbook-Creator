@@ -10,7 +10,13 @@ export interface PlayerPreset {
 export interface RoutePreset {
   id: string;
   name: string;
-  waypoints: { dx: number; dy: number; type: SegmentType }[];
+  waypoints: {
+    dx: number;
+    dy: number;
+    type: SegmentType;
+    cpInDx?: number;
+    cpInDy?: number;
+  }[];
   breakDirection?: "inside" | "outside" | "straight";
 }
 

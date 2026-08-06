@@ -1,5 +1,5 @@
 import { HistoryManager } from "../history/HistoryManager";
-import { CanvasManager } from "../managers/CanvasManager";
+import { CANVAS_SIZE, CanvasManager } from "../managers/CanvasManager";
 import { SelectionManager } from "../managers/SelectionManager";
 import { FieldManager } from "../managers/FieldManager";
 import { FormationManager } from "../managers/FormationManager";
@@ -12,6 +12,9 @@ import { PlayManager } from "../managers/PlayManager";
 import { RouteEntity } from "../entities/RouteEntity";
 import {
   SegmentType,
+  type PlayerExportData,
+  type PlayExportData,
+  type RouteExportData,
   type RouteNode,
   type SavedPlay,
   type ThumbnailOptions,
@@ -122,17 +125,32 @@ export class PlaybookEngine {
     const startX = player.x;
     const startY = player.y;
 
+    const FIELD_CENTER_X = CANVAS_SIZE.width / 2;
+    const isPlayerOnLeftSide = startX < FIELD_CENTER_X;
+    const flipX = isPlayerOnLeftSide ? -1 : 1;
+
     const absoluteNodes: RouteNode[] = [];
 
     absoluteNodes.push({ x: startX, y: startY, type: SegmentType.STRAIGHT });
 
     for (const wp of preset.waypoints) {
       const lastNode = absoluteNodes[absoluteNodes.length - 1]!;
-      absoluteNodes.push({
-        x: lastNode.x + wp.dx,
+      const newNode: RouteNode = {
+        x: lastNode.x + wp.dx * flipX,
         y: lastNode.y + wp.dy,
-        type: SegmentType.STRAIGHT,
-      });
+        type: wp.type || SegmentType.STRAIGHT,
+      };
+
+      if (
+        wp.type === SegmentType.CURVE &&
+        wp.cpInDx !== undefined &&
+        wp.cpInDy !== undefined
+      ) {
+        newNode.cpInX = lastNode.x + wp.cpInDx * flipX;
+        newNode.cpInY = lastNode.y + wp.cpInDy;
+      }
+
+      absoluteNodes.push(newNode);
     }
 
     this.addRoute(player, absoluteNodes, routeType);
@@ -196,33 +214,109 @@ export class PlaybookEngine {
   /**
    * Generiert einen JSON-String des aktuellen Spielfelds.
    */
-  public getPlayData(): string {
-    const savedPlay = this.playManager.savePlayData();
+  public exportPlay(): string {
+    const allEntities = this.playManager.getAllEntities();
 
-    return JSON.stringify(savedPlay);
+    const players: PlayerExportData[] = [];
+    const routes: RouteExportData[] = [];
+
+    allEntities.forEach((entity) => {
+      if (entity instanceof PlayerEntity) {
+        players.push({
+          id: entity.id,
+          x: entity.x,
+          y: entity.y,
+          label: entity.label,
+          color: entity.color,
+          shape: entity.shape,
+        });
+      } else if (entity instanceof RouteEntity) {
+        routes.push({
+          id: entity.id,
+          playerId: entity.playerId,
+          routeType: entity.routeType,
+          color: entity.color,
+          nodes: JSON.parse(JSON.stringify(entity.nodes)),
+        });
+      }
+    });
+
+    return JSON.stringify({
+      fieldPresetId: this.currentFieldPresetId || "STANDARD",
+      players,
+      routes,
+    });
   }
 
   /**
    * Lädt ein Spielfeld anhand eines JSON-Strings.
    */
-  public loadPlay(jsonString: string): boolean {
-    try {
-      const savedPlay: SavedPlay = JSON.parse(jsonString);
+  public loadPlay(data: string): void {
+    const playData = JSON.parse(data) as PlayExportData;
 
-      console.log("Core Json Load", savedPlay);
+    this.playManager.getAllEntities().forEach((entity) => {
+      this.canvasManager.removeEntity(entity);
+      if (entity instanceof RouteEntity) {
+        entity.destroyAllHandles();
+      }
+    });
+    this.playManager.clearPlay();
+    this.historyManager.clear();
 
-      const onCommand = (cmd: ICommand) => {
-        this.historyManager.execute(cmd);
+    this.currentFieldPresetId = playData.fieldPresetId;
+    // this.setFieldBackground(this.currentFieldPresetId);
+
+    playData.players.forEach((pData) => {
+      const player = new PlayerEntity({
+        id: pData.id,
+        x: pData.x,
+        y: pData.y,
+        label: pData.label,
+        color: pData.color,
+        shape: pData.shape,
+      });
+
+      this.playManager.addEntity(player);
+      this.canvasManager.addEntity(player);
+    });
+
+    playData.routes.forEach((rData) => {
+      const route = new RouteEntity({
+        id: rData.id,
+        playerId: rData.playerId,
+        routeType: rData.routeType,
+        color: rData.color,
+        nodes: JSON.parse(JSON.stringify(rData.nodes)),
+      });
+
+      route.onNodesModified = (routeId, oldNodes, newNodes) => {
+        const moveCommand = new MoveRouteCommand(
+          routeId,
+          oldNodes,
+          newNodes,
+          this.playManager,
+          this.canvasManager,
+        );
+        this.historyManager.execute(moveCommand);
       };
 
-      this.playManager.loadPlayData(savedPlay, onCommand);
-      this.fieldManager.drawField(savedPlay.fieldPresetId);
+      this.playManager.addEntity(route);
+      this.canvasManager.addEntity(route);
 
-      return true;
-    } catch (error) {
-      console.error("Fehler beim Laden des Plays:", error);
-      return false;
-    }
+      route.initializeControls(this.canvasManager.getRawCanvas());
+
+      route
+        .getFabricObjects()
+        .forEach((obj) => this.canvasManager.sendToBack(obj));
+    });
+
+    this.playManager.getAllEntities().forEach((entity) => {
+      if (entity instanceof PlayerEntity) {
+        this.canvasManager.bringObjectToFront(entity);
+      }
+    });
+
+    this.canvasManager.requestRender();
   }
 
   public getAllSystemRoutes(): string[] {

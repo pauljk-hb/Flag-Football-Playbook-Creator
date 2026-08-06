@@ -123,7 +123,18 @@ export function calculateArrowheadMetrics(nodes: RouteNode[]) {
   const absX = lastNode.x;
   const absY = lastNode.y;
 
-  const angle = calculateAngleInDegrees(prevNode, lastNode);
+  let angle = calculateAngleInDegrees(prevNode, lastNode);
+
+  if (
+    lastNode.type === SegmentType.CURVE &&
+    lastNode.cpInX !== undefined &&
+    lastNode.cpInY !== undefined
+  ) {
+    angle = calculateAngleInDegrees(
+      { x: lastNode.cpInX, y: lastNode.cpInY },
+      lastNode,
+    );
+  }
 
   const finalAngle = angle + 90;
 

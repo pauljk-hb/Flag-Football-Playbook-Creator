@@ -22,13 +22,15 @@ export interface RouteNode {
   cpOutY?: number;
 }
 
-export interface SavedRoute {
+export interface RouteExportData {
   id: string;
-  points: RouteNode[];
+  playerId: string;
+  routeType: string;
   color: string;
+  nodes: RouteNode[];
 }
 
-export interface SavedPlayer {
+export interface PlayerExportData {
   id: string;
   x: number;
   y: number;
@@ -37,9 +39,10 @@ export interface SavedPlayer {
   shape: "circle" | "square";
 }
 
-export interface SavedPlay {
+export interface PlayExportData {
   fieldPresetId: string;
-  players: SavedPlayer[];
+  players: PlayerExportData[];
+  routes: RouteExportData[];
 }
 
 export interface ThumbnailOptions {

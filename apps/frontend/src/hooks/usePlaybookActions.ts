@@ -29,32 +29,41 @@ export function usePlaybookActions() {
   };
 
   const addRoute = {
-    quickOut: () => {
-      handleAssignRoute("QUICK_OUT");
+    quickOut: (routeType: string = "default") => {
+      handleAssignRoute("QUICK_OUT", routeType);
     },
-    slant: () => {
-      handleAssignRoute("SLANT");
+    slant: (routeType: string = "default") => {
+      handleAssignRoute("SLANT", routeType);
     },
-    comeBack: () => {
-      handleAssignRoute("COMEBACK");
+    comeBack: (routeType: string = "default") => {
+      handleAssignRoute("COMEBACK", routeType);
     },
-    hitch: () => {
-      handleAssignRoute("HITCH");
+    hitch: (routeType: string = "default") => {
+      handleAssignRoute("HITCH", routeType);
     },
-    out: () => {
-      handleAssignRoute("OUT");
+    out: (routeType: string = "default") => {
+      handleAssignRoute("OUT", routeType);
     },
-    in: () => {
-      handleAssignRoute("IN");
+    in: (routeType: string = "default") => {
+      handleAssignRoute("IN", routeType);
     },
-    corner: () => {
-      handleAssignRoute("CORNER");
+    corner: (routeType: string = "default") => {
+      handleAssignRoute("CORNER", routeType);
     },
-    post: () => {
-      handleAssignRoute("POST");
+    post: (routeType: string = "default") => {
+      handleAssignRoute("POST", routeType);
     },
-    go: () => {
-      handleAssignRoute("GO");
+    go: (routeType: string = "default") => {
+      handleAssignRoute("GO", routeType);
+    },
+    over: (routeType: string = "default") => {
+      handleAssignRoute("OVER", routeType);
+    },
+    under: (routeType: string = "default") => {
+      handleAssignRoute("UNDER", routeType);
+    },
+    weel: (routeType: string = "default") => {
+      handleAssignRoute("WEEL", routeType);
     },
   };
 
@@ -105,7 +114,7 @@ export function usePlaybookActions() {
   const play = {
     exportCanvasJSON: (): string => {
       if (!engine) return "";
-      return engine.getPlayData();
+      return engine.exportPlay();
     },
     exportThumbnail: (): string => {
       if (!engine) return "";
@@ -131,10 +140,10 @@ export function usePlaybookActions() {
     }
   };
 
-  const handleAssignRoute = (routeId: string) => {
+  const handleAssignRoute = (routeId: string, routeType: string) => {
     if (!engine) return;
     try {
-      engine.addRouteFromPreset(ROUTE_PRESETS[routeId]);
+      engine.addRouteFromPreset(ROUTE_PRESETS[routeId], routeType);
     } catch (error) {
       console.warn(
         "Konnte Route nicht zuweisen. Ist ein Spieler markiert?",

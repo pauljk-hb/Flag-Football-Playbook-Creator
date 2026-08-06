@@ -112,10 +112,6 @@ export class RouteEntity extends BaseEntity {
    * Wird aufgerufen (z.B. vom SelectionManager oder beim AddRouteCommand),
    * um die Editier-Punkte auf das Canvas zu legen.
    */
-  /**
-   * Wird aufgerufen (z.B. vom SelectionManager oder beim AddRouteCommand),
-   * um die Editier-Punkte auf das Canvas zu legen.
-   */
   public initializeControls(canvas: fabric.Canvas): void {
     this.destroyAllHandles();
 
@@ -126,6 +122,7 @@ export class RouteEntity extends BaseEntity {
       [];
 
     this.nodes.forEach((node, index) => {
+      console.log("Initialize Controls for Node", index, node);
       if (index === 0) return; // Der Spieler/Startpunkt bekommt keine Route-Handles
 
       // 1. Standard Waypoint-Handle (weißer Kreis) erstellen
@@ -153,6 +150,47 @@ export class RouteEntity extends BaseEntity {
 
       // In der Map speichern, damit wir später darauf zugreifen können
       controlsMap[index] = { waypoint, stretch: stretchHandle };
+
+      // ==========================================
+      // NEU: BEZIER HANDLE FÜR KURVEN (HIER EINFÜGEN!)
+      // ==========================================
+      let bezierHandle: BezierHandle | undefined;
+
+      if (
+        node.type === SegmentType.CURVE &&
+        node.cpInX !== undefined &&
+        node.cpInY !== undefined
+      ) {
+        bezierHandle = new BezierHandle(
+          node.cpInX,
+          node.cpInY,
+          node.x,
+          node.y,
+          canvas,
+          this.id,
+        );
+        this.handles.push(bezierHandle);
+
+        // Verbindet die gestrichelte Linie mit dem weißen Punkt
+        waypoint.attachBezier(bezierHandle);
+
+        // Wenn der blaue Kontrollpunkt gezogen wird:
+        bezierHandle.onMoved = (newX, newY) => {
+          if (!this.dragStartNodes) {
+            this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
+          }
+
+          this.nodes[index].cpInX = newX;
+          this.nodes[index].cpInY = newY;
+
+          this.updatePathVisuals();
+          this.updateArrowPosition();
+          canvas.requestRenderAll();
+        };
+
+        // Wenn der Nutzer die Maus loslässt (Undo/Redo Command feuern)
+        bezierHandle.onMoveComplete = () => this.fireModifiedEvent();
+      }
 
       // ==========================================
       // EVENTS FÜR DEN WAYPOINT (Normales Bewegen)
@@ -278,6 +316,8 @@ export class RouteEntity extends BaseEntity {
   private updatePathVisuals(): void {
     const newSvgString = generateSvgPathString(this.nodes);
     const tempPath = new fabric.Path(newSvgString);
+
+    console.log("GENERATED SVG PATH:", newSvgString);
 
     this.fabricPath.set({
       path: tempPath.path,

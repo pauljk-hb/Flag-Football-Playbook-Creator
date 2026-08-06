@@ -21,8 +21,7 @@ export function PlaybookCanvas({ initialPlayData }: PlaybookCanvasProps) {
           ? initialPlayData
           : JSON.stringify(initialPlayData);
 
-      const success = engineInstance.loadPlay(dataString);
-      if (!success) console.warn("Engine konnte Play nicht laden.");
+      engineInstance.loadPlay(dataString);
     }
 
     setEngine(engineInstance);

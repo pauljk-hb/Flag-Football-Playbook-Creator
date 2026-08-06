@@ -10,7 +10,7 @@ export function generateSvgPathString(nodes: RouteNode[]): string {
     const curr = nodes[i];
 
     if (curr?.type === SegmentType.CURVE) {
-      pathStr += ` C ${prev?.cpOutX} ${prev?.cpOutY}, ${curr?.cpInX} ${curr?.cpInY}, ${curr?.x} ${curr?.y}`;
+      pathStr += ` Q ${curr?.cpInX} ${curr?.cpInY} ${curr?.x} ${curr?.y}`;
     } else {
       pathStr += ` L ${curr?.x} ${curr?.y}`;
     }

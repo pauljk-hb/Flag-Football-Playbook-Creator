@@ -84,7 +84,7 @@ export class WaypointHandle implements IControlHandle {
 }
 
 export class BezierHandle implements IControlHandle {
-  private controlPoint: fabric.Circle;
+  public controlPoint: fabric.Circle;
   private tetherLine: fabric.Line;
   public onMoved?: (x: number, y: number) => void;
   public onMoveComplete?: () => void;

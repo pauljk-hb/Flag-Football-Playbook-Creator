@@ -11,10 +11,13 @@ import {
   Save,
   Trash2,
   ChevronLeft,
+  GitBranch,
+  GitMerge,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { useNavigate } from "react-router-dom";
 import { usePlaybook } from "@/hooks/usePlaybook";
+import { useState } from "react";
 
 interface ToolbarProps {
   title: string;
@@ -26,6 +29,9 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
   const { canUndo, canRedo } = usePlaybookHistory();
   const { addPlayer, addRoute, history } = usePlaybookActions();
   const navigate = useNavigate();
+
+  type RouteMode = "default" | "option_1" | "option_2";
+  const [routeMode, setRouteMode] = useState<RouteMode>("default");
 
   if (!engine) return null;
 
@@ -63,6 +69,41 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             title="Wiederholen"
           >
             <Redo2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
+
+        <div className="flex items-center bg-muted/50 p-1 rounded-md border">
+          <Button
+            variant="ghost"
+            size="sm"
+            // Wenn aktiv: Dunkler Hintergrund und Textfarbe ändern
+            className={`h-7 px-3 text-xs ${routeMode === "default" ? "bg-white shadow-sm text-slate-900 font-medium" : "text-slate-500"}`}
+            onClick={() => setRouteMode("default")}
+          >
+            <RouteIcon className="w-3.5 h-3.5 mr-1" />
+            Standard
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-7 px-3 text-xs ${routeMode === "option_1" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500"}`}
+            onClick={() => setRouteMode("option_1")}
+          >
+            <GitBranch className="w-3.5 h-3.5 mr-1" />
+            Option 1
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-7 px-3 text-xs ${routeMode === "option_2" ? "bg-white shadow-sm text-emerald-600 font-medium" : "text-slate-500"}`}
+            onClick={() => setRouteMode("option_2")}
+          >
+            <GitMerge className="w-3.5 h-3.5 mr-1" />
+            Option 2
           </Button>
         </div>
 
@@ -128,7 +169,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="1: Quick Out"
-            onClick={() => addRoute.quickOut()}
+            onClick={() => addRoute.quickOut(routeMode)}
           >
             1
           </Button>
@@ -137,7 +178,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="2: Slant"
-            onClick={() => addRoute.slant()}
+            onClick={() => addRoute.slant(routeMode)}
           >
             2
           </Button>
@@ -150,7 +191,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="3: Hitch"
-            onClick={() => addRoute.comeBack()}
+            onClick={() => addRoute.comeBack(routeMode)}
           >
             3
           </Button>
@@ -160,7 +201,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="4: In / Dig"
-            onClick={() => addRoute.hitch()}
+            onClick={() => addRoute.hitch(routeMode)}
           >
             4
           </Button>
@@ -169,7 +210,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="5: Out"
-            onClick={() => addRoute.out()}
+            onClick={() => addRoute.out(routeMode)}
           >
             5
           </Button>
@@ -178,7 +219,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="6: Comeback"
-            onClick={() => addRoute.in()}
+            onClick={() => addRoute.in(routeMode)}
           >
             6
           </Button>
@@ -191,7 +232,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="7: Post"
-            onClick={() => addRoute.corner()}
+            onClick={() => addRoute.corner(routeMode)}
           >
             7
           </Button>
@@ -200,7 +241,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="8: Corner"
-            onClick={() => addRoute.post()}
+            onClick={() => addRoute.post(routeMode)}
           >
             8
           </Button>
@@ -209,7 +250,7 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             size="icon"
             className="h-7 w-7 text-xs"
             title="9: Go / Fly"
-            onClick={() => addRoute.go()}
+            onClick={() => addRoute.go(routeMode)}
           >
             9
           </Button>
