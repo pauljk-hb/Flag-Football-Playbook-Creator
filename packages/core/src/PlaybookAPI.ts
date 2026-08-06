@@ -29,8 +29,11 @@ export class PlaybookAPI {
     this.engine.addPlayer(config);
   }
 
-  public addRouteFromPreset(preset: RoutePreset): void {
-    this.engine.addRouteFromPreset(preset);
+  public addRouteFromPreset(
+    preset: RoutePreset,
+    routeType: string = "default",
+  ): void {
+    this.engine.addRouteFromPreset(preset, routeType);
   }
 
   public deleteSelectedObject(): void {

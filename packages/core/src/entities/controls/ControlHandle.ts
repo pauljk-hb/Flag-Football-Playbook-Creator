@@ -169,7 +169,7 @@ export class BezierHandle implements IControlHandle {
 }
 
 export class StretchHandle implements IControlHandle {
-  public rect: fabric.Rect;
+  public rect: fabric.Triangle;
   public onMoved?: (x: number, y: number) => void;
   public onMoveComplete?: () => void;
 
@@ -187,12 +187,12 @@ export class StretchHandle implements IControlHandle {
           ? "ns-resize"
           : "pointer";
 
-    this.rect = new fabric.Rect({
+    this.rect = new fabric.Triangle({
       left: x,
       top: y,
-      width: 12,
-      height: 12,
-      fill: "#f1c40f",
+      width: 13,
+      height: 13,
+      fill: "#ffffff",
       stroke: "#000000",
       strokeWidth: 2,
       originX: "center",
@@ -203,7 +203,7 @@ export class StretchHandle implements IControlHandle {
       moveCursor: cursor,
       lockMovementX: stretchAxis === "Y",
       lockMovementY: stretchAxis === "X",
-      visible: false, // WICHTIG: Anfangs unsichtbar
+      visible: false,
     });
 
     this.setupEvents();

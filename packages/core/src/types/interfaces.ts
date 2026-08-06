@@ -35,7 +35,6 @@ export interface SavedPlayer {
   color: string;
   label: string;
   shape: "circle" | "square";
-  route: SavedRoute | null;
 }
 
 export interface SavedPlay {

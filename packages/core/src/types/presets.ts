@@ -14,6 +14,15 @@ export interface RoutePreset {
   breakDirection?: "inside" | "outside" | "straight";
 }
 
+export interface PlayerSpawnData {
+  presetId: string;
+  x: number;
+  y: number;
+  label: string;
+  color: string;
+  shape: "circle" | "square";
+}
+
 export interface FormationPreset {
   id: string;
   name: string;

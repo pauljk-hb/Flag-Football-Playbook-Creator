@@ -28,6 +28,7 @@ import {
 import { AddRouteCommand } from "../history/commands/AddRouteCommand";
 import type { RoutePreset } from "../types/presets";
 import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
+import { FormationBuilder } from "../utils/FormationBuilder";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
@@ -108,7 +109,10 @@ export class PlaybookEngine {
     };
   }
 
-  public addRouteFromPreset(preset: RoutePreset): void {
+  public addRouteFromPreset(
+    preset: RoutePreset,
+    routeType: string = "default",
+  ): void {
     const player = this.selectionManager.getSelectedObject();
     if (!player || !(player instanceof PlayerEntity)) {
       console.warn("Es ist kein Spieler ausgewählt!");
@@ -123,14 +127,15 @@ export class PlaybookEngine {
     absoluteNodes.push({ x: startX, y: startY, type: SegmentType.STRAIGHT });
 
     for (const wp of preset.waypoints) {
+      const lastNode = absoluteNodes[absoluteNodes.length - 1]!;
       absoluteNodes.push({
-        x: absoluteNodes[absoluteNodes.length - 1].x + wp.dx,
-        y: absoluteNodes[absoluteNodes.length - 1].y + wp.dy,
+        x: lastNode.x + wp.dx,
+        y: lastNode.y + wp.dy,
         type: SegmentType.STRAIGHT,
       });
     }
 
-    this.addRoute(player, absoluteNodes);
+    this.addRoute(player, absoluteNodes, routeType);
   }
 
   public deleteSelectedObject(): void {
@@ -154,12 +159,26 @@ export class PlaybookEngine {
     customX?: number,
     customY?: number,
   ): void {
+    let originX = customX;
+    let originY = customY;
+
+    if (originX === undefined || originY === undefined) {
+      const fieldConfig =
+        FIELD_PRESETS[this.currentFieldPresetId] || FIELD_PRESETS["STANDARD"];
+      originX = fieldConfig ? fieldConfig.anchor.x : 400;
+      originY = fieldConfig ? fieldConfig.anchor.y : 600;
+    }
+
+    const spawnData = FormationBuilder.build(formationId, originX, originY);
+
+    if (spawnData.length === 0) return;
+
     const command = new LoadFormationCommand(
-      this.formationManager,
-      formationId,
-      customX,
-      customY,
+      spawnData,
+      this.playManager, // bzw. EntityManager
+      this.canvasManager,
     );
+
     this.historyManager.execute(command);
   }
 
