@@ -282,10 +282,6 @@ export class PlaybookEngine {
       this.canvasManager.addEntity(route);
 
       route.initializeControls(this.canvasManager.getRawCanvas());
-
-      route
-        .getFabricObjects()
-        .forEach((obj) => this.canvasManager.sendToBack(obj));
     });
 
     this.playManager.getAllEntities().forEach((entity) => {
