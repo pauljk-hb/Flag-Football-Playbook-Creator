@@ -384,15 +384,6 @@ export class PlaybookEngine {
    * Entfernt einen Spieler anhand seiner ID.
    */
   private removePlayer(playerId: string): void {
-    this.playManager.getAllRoutesFromPlayer(playerId).forEach((route) => {
-      const removeRouteCommand = new RemoveRouteCommand(
-        route.id,
-        this.playManager,
-        this.canvasManager,
-      );
-      this.historyManager.execute(removeRouteCommand);
-    });
-
     const command = new RemovePlayerCommand(
       playerId,
       this.playManager,

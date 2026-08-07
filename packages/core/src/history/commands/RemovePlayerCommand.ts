@@ -6,6 +6,7 @@ import type { ICommand } from "../../types/history";
 
 export class RemovePlayerCommand implements ICommand {
   private player: PlayerEntity;
+  private routes: RouteEntity[];
 
   constructor(
     private playerId: string,
@@ -13,10 +14,17 @@ export class RemovePlayerCommand implements ICommand {
     private canvasMngr: CanvasManager,
   ) {
     this.player = this.playMngr.getEntity(this.playerId) as PlayerEntity;
+    this.routes = this.playMngr.getAllRoutesFromPlayer(this.playerId);
   }
 
   execute(): void {
     if (!this.player) return;
+
+    this.routes.forEach((route) => {
+      route.destroyAllHandles();
+      this.canvasMngr.removeEntity(route);
+      this.playMngr.removeEntity(route.id);
+    });
 
     this.canvasMngr.removeEntity(this.player);
     this.playMngr.removeEntity(this.player.id);
@@ -24,6 +32,12 @@ export class RemovePlayerCommand implements ICommand {
 
   undo(): void {
     if (!this.player) return;
+
+    this.routes.forEach((route) => {
+      route.initializeControls(this.canvasMngr.getRawCanvas());
+      this.playMngr.addEntity(route);
+      this.canvasMngr.addEntity(route);
+    });
 
     this.playMngr.addEntity(this.player);
     this.canvasMngr.addEntity(this.player);

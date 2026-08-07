@@ -15,7 +15,6 @@ export class RemoveRouteCommand implements ICommand {
   }
 
   execute(): void {
-    console.log("Executing RemoveRouteCommand for routeId:", this.routeId);
     if (this.route) {
       this.route.destroyAllHandles();
       this.canvasMngr.removeEntity(this.route);
