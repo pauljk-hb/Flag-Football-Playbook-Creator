@@ -1,4 +1,4 @@
-import { usePlaybookHistory } from "../../hooks/usePlaybookHistory";
+import { usePlaybookHistory } from "../../../hooks/usePlaybookHistory";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 

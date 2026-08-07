@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import type { Play } from "@/types/interface";
-import { Layers } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -20,7 +19,6 @@ export function Playbook() {
       try {
         const data = await api.plays.getAll();
         setPlays(data);
-        console.log("Geladene Plays:", data);
       } catch (error) {
         console.error("Fehler beim Laden der Plays:", error);
       } finally {
@@ -34,14 +32,6 @@ export function Playbook() {
   if (isLoading) {
     return (
       <div className="p-8 text-center text-muted-foreground">Lade Plays...</div>
-    );
-  }
-
-  if (plays.length === 0) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        Keine Plays vorhanden. Erstelle dein erstes!
-      </div>
     );
   }
 
@@ -60,9 +50,14 @@ export function Playbook() {
               Play-Bibliothek & Strategie-Editor
             </p>
           </div>
+          <div className="ml-24">
+            <Button onClick={() => navigate(`/editor`)} className="w-full">
+              Neues Play
+            </Button>
+          </div>
         </div>
       </header>
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {" "}
         {plays.map((play) => (
           <Card key={play.id} className="overflow-hidden">

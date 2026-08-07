@@ -54,10 +54,17 @@ export class PlaybookAPI {
     this.engine.addRouteFromPreset(preset, routeType);
   }
 
+  /**
+   * Startet das freie Zeichnen einer Route für einen ausgewählten Spieler
+   * @param {string} [routeType] setzt den Typ der Route (default, option_1, option_2), standart ist 'default'
+   */
   public startDrawingRoute(routeType = "default"): void {
     this.engine.startDrawingRoute(routeType);
   }
 
+  /**
+   * Beendet das freie Zeichnen einer Route
+   */
   public cancelDrawingRoute(): void {
     this.engine.cancelDrawingRoute();
   }

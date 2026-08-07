@@ -1,6 +1,6 @@
-import { Toolbar } from "../components/editor/Toolbar";
-import { PlaybookCanvas } from "../components/editor/PlaybookCanvas";
-import { PropertiesSidebar } from "../components/editor/PropertiesSidebar";
+import { Toolbar } from "./components/Toolbar";
+import { PlaybookCanvas } from "./components/PlaybookCanvas";
+import { PropertiesSidebar } from "./components/PropertiesSidebar";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "@/api/client";

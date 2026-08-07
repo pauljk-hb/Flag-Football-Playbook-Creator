@@ -1,7 +1,7 @@
 import { PlaybookProvider } from "./contexts/PlaybookContext";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Playbook } from "./layouts/Playbook";
-import { EditorLayout } from "./layouts/EditorLayout";
+import { Playbook } from "./pages/overview/OverviewPage";
+import { EditorLayout } from "./pages/editor/EditorPage";
 
 function App() {
   return (
