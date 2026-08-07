@@ -2,6 +2,7 @@ import { api } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import type { Play } from "@/types/interface";
 import { Layers } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -49,7 +50,7 @@ export function Playbook() {
       <header className="px-4 border-b py-2">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
-            <Layers className="w-5 h-5" />
+            <RouteTreeIcon />
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">
