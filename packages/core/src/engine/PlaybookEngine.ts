@@ -2,9 +2,7 @@ import { HistoryManager } from "../history/HistoryManager";
 import { CANVAS_SIZE, CanvasManager } from "../managers/CanvasManager";
 import { SelectionManager } from "../managers/SelectionManager";
 import { FieldManager } from "../managers/FieldManager";
-import { FormationManager } from "../managers/FormationManager";
 import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
-import type { ICommand } from "../types/history";
 import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
 import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
 import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
@@ -12,11 +10,8 @@ import { PlayManager } from "../managers/PlayManager";
 import { RouteEntity } from "../entities/RouteEntity";
 import {
   SegmentType,
-  type PlayerExportData,
   type PlayExportData,
-  type RouteExportData,
   type RouteNode,
-  type SavedPlay,
   type ThumbnailOptions,
 } from "../types/interfaces";
 import {
@@ -39,7 +34,6 @@ export class PlaybookEngine {
   private canvasManager: CanvasManager;
   private selectionManager!: SelectionManager;
   private fieldManager: FieldManager;
-  public formationManager!: FormationManager;
 
   private currentFieldPresetId: string = "STANDARD";
 
@@ -215,37 +209,7 @@ export class PlaybookEngine {
    * Generiert einen JSON-String des aktuellen Spielfelds.
    */
   public exportPlay(): string {
-    const allEntities = this.playManager.getAllEntities();
-
-    const players: PlayerExportData[] = [];
-    const routes: RouteExportData[] = [];
-
-    allEntities.forEach((entity) => {
-      if (entity instanceof PlayerEntity) {
-        players.push({
-          id: entity.id,
-          x: entity.x,
-          y: entity.y,
-          label: entity.label,
-          color: entity.color,
-          shape: entity.shape,
-        });
-      } else if (entity instanceof RouteEntity) {
-        routes.push({
-          id: entity.id,
-          playerId: entity.playerId,
-          routeType: entity.routeType,
-          color: entity.color,
-          nodes: JSON.parse(JSON.stringify(entity.nodes)),
-        });
-      }
-    });
-
-    return JSON.stringify({
-      fieldPresetId: this.currentFieldPresetId || "STANDARD",
-      players,
-      routes,
-    });
+    return JSON.stringify(this.playManager.exportPlay());
   }
 
   /**

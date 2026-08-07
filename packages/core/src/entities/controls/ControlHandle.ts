@@ -118,6 +118,7 @@ export class BezierHandle implements IControlHandle {
       hasControls: false,
       hasBorders: false,
       hoverCursor: "pointer",
+      evented: true,
       visible: false, // WICHTIG: Anfangs unsichtbar
     });
 
@@ -203,6 +204,7 @@ export class StretchHandle implements IControlHandle {
       moveCursor: cursor,
       lockMovementX: stretchAxis === "Y",
       lockMovementY: stretchAxis === "X",
+      evented: true,
       visible: false,
     });
 

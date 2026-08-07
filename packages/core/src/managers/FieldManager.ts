@@ -1,5 +1,4 @@
-// manager/FieldManager.ts
-import { Canvas, FabricObject, Line } from "fabric";
+import { FabricObject, Line } from "fabric";
 import {
   SYSTEM_FIELDS,
   PIXELS_PER_YARD,

@@ -1,8 +1,6 @@
 import * as fabric from "fabric";
 import type { ThumbnailOptions } from "../types/interfaces";
 import type { BaseEntity } from "../entities/BaseEntity";
-import { RouteEntity } from "../entities/RouteEntity";
-import { PlayerEntity } from "../entities/PlayerEntity";
 
 export const CANVAS_SIZE = {
   width: 800,

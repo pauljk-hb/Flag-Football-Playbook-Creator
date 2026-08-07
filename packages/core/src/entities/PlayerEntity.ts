@@ -172,7 +172,6 @@ export class PlayerEntity extends BaseEntity {
 
   /**
    * Setzt eine neue Farbe.
-   * (Nützlich für UI-Aktionen "Farbe ändern" oder bei DarkMode-Switches).
    */
   public setColor(newColor: string): void {
     this.color = newColor;
@@ -184,7 +183,6 @@ export class PlayerEntity extends BaseEntity {
 
   /**
    * Wird aufgerufen, wenn das Objekt selektiert wird
-   * (Könnte später für Glowing-Effects etc. genutzt werden)
    */
   public showControls(): void {
     const circle = this.fabricGroup.item(0) as fabric.Circle;

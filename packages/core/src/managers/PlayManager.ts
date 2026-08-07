@@ -4,6 +4,12 @@ import type { HistoryManager } from "../history/HistoryManager.js";
 import type { FieldManager } from "./FieldManager.js";
 import type { BaseEntity } from "../entities/BaseEntity.js";
 import { RouteEntity } from "../entities/RouteEntity.js";
+import type {
+  PlayerExportData,
+  PlayExportData,
+  RouteExportData,
+} from "../types/interfaces.js";
+import { PlayerEntity } from "../entities/PlayerEntity.js";
 
 export class PlayManager {
   constructor(
@@ -80,12 +86,35 @@ export class PlayManager {
   /**
    * Nimmt den aktuellen Zustand des Feldes und speichert ihn in einem JSON-kompatiblen Objekt.
    */
-  public savePlayData(): any {
+  public exportPlay(): PlayExportData {
+    const players: PlayerExportData[] = [];
+    const routes: RouteExportData[] = [];
+
+    this.entities.forEach((entity) => {
+      if (entity instanceof PlayerEntity) {
+        players.push({
+          id: entity.id,
+          x: entity.x,
+          y: entity.y,
+          label: entity.label,
+          color: entity.color,
+          shape: entity.shape,
+        });
+      } else if (entity instanceof RouteEntity) {
+        routes.push({
+          id: entity.id,
+          playerId: entity.playerId,
+          routeType: entity.routeType,
+          color: entity.color,
+          nodes: JSON.parse(JSON.stringify(entity.nodes)),
+        });
+      }
+    });
+
     return {
-      entities: this.getAllEntities().map((entity) => {
-        // Hier würde z.B. entity.serialize() aufgerufen werden
-        return { id: entity.id };
-      }),
+      fieldPresetId: this.fieldManager.getCurrentPresetId() || "STANDARD",
+      players,
+      routes,
     };
   }
 

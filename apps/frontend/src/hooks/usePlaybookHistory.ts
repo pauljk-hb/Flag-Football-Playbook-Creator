@@ -15,6 +15,7 @@ export function usePlaybookHistory() {
     const unsubscribe = engine.subscribeToHistoryChanges(() => {
       setCanUndo(engine.canUndo());
       setCanRedo(engine.canRedo());
+      console.log("Änderung gemacht");
     });
 
     return unsubscribe;
