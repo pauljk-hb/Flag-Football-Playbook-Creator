@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 import { api } from "@/api/client";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import type { Play, PlayDTO } from "@/types/interface";
+import { usePlaybook } from "@/hooks/usePlaybook";
 
 export function EditorLayout() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { engine } = usePlaybook();
 
   const { play } = usePlaybookActions();
 
@@ -81,7 +83,11 @@ export function EditorLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <Toolbar title={playTitle} onSave={handleSave} />
+      <Toolbar
+        title={playTitle}
+        onSave={handleSave}
+        drawRoute={(routeMode: string) => engine?.startDrawingRoute(routeMode)}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative bg-slate-50 flex items-center justify-center p-4">

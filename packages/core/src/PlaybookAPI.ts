@@ -54,6 +54,14 @@ export class PlaybookAPI {
     this.engine.addRouteFromPreset(preset, routeType);
   }
 
+  public startDrawingRoute(routeType = "default"): void {
+    this.engine.startDrawingRoute(routeType);
+  }
+
+  public cancelDrawingRoute(): void {
+    this.engine.cancelDrawingRoute();
+  }
+
   /**
    * Löscht die ausgewähtle Entität mit seinen Abhänigkeiten
    */

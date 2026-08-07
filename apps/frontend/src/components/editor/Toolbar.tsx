@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   GitBranch,
   GitMerge,
+  Pen,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { useNavigate } from "react-router-dom";
@@ -22,9 +23,10 @@ import { useState } from "react";
 interface ToolbarProps {
   title: string;
   onSave: () => void;
+  drawRoute: (routeMode: string) => void;
 }
 
-export function Toolbar({ title, onSave }: ToolbarProps) {
+export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
   const { addPlayer, addRoute, history } = usePlaybookActions();
@@ -106,6 +108,10 @@ export function Toolbar({ title, onSave }: ToolbarProps) {
             Option 2
           </Button>
         </div>
+
+        <Button variant="secondary" onClick={() => drawRoute(routeMode)}>
+          <Pen className="h-4 w-4" />
+        </Button>
 
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
         {/* GRUPPE 2: Spieler hinzufügen */}

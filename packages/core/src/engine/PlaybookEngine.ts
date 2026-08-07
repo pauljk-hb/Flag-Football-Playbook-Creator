@@ -27,6 +27,7 @@ import { AddRouteCommand } from "../history/commands/AddRouteCommand";
 import type { RoutePreset } from "../types/presets";
 import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 import { FormationBuilder } from "../utils/FormationBuilder";
+import { RouteDrawingManager } from "../managers/RouteDrawingManager";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
@@ -34,6 +35,7 @@ export class PlaybookEngine {
   private canvasManager: CanvasManager;
   private selectionManager!: SelectionManager;
   private fieldManager: FieldManager;
+  private routeDrawingManager: RouteDrawingManager;
 
   private currentFieldPresetId: string = "STANDARD";
 
@@ -47,6 +49,8 @@ export class PlaybookEngine {
       this.historyManager,
       this.fieldManager,
     );
+
+    this.routeDrawingManager = new RouteDrawingManager(this.canvasManager);
   }
 
   /*------------------------*/
@@ -66,6 +70,10 @@ export class PlaybookEngine {
     this.historyManager.subscribe(() => {
       this.canvasManager.requestRender();
     });
+
+    this.routeDrawingManager.onDrawingComplete = (player, nodes, routeType) => {
+      this.addRoute(player, nodes, routeType);
+    };
 
     this.fieldManager.drawField(this.currentFieldPresetId);
     this.canvasManager.requestRender();
@@ -148,6 +156,26 @@ export class PlaybookEngine {
     }
 
     this.addRoute(player, absoluteNodes, routeType);
+  }
+
+  /**
+   * Wird vom Frontend aufgerufen, um das Zeichnen für einen Spieler zu starten.
+   */
+  public startDrawingRoute(routeType = "default"): void {
+    const player = this.selectionManager.getSelectedObject();
+    if (!player || !(player instanceof PlayerEntity)) {
+      console.warn("Es ist kein Spieler ausgewählt!");
+      return;
+    }
+
+    this.routeDrawingManager.startDrawing(player, routeType);
+  }
+
+  /**
+   * Bricht das Zeichnen ab (z. B. wenn der User einen 'Abbrechen'-Button klickt).
+   */
+  public cancelDrawingRoute(): void {
+    this.routeDrawingManager.cancelDrawing();
   }
 
   public deleteSelectedObject(): void {
