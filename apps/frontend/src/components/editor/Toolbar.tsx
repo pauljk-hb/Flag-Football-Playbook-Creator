@@ -55,8 +55,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
         {/* GRUPPE 1: Verlauf (Undo/Redo) */}
         <div className="flex items-center gap-1">
           <Button
-            variant="ghost"
-            size="icon"
+            variant="secondary"
             onClick={() => history.undo()}
             disabled={!canUndo}
             title="Rückgängig"
@@ -64,8 +63,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
             <Undo2 className="h-4 w-4" />
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
+            variant="secondary"
             onClick={() => history.redo()}
             disabled={!canRedo}
             title="Wiederholen"
@@ -76,36 +74,78 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
 
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
 
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="1: Quick Out"
+          onClick={() => addPlayer.qb()}
+        >
+          Q
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="2: Slant"
+          onClick={() => addPlayer.center()}
+        >
+          C
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="2: Slant"
+          onClick={() => addPlayer.wr1()}
+        >
+          W1
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="2: Slant"
+          onClick={() => addPlayer.wr2()}
+        >
+          W2
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="2: Slant"
+          onClick={() => addPlayer.red()}
+        >
+          R
+        </Button>
+
+        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
+
         <div className="flex items-center bg-muted/50 p-1 rounded-md border">
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            // Wenn aktiv: Dunkler Hintergrund und Textfarbe ändern
             className={`h-7 px-3 text-xs ${routeMode === "default" ? "bg-white shadow-sm text-slate-900 font-medium" : "text-slate-500"}`}
             onClick={() => setRouteMode("default")}
           >
             <RouteIcon className="w-3.5 h-3.5 mr-1" />
-            Standard
+            Std.
           </Button>
 
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
             className={`h-7 px-3 text-xs ${routeMode === "option_1" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500"}`}
             onClick={() => setRouteMode("option_1")}
           >
             <GitBranch className="w-3.5 h-3.5 mr-1" />
-            Option 1
+            Opt. 1
           </Button>
 
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
             className={`h-7 px-3 text-xs ${routeMode === "option_2" ? "bg-white shadow-sm text-emerald-600 font-medium" : "text-slate-500"}`}
             onClick={() => setRouteMode("option_2")}
           >
             <GitMerge className="w-3.5 h-3.5 mr-1" />
-            Option 2
+            Opt. 2
           </Button>
         </div>
 
@@ -113,160 +153,89 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
           <Pen className="h-4 w-4" />
         </Button>
 
-        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
-        {/* GRUPPE 2: Spieler hinzufügen */}
-        <div className="flex items-center gap-1 border rounded-md p-1 bg-muted/50">
-          <UserPlus className="h-4 w-4 mx-2 text-muted-foreground" />
+        {/* Kurz */}
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="1: Quick Out"
+          onClick={() => addRoute.quickOut(routeMode)}
+        >
+          1
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="2: Slant"
+          onClick={() => addRoute.slant(routeMode)}
+        >
+          2
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="1: Quick Out"
-            onClick={() => addPlayer.qb()}
-          >
-            Q
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="2: Slant"
-            onClick={() => addPlayer.center()}
-          >
-            C
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="2: Slant"
-            onClick={() => addPlayer.wr1()}
-          >
-            W1
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="2: Slant"
-            onClick={() => addPlayer.wr2()}
-          >
-            W2
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="2: Slant"
-            onClick={() => addPlayer.red()}
-          >
-            R
-          </Button>
-        </div>
+        {/* Mittel / Lang */}
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="3: Hitch"
+          onClick={() => addRoute.comeBack(routeMode)}
+        >
+          3
+        </Button>
 
-        {/* GRUPPE 4: Routen (Nummern-Block) */}
-        <div className="flex items-center gap-1 border rounded-md p-1 bg-muted/50">
-          <RouteIcon className="h-4 w-4 mx-2 text-muted-foreground" />
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="4: In / Dig"
+          onClick={() => addRoute.hitch(routeMode)}
+        >
+          4
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="5: Out"
+          onClick={() => addRoute.out(routeMode)}
+        >
+          5
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="6: Comeback"
+          onClick={() => addRoute.in(routeMode)}
+        >
+          6
+        </Button>
 
-          {/* Kurz */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="1: Quick Out"
-            onClick={() => addRoute.quickOut(routeMode)}
-          >
-            1
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="2: Slant"
-            onClick={() => addRoute.slant(routeMode)}
-          >
-            2
-          </Button>
-
-          <Separator orientation="vertical" className="h-4 mx-1 my-auto" />
-
-          {/* Mittel / Lang */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="3: Hitch"
-            onClick={() => addRoute.comeBack(routeMode)}
-          >
-            3
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="4: In / Dig"
-            onClick={() => addRoute.hitch(routeMode)}
-          >
-            4
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="5: Out"
-            onClick={() => addRoute.out(routeMode)}
-          >
-            5
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="6: Comeback"
-            onClick={() => addRoute.in(routeMode)}
-          >
-            6
-          </Button>
-
-          <Separator orientation="vertical" className="h-4 mx-1 my-auto" />
-
-          {/* Tief */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="7: Post"
-            onClick={() => addRoute.corner(routeMode)}
-          >
-            7
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="8: Corner"
-            onClick={() => addRoute.post(routeMode)}
-          >
-            8
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-xs"
-            title="9: Go / Fly"
-            onClick={() => addRoute.go(routeMode)}
-          >
-            9
-          </Button>
-        </div>
+        {/* Tief */}
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="7: Post"
+          onClick={() => addRoute.corner(routeMode)}
+        >
+          7
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="8: Corner"
+          onClick={() => addRoute.post(routeMode)}
+        >
+          8
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-7 w-7 text-xs"
+          title="9: Go / Fly"
+          onClick={() => addRoute.go(routeMode)}
+        >
+          9
+        </Button>
 
         <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
 
         <Button
           variant="secondary"
-          size="icon"
           onClick={() => engine.deleteSelectedObject()}
         >
           <Trash2 className="h-4 w-4" />

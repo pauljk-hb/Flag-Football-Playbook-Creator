@@ -50,7 +50,7 @@ export function Playbook() {
       <header className="px-4 border-b py-2">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
-            <RouteTreeIcon />
+            <RouteTreeIcon className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">

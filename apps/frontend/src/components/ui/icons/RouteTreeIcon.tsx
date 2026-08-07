@@ -1,16 +1,12 @@
 import type { SVGProps } from "react";
 
-export function RouteTreeIcon({
-  className = "w-5 h-5",
-  ...props
-}: SVGProps<SVGSVGElement>) {
+export function RouteTreeIcon({ ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg
       viewBox="0 0 23.0492 23.6453"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMidYMid meet"
-      className={className}
       {...props}
     >
       <path
