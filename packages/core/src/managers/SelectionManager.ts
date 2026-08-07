@@ -65,6 +65,14 @@ export class SelectionManager {
       this.hideAllRouteControls();
       this.canvasManager.requestRender();
     });
+
+    canvas.on("mouse:down", (e) => {
+      if (!e.target) {
+        this.hideAllRouteControls();
+        canvas.discardActiveObject(); // Aktive Auswahl in Fabric aufheben
+        this.canvasManager.requestRender();
+      }
+    });
   }
 
   private hideAllRouteControls(): void {
