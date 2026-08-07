@@ -28,29 +28,21 @@ export class MovePlayerCommand implements ICommand {
 
     player.setPosition(this.endX, this.endY);
 
-    const allEntities = this.playMngr.getAllEntities();
-    allEntities.forEach((entity) => {
-      if (entity instanceof RouteEntity && entity.playerId === this.playerId) {
-        entity.translate(this.dx, this.dy);
-      }
+    this.playMngr.getAllRoutesFromPlayer(this.playerId).forEach((route) => {
+      route.translate(this.dx, this.dy);
     });
 
     this.canvasMngr.requestRender();
   }
 
   public undo(): void {
-    // 1. Spieler zurücksetzen
     const player = this.playMngr.getEntity<PlayerEntity>(this.playerId);
     if (!player) return;
 
     player.setPosition(this.startX, this.startY);
 
-    // 2. WICHTIG: Alle zugehörigen Routen zurückbewegen! (-dx, -dy)
-    const allEntities = this.playMngr.getAllEntities();
-    allEntities.forEach((entity) => {
-      if (entity instanceof RouteEntity && entity.playerId === this.playerId) {
-        entity.translate(-this.dx, -this.dy);
-      }
+    this.playMngr.getAllRoutesFromPlayer(this.playerId).forEach((route) => {
+      route.translate(-this.dx, -this.dy);
     });
 
     this.canvasMngr.requestRender();

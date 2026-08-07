@@ -276,6 +276,20 @@ export class PlaybookEngine {
         shape: pData.shape,
       });
 
+      player.onMoveComplete = (playerId, startX, startY, endX, endY) => {
+        const command = new MovePlayerCommand(
+          playerId,
+          startX,
+          startY,
+          endX,
+          endY,
+          this.playManager,
+          this.canvasManager,
+        );
+
+        this.historyManager.execute(command);
+      };
+
       this.playManager.addEntity(player);
       this.canvasManager.addEntity(player);
     });
