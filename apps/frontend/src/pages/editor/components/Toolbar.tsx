@@ -43,20 +43,19 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
   if (!engine) return null;
 
   return (
-    <header className="px-4 border-b py-2">
+    <header className="px-4 border-b py-2 bg-card">
       <div className="flex items-center gap-3">
-        <button
+        <Button
+          variant="ghost"
           onClick={handleBack}
-          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
           title="Zurück zur Übersicht"
-          aria-label="Zurück"
         >
           <ChevronLeft className="w-4 h-4" />
-        </button>
+        </Button>
 
-        <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
       </div>
-      <div className="flex items-center gap-2 bg-card shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         {/* GRUPPE 1: Verlauf (Undo/Redo) */}
         <div className="flex items-center gap-1">
           <Button

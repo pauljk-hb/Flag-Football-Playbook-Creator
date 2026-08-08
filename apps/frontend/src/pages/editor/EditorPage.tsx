@@ -81,7 +81,7 @@ export function EditorLayout() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 relative bg-slate-50 flex items-center justify-center p-4">
+        <main className="flex-1 relative flex items-center bg-card justify-center p-4">
           <PlaybookCanvas initialPlayData={rawPlayData?.data} />
         </main>
 
