@@ -32,6 +32,7 @@ export interface PlayerSpawnData {
 export interface FormationPreset {
   id: string;
   name: string;
+  thumbnail?: string;
   positions: FormationPosition[];
 }
 

@@ -28,6 +28,8 @@ import type { RoutePreset } from "../types/presets";
 import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 import { FormationBuilder } from "../utils/FormationBuilder";
 import { RouteDrawingManager } from "../managers/RouteDrawingManager";
+import { DEFAULT_LOS_Y } from "../data/presets/fields";
+import { Line } from "fabric";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
@@ -336,6 +338,73 @@ export class PlaybookEngine {
 
   public generateThumbnail(options: ThumbnailOptions = {}): string {
     return this.canvasManager.generateThumbnail(options);
+  }
+
+  /**
+   * Generiert ein Vorschaubild (Base64 PNG) der aktuellen Formation.
+   * - Volle Breite
+   * - Vertikal beschnitten: 120px über und unter der LOS
+   * - Blendet alles außer Spielern aus (kein Restore des alten Zustands)
+   */
+  public exportFormationThumbnail(): string {
+    const canvas = this.canvasManager.getRawCanvas();
+
+    // 1. Alles ausblenden (Hintergrund und alle Objekte)
+    this.fieldManager.clearField();
+
+    canvas.getObjects().forEach((obj) => {
+      obj.visible = false;
+    });
+
+    // 2. Nur Spieler herausfiltern und wieder sichtbar machen
+    const players = this.playManager
+      .getAllEntities()
+      .filter((e) => e instanceof PlayerEntity) as PlayerEntity[];
+
+    if (players.length === 0) {
+      console.warn("Keine Spieler gefunden!");
+      return "";
+    }
+
+    players.forEach((player) => {
+      player.getFabricObjects().forEach((obj) => {
+        obj.visible = true;
+      });
+    });
+
+    const finalLosY = DEFAULT_LOS_Y;
+
+    const fabricLine = new Line([-1000, finalLosY, 10000, finalLosY], {
+      stroke: "#121212",
+      strokeWidth: 4,
+      selectable: false,
+      evented: false,
+      hoverCursor: "default",
+    });
+
+    this.canvasManager.addFabricObject(fabricLine);
+
+    this.canvasManager.sendToBack(fabricLine);
+
+    canvas.discardActiveObject();
+    canvas.renderAll(); // Fabric.js zwingen, die Sichtbarkeiten sofort anzuwenden
+
+    // 4. Zuschneiden: Volle Breite, Y-Achse 120px hoch und runter (insgesamt 240px)
+    const cropTop = finalLosY - 120;
+    const cropHeight = 240;
+    const cropWidth = canvas.width || 800; // Volle Breite des Canvas
+
+    // 5. Bild generieren
+    const dataURL = canvas.toDataURL({
+      format: "png",
+      multiplier: 0.7,
+      left: 0,
+      top: cropTop,
+      width: cropWidth,
+      height: cropHeight,
+    });
+
+    return dataURL;
   }
 
   /**
