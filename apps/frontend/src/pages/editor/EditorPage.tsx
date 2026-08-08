@@ -7,11 +7,13 @@ import { api } from "@/api/client";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import type { Play, PlayDTO } from "@/types/interface";
 import { usePlaybook } from "@/hooks/usePlaybook";
+import { Toaster } from "@/components/ui/sonner";
+import { useEngineNotifications } from "./hooks/useEngineNotifications";
 
 export function EditorLayout() {
   const { id } = useParams<{ id: string }>();
   const { engine } = usePlaybook();
-
+  useEngineNotifications();
   const { play } = usePlaybookActions();
 
   const [playTitle, setPlayTitle] = useState("Unbenanntes Play");
@@ -108,6 +110,7 @@ export function EditorLayout() {
           onDescriptionChange={setPlayDescription}
         />
       </div>
+      <Toaster position="bottom-left" richColors closeButton />
     </div>
   );
 }

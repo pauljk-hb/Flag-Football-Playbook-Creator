@@ -1,6 +1,7 @@
 import type { PlayerEntity } from "../../entities/PlayerEntity";
 import { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
+import type { NotificationManager } from "../../managers/NotificationManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
 import type { RouteNode } from "../../types/interfaces";
@@ -17,6 +18,7 @@ export class MovePlayerCommand implements ICommand {
     private endY: number,
     private playMngr: PlayManager,
     private canvasMngr: CanvasManager,
+    private notificationManager: NotificationManager,
   ) {
     this.dx = this.endX - this.startX;
     this.dy = this.endY - this.startY;
@@ -24,7 +26,13 @@ export class MovePlayerCommand implements ICommand {
 
   public execute(): void {
     const player = this.playMngr.getEntity<PlayerEntity>(this.playerId);
-    if (!player) return;
+    if (!player) {
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler ausgewählt!",
+      );
+      return;
+    }
 
     player.setPosition(this.endX, this.endY);
 
@@ -37,7 +45,13 @@ export class MovePlayerCommand implements ICommand {
 
   public undo(): void {
     const player = this.playMngr.getEntity<PlayerEntity>(this.playerId);
-    if (!player) return;
+    if (!player) {
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler ausgewählt!",
+      );
+      return;
+    }
 
     player.setPosition(this.startX, this.startY);
 

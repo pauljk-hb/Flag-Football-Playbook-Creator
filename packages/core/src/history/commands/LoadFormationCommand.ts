@@ -1,6 +1,7 @@
 import { PlayerEntity } from "../../entities/PlayerEntity";
 import { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
+import type { NotificationManager } from "../../managers/NotificationManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
 import type { PlayerSpawnData } from "../../types/presets";
@@ -16,6 +17,7 @@ export class LoadFormationCommand implements ICommand {
     private playManager: PlayManager,
     private canvasManager: CanvasManager,
     private historyManager: HistoryManager,
+    private notificationManager: NotificationManager,
   ) {}
 
   public execute(): void {
@@ -49,6 +51,7 @@ export class LoadFormationCommand implements ICommand {
           endY,
           this.playManager,
           this.canvasManager,
+          this.notificationManager,
         );
 
         this.historyManager.execute(command);

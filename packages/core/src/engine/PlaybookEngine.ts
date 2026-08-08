@@ -10,6 +10,7 @@ import { PlayManager } from "../managers/PlayManager";
 import { RouteEntity } from "../entities/RouteEntity";
 import {
   SegmentType,
+  type CoreNotification,
   type PlayExportData,
   type RouteNode,
   type ThumbnailOptions,
@@ -30,6 +31,7 @@ import { FormationBuilder } from "../utils/FormationBuilder";
 import { RouteDrawingManager } from "../managers/RouteDrawingManager";
 import { DEFAULT_LOS_Y } from "../data/presets/fields";
 import { Line } from "fabric";
+import { NotificationManager } from "../managers/NotificationManager";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
@@ -38,18 +40,21 @@ export class PlaybookEngine {
   private selectionManager!: SelectionManager;
   private fieldManager: FieldManager;
   private routeDrawingManager: RouteDrawingManager;
+  private notificationManager: NotificationManager;
 
   private currentFieldPresetId: string = "STANDARD";
 
   constructor() {
     this.historyManager = new HistoryManager();
     this.canvasManager = new CanvasManager();
+    this.notificationManager = new NotificationManager();
     this.fieldManager = new FieldManager(this.canvasManager);
 
     this.playManager = new PlayManager(
       this.canvasManager,
       this.historyManager,
       this.fieldManager,
+      this.notificationManager,
     );
 
     this.routeDrawingManager = new RouteDrawingManager(this.canvasManager);
@@ -110,6 +115,7 @@ export class PlaybookEngine {
         endY,
         this.playManager,
         this.canvasManager,
+        this.notificationManager,
       );
 
       this.historyManager.execute(command);
@@ -122,7 +128,10 @@ export class PlaybookEngine {
   ): void {
     const player = this.selectionManager.getSelectedObject();
     if (!player || !(player instanceof PlayerEntity)) {
-      console.warn("Es ist kein Spieler ausgewählt!");
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler ausgewählt!",
+      );
       return;
     }
 
@@ -166,7 +175,10 @@ export class PlaybookEngine {
   public startDrawingRoute(routeType = "default"): void {
     const player = this.selectionManager.getSelectedObject();
     if (!player || !(player instanceof PlayerEntity)) {
-      console.warn("Es ist kein Spieler ausgewählt!");
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler ausgewählt!",
+      );
       return;
     }
 
@@ -183,7 +195,13 @@ export class PlaybookEngine {
   public deleteSelectedObject(): void {
     const selected = this.selectionManager.getSelectedObject();
 
-    if (!selected) return;
+    if (!selected) {
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler oder Route ausgewählt!",
+      );
+      return;
+    }
 
     if (selected instanceof RouteEntity) {
       this.deleteRoute(selected.id);
@@ -220,6 +238,7 @@ export class PlaybookEngine {
       this.playManager,
       this.canvasManager,
       this.historyManager,
+      this.notificationManager,
     );
 
     this.historyManager.execute(command);
@@ -230,10 +249,11 @@ export class PlaybookEngine {
    */
   public changeFieldPreset(presetId: string): void {
     this.currentFieldPresetId = presetId;
-    if (this.fieldManager) {
-      this.fieldManager.drawField(presetId);
-      this.canvasManager.requestRender();
-    }
+    if (!this.fieldManager)
+      throw new Error("FieldManager ist nicht initialisiert!");
+
+    this.fieldManager.drawField(presetId);
+    this.canvasManager.requestRender();
   }
 
   /**
@@ -259,7 +279,7 @@ export class PlaybookEngine {
     this.historyManager.clear();
 
     this.currentFieldPresetId = playData.fieldPresetId;
-    // this.setFieldBackground(this.currentFieldPresetId);
+    this.fieldManager.drawField(this.currentFieldPresetId);
 
     playData.players.forEach((pData) => {
       const player = new PlayerEntity({
@@ -280,6 +300,7 @@ export class PlaybookEngine {
           endY,
           this.playManager,
           this.canvasManager,
+          this.notificationManager,
         );
 
         this.historyManager.execute(command);
@@ -322,6 +343,11 @@ export class PlaybookEngine {
     });
 
     this.canvasManager.requestRender();
+
+    this.notificationManager.sendFeedback(
+      "success",
+      "Spielzug erfolgreich geladen!",
+    );
   }
 
   public getAllSystemRoutes(): string[] {
@@ -431,6 +457,19 @@ export class PlaybookEngine {
 
   public subscribeToHistoryChanges(callback: () => void): () => void {
     const unsubscribe = this.historyManager.subscribe(callback);
+    return unsubscribe;
+  }
+
+  /**
+   * Erlaubt dem Frontend, sich für Benachrichtigungen aus dem Core anzumelden.
+   *
+   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
+   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   */
+  public onNotification(
+    callback: (notification: CoreNotification) => void,
+  ): () => void {
+    const unsubscribe = this.notificationManager.subscribe(callback);
     return unsubscribe;
   }
 

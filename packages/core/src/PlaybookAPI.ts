@@ -1,6 +1,6 @@
 import { PlaybookEngine } from "./engine/PlaybookEngine";
 import type { PlayerConfig } from "./entities/PlayerEntity";
-import type { ThumbnailOptions } from "./types/interfaces";
+import type { CoreNotification, ThumbnailOptions } from "./types/interfaces";
 import type { RoutePreset } from "./types/presets";
 
 /**
@@ -183,9 +183,24 @@ export class PlaybookAPI {
 
   /**
    * Aboniert über Änderungen im History Stack (undo/redo)
+   * * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
+   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
    */
   public subscribeToHistoryChanges(callback: () => void): () => void {
     const unsubscribe = this.engine.subscribeToHistoryChanges(callback);
+    return unsubscribe;
+  }
+
+  /**
+   * Erlaubt dem Frontend, sich für Benachrichtigungen aus dem Core anzumelden.
+   *
+   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
+   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   */
+  public subscribeToNotification(
+    callback: (notification: CoreNotification) => void,
+  ): () => void {
+    const unsubscribe = this.engine.onNotification(callback);
     return unsubscribe;
   }
 }

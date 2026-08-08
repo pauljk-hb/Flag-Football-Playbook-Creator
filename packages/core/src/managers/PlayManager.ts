@@ -10,12 +10,14 @@ import type {
   RouteExportData,
 } from "../types/interfaces.js";
 import { PlayerEntity } from "../entities/PlayerEntity.js";
+import type { NotificationManager } from "./NotificationManager.js";
 
 export class PlayManager {
   constructor(
     private canvasManager: CanvasManager,
     private historyManager: HistoryManager,
     private fieldManager: FieldManager,
+    private notificationManager: NotificationManager,
   ) {}
 
   private entities: Map<string, BaseEntity> = new Map();
@@ -25,7 +27,10 @@ export class PlayManager {
    */
   public addEntity(entity: BaseEntity): void {
     if (this.entities.has(entity.id)) {
-      console.warn(`Entity with ID ${entity.id} already exists. Overwriting.`);
+      this.notificationManager.sendFeedback(
+        "warning",
+        `Entity with ID ${entity.id} already exists. Overwriting.`,
+      );
     }
     this.entities.set(entity.id, entity);
   }

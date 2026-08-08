@@ -50,3 +50,11 @@ export interface ThumbnailOptions {
   quality?: number;
   multiplier?: number;
 }
+
+export type LogLevel = "info" | "success" | "warning" | "error";
+
+export interface CoreNotification {
+  level: LogLevel;
+  message: string;
+  messageKey?: string;
+}

@@ -1,6 +1,7 @@
 import { usePlaybookHistory } from "../../../hooks/usePlaybookHistory";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useHotkeys } from "react-hotkeys-hook";
 
 // Lucide Icons
 import {
@@ -39,6 +40,12 @@ import {
   XPlayerIcon,
   ZPlayerIcon,
 } from "@/components/ui/icons/PlayerIcon";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Kbd } from "@/components/ui/kbd";
 
 interface ToolbarProps {
   title: string;
@@ -66,7 +73,43 @@ export function Toolbar({
   type RouteMode = "default" | "option_1" | "option_2";
   const [routeMode, setRouteMode] = useState<RouteMode>("default");
 
-  if (!engine) return null;
+  useHotkeys("mod+y", () => {
+    history.undo();
+  });
+  useHotkeys("mod+shift+y", () => {
+    history.redo();
+  });
+  useHotkeys("1", () => {
+    addRoute.quickOut(routeMode);
+  });
+  useHotkeys("2", () => {
+    addRoute.slant(routeMode);
+  });
+  useHotkeys("3", () => {
+    addRoute.comeBack(routeMode);
+  });
+  useHotkeys("4", () => {
+    addRoute.hitch(routeMode);
+  });
+  useHotkeys("5", () => {
+    addRoute.out(routeMode);
+  });
+  useHotkeys("6", () => {
+    addRoute.in(routeMode);
+  });
+  useHotkeys("7", () => {
+    addRoute.corner(routeMode);
+  });
+  useHotkeys("8", () => {
+    addRoute.post(routeMode);
+  });
+  useHotkeys("9", () => {
+    addRoute.go(routeMode);
+  });
+
+  useHotkeys("delete, backspace", () => {
+    engine?.deleteSelectedObject();
+  });
 
   return (
     <header className="px-4 border-b py-2 bg-card">
@@ -190,22 +233,40 @@ export function Toolbar({
         </Button>
 
         {/* Kurz */}
-        <Button
-          variant="secondary"
-          title="1: Quick Out"
-          className="h-11 w-11"
-          onClick={() => addRoute.quickOut(routeMode)}
-        >
-          <QuickOutRoute className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          title="2: Slant"
-          className="h-11 w-11"
-          onClick={() => addRoute.slant(routeMode)}
-        >
-          <SlantRoute className="size-5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="secondary"
+                className="h-11 w-11"
+                onClick={() => addRoute.quickOut(routeMode)}
+              >
+                <QuickOutRoute className="size-5" />
+              </Button>
+            }
+          />
+          <TooltipContent side="bottom">
+            Quick Out <Kbd>1</Kbd>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="secondary"
+                title="2: Slant"
+                className="h-11 w-11"
+                onClick={() => addRoute.slant(routeMode)}
+              >
+                <SlantRoute className="size-5" />
+              </Button>
+            }
+          />
+          <TooltipContent side="bottom">
+            Slant <Kbd>2</Kbd>
+          </TooltipContent>
+        </Tooltip>
 
         {/* Mittel / Lang */}
         <Button
@@ -272,7 +333,7 @@ export function Toolbar({
 
         <Button
           variant="secondary"
-          onClick={() => engine.deleteSelectedObject()}
+          onClick={() => engine?.deleteSelectedObject()}
           className="h-11 w-11"
         >
           <Trash2 className="size-5 " />
