@@ -8,6 +8,8 @@ export interface IControlHandle {
   onMoveComplete?: () => void;
 }
 
+const DEFAULT_HANDLE_COLOR = "#ffd147"; // Blau für Bezier-Punkte
+
 export class WaypointHandle implements IControlHandle {
   public circle: fabric.Circle;
   public onMoved?: (x: number, y: number) => void;
@@ -24,7 +26,7 @@ export class WaypointHandle implements IControlHandle {
       left: x,
       top: y,
       radius: 6,
-      fill: "#ffffff",
+      fill: DEFAULT_HANDLE_COLOR,
       stroke: "#000000",
       strokeWidth: 2,
       originX: "center",
@@ -98,8 +100,8 @@ export class BezierHandle implements IControlHandle {
     routeId: string, // NEU: routeId
   ) {
     this.tetherLine = new fabric.Line([anchorX, anchorY, startX, startY], {
-      stroke: "#999",
-      strokeWidth: 1,
+      stroke: "#424242",
+      strokeWidth: 2,
       strokeDashArray: [3, 3],
       selectable: false, // Die Linie selbst kann man nicht anklicken
       evented: false,
@@ -111,7 +113,7 @@ export class BezierHandle implements IControlHandle {
       top: startY,
       radius: 4,
       fill: "#ffffff",
-      stroke: "#3498db", // Blau markiert es als Bezier-Punkt
+      stroke: DEFAULT_HANDLE_COLOR, // Blau markiert es als Bezier-Punkt
       strokeWidth: 2,
       originX: "center",
       originY: "center",
@@ -193,7 +195,7 @@ export class StretchHandle implements IControlHandle {
       top: y,
       width: 13,
       height: 13,
-      fill: "#ffffff",
+      fill: DEFAULT_HANDLE_COLOR,
       stroke: "#000000",
       strokeWidth: 2,
       originX: "center",
