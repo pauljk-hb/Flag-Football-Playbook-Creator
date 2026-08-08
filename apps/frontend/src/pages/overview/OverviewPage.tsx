@@ -41,8 +41,8 @@ export function Playbook() {
     <>
       <header className="px-4 border-b py-2 fixed top-0 left-0 right-0 z-10 bg-background">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
-            <RouteTreeIcon className="w-6 h-6" />
+          <div className="p-2 bg-indigo-600/20 rounded-lg border border-indigo-500/30">
+            <RouteTreeIcon className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">

@@ -14,6 +14,7 @@ import {
   GitMerge,
   Pen,
   Download,
+  FileQuestionMark,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,13 @@ import {
   QuickOutRoute,
   SlantRoute,
 } from "@/components/ui/icons/custom.icons";
+import {
+  CPlayerIcon,
+  QbPlayerIcon,
+  RPlayerIcon,
+  XPlayerIcon,
+  ZPlayerIcon,
+} from "@/components/ui/icons/PlayerIcon";
 
 interface ToolbarProps {
   title: string;
@@ -104,7 +112,7 @@ export function Toolbar({
           title="1: Quick Out"
           onClick={() => addPlayer.qb()}
         >
-          <AddQB className="size-5" />
+          <QbPlayerIcon className="size-5 text-black" />
         </Button>
         <Button
           variant="secondary"
@@ -112,7 +120,7 @@ export function Toolbar({
           title="2: Slant"
           onClick={() => addPlayer.center()}
         >
-          C
+          <CPlayerIcon className="size-5 text-lime-500" />
         </Button>
         <Button
           variant="secondary"
@@ -120,7 +128,7 @@ export function Toolbar({
           title="2: Slant"
           onClick={() => addPlayer.wr1()}
         >
-          W1
+          <XPlayerIcon className="size-5 text-blue-500" />
         </Button>
         <Button
           variant="secondary"
@@ -128,7 +136,7 @@ export function Toolbar({
           title="2: Slant"
           onClick={() => addPlayer.wr2()}
         >
-          W2
+          <ZPlayerIcon className="size-5 text-[#2ebfcc]" />
         </Button>
         <Button
           variant="secondary"
@@ -136,7 +144,7 @@ export function Toolbar({
           title="2: Slant"
           onClick={() => addPlayer.red()}
         >
-          R
+          <RPlayerIcon className="size-5 text-red-500" />
         </Button>
 
         <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
@@ -285,6 +293,16 @@ export function Toolbar({
           className="h-11 w-11"
         >
           <Download className="size-5" />
+        </Button>
+
+        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
+
+        <Button
+          variant="ghost"
+          onClick={() => onSave()}
+          className="h-11 w-11 border-secondary"
+        >
+          ?
         </Button>
       </div>
     </header>
