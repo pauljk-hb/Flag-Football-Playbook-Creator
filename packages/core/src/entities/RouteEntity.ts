@@ -51,8 +51,8 @@ export class RouteEntity extends BaseEntity {
     this.fabricPath = new fabric.Path(pathString, this.getPathStyleConfig());
 
     this.arrowHead = new fabric.Triangle({
-      width: 14,
-      height: 14,
+      width: 24,
+      height: 24,
       fill: this.color,
       originX: "center",
       originY: "center",
@@ -83,7 +83,7 @@ export class RouteEntity extends BaseEntity {
     return {
       fill: "transparent",
       stroke: this.color,
-      strokeWidth: 4,
+      strokeWidth: 8,
       strokeLineCap: "round",
       strokeLineJoin: "round",
       strokeDashArray: dashArray,
