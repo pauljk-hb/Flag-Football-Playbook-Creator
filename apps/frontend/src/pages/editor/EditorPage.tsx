@@ -64,6 +64,21 @@ export function EditorLayout() {
     }
   };
 
+  const downloadPlayAsImage = () => {
+    const dataURL = play.exportThumbnail({
+      format: "png",
+      quality: 0.8,
+      multiplier: 2,
+    });
+    const link = document.createElement("a");
+    link.href = dataURL;
+    link.download = `${playTitle}-play_export.png`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -77,6 +92,7 @@ export function EditorLayout() {
       <Toolbar
         title={playTitle}
         onSave={handleSave}
+        onDownload={downloadPlayAsImage}
         drawRoute={(routeMode: string) => engine?.startDrawingRoute(routeMode)}
       />
 

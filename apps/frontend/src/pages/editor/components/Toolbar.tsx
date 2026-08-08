@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   Undo2,
   Redo2,
-  UserPlus,
   Route as RouteIcon,
   Save,
   Trash2,
@@ -14,19 +13,38 @@ import {
   GitBranch,
   GitMerge,
   Pen,
+  Download,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { useNavigate } from "react-router-dom";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { useState } from "react";
+import {
+  AddQB,
+  ComeBackRoute,
+  CornerRoute,
+  GoRoute,
+  HitchRoute,
+  InRoute,
+  OutRoute,
+  PostRoute,
+  QuickOutRoute,
+  SlantRoute,
+} from "@/components/ui/icons/custom.icons";
 
 interface ToolbarProps {
   title: string;
   onSave: () => void;
+  onDownload: () => void;
   drawRoute: (routeMode: string) => void;
 }
 
-export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
+export function Toolbar({
+  title,
+  onSave,
+  onDownload,
+  drawRoute,
+}: ToolbarProps) {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
   const { addPlayer, addRoute, history } = usePlaybookActions();
@@ -50,12 +68,12 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
           onClick={handleBack}
           title="Zurück zur Übersicht"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="size-6" />
         </Button>
 
         <h2 className="text-lg font-semibold">{title}</h2>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {/* GRUPPE 1: Verlauf (Undo/Redo) */}
         <div className="flex items-center gap-1">
           <Button
@@ -63,32 +81,34 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
             onClick={() => history.undo()}
             disabled={!canUndo}
             title="Rückgängig"
+            className="h-11 w-11"
           >
-            <Undo2 className="h-4 w-4" />
+            <Undo2 className="size-5" />
           </Button>
           <Button
             variant="secondary"
             onClick={() => history.redo()}
             disabled={!canRedo}
             title="Wiederholen"
+            className="h-11 w-11"
           >
-            <Redo2 className="h-4 w-4" />
+            <Redo2 className="size-5" />
           </Button>
         </div>
 
-        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
+        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
+          className="h-11 w-11"
           title="1: Quick Out"
           onClick={() => addPlayer.qb()}
         >
-          Q
+          <AddQB className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
+          className="h-11 w-11"
           title="2: Slant"
           onClick={() => addPlayer.center()}
         >
@@ -96,7 +116,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
+          className="h-11 w-11"
           title="2: Slant"
           onClick={() => addPlayer.wr1()}
         >
@@ -104,7 +124,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
+          className="h-11 w-11"
           title="2: Slant"
           onClick={() => addPlayer.wr2()}
         >
@@ -112,20 +132,20 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
+          className="h-11 w-11"
           title="2: Slant"
           onClick={() => addPlayer.red()}
         >
           R
         </Button>
 
-        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
+        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
         <div className="flex items-center bg-muted/50 p-1 rounded-md border">
           <Button
             variant="secondary"
             size="sm"
-            className={`h-7 px-3 text-xs ${routeMode === "default" ? "bg-white shadow-sm text-slate-900 font-medium" : "text-slate-500"}`}
+            className={`h-11 px-3 ${routeMode === "default" ? "bg-primary text-white" : "text-slate-500"}`}
             onClick={() => setRouteMode("default")}
           >
             <RouteIcon className="w-3.5 h-3.5 mr-1" />
@@ -135,7 +155,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
           <Button
             variant="secondary"
             size="sm"
-            className={`h-7 px-3 text-xs ${routeMode === "option_1" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500"}`}
+            className={`h-11 px-3 ${routeMode === "option_1" ? "bg-primary text-white" : "text-slate-500"}`}
             onClick={() => setRouteMode("option_1")}
           >
             <GitBranch className="w-3.5 h-3.5 mr-1" />
@@ -145,7 +165,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
           <Button
             variant="secondary"
             size="sm"
-            className={`h-7 px-3 text-xs ${routeMode === "option_2" ? "bg-white shadow-sm text-emerald-600 font-medium" : "text-slate-500"}`}
+            className={`h-11 px-3 ${routeMode === "option_2" ? "bg-primary text-white" : "text-slate-500"}`}
             onClick={() => setRouteMode("option_2")}
           >
             <GitMerge className="w-3.5 h-3.5 mr-1" />
@@ -153,102 +173,118 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
           </Button>
         </div>
 
-        <Button variant="secondary" onClick={() => drawRoute(routeMode)}>
-          <Pen className="h-4 w-4" />
+        <Button
+          variant="secondary"
+          className="h-11 w-11"
+          onClick={() => drawRoute(routeMode)}
+        >
+          <Pen className="size-5" />
         </Button>
 
         {/* Kurz */}
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="1: Quick Out"
+          className="h-11 w-11"
           onClick={() => addRoute.quickOut(routeMode)}
         >
-          1
+          <QuickOutRoute className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="2: Slant"
+          className="h-11 w-11"
           onClick={() => addRoute.slant(routeMode)}
         >
-          2
+          <SlantRoute className="size-5" />
         </Button>
 
         {/* Mittel / Lang */}
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="3: Hitch"
+          className="h-11 w-11"
           onClick={() => addRoute.comeBack(routeMode)}
         >
-          3
+          <ComeBackRoute className="size-5" />
         </Button>
 
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="4: In / Dig"
+          className="h-11 w-11"
           onClick={() => addRoute.hitch(routeMode)}
         >
-          4
+          <HitchRoute className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="5: Out"
+          className="h-11 w-11"
           onClick={() => addRoute.out(routeMode)}
         >
-          5
+          <OutRoute className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="6: Comeback"
+          className="h-11 w-11"
           onClick={() => addRoute.in(routeMode)}
         >
-          6
+          <InRoute className="size-5" />
         </Button>
 
         {/* Tief */}
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="7: Post"
+          className="h-11 w-11"
           onClick={() => addRoute.corner(routeMode)}
         >
-          7
+          <CornerRoute className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="8: Corner"
+          className="h-11 w-11"
           onClick={() => addRoute.post(routeMode)}
         >
-          8
+          <PostRoute className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="h-7 w-7 text-xs"
           title="9: Go / Fly"
+          className="h-11 w-11"
           onClick={() => addRoute.go(routeMode)}
         >
-          9
+          <GoRoute className="size-5" />
         </Button>
 
-        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
+        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
         <Button
           variant="secondary"
           onClick={() => engine.deleteSelectedObject()}
+          className="h-11 w-11"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="size-5 " />
         </Button>
 
-        <Separator orientation="vertical" className="h-6 mx-2 my-auto" />
+        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
-        <Button variant="secondary" onClick={() => onSave()}>
-          <Save className="h-4 w-4" />
+        <Button
+          variant="secondary"
+          onClick={() => onSave()}
+          className="h-11 w-11"
+        >
+          <Save className="size-5" />
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => onDownload()}
+          className="h-11 w-11"
+        >
+          <Download className="size-5" />
         </Button>
       </div>
     </header>

@@ -335,7 +335,7 @@ export class PlaybookEngine {
   }
 
   public generateThumbnail(options: ThumbnailOptions = {}): string {
-    return this.canvasManager.generateThumbnail();
+    return this.canvasManager.generateThumbnail(options);
   }
 
   /**

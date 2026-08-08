@@ -23,11 +23,6 @@ export function usePlaybookActions() {
     },
   };
 
-  const deletePlayer = () => {
-    if (!engine) return;
-    engine.removeSelectedPlayer();
-  };
-
   const addRoute = {
     quickOut: (routeType: string = "default") => {
       handleAssignRoute("QUICK_OUT", routeType);
@@ -116,9 +111,9 @@ export function usePlaybookActions() {
       if (!engine) return "";
       return engine.exportPlay();
     },
-    exportThumbnail: (): string => {
+    exportThumbnail: (options?: any): string => {
       if (!engine) return "";
-      return engine.generateThumbnail();
+      return engine.generateThumbnail(options);
     },
   };
 
@@ -160,7 +155,6 @@ export function usePlaybookActions() {
   return {
     play,
     addPlayer,
-    deletePlayer,
     addRoute,
     applyFormation,
     history,

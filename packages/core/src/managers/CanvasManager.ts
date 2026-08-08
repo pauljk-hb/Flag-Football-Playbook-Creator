@@ -89,15 +89,13 @@ export class CanvasManager {
   /**
    * Generiert ein Base64-Vorschaubild (Data-URL) des aktuellen Canvas.
    */
-  public generateThumbnail(options: ThumbnailOptions = {}): string {
-    const {
-      format = "png",
-      quality = 0.8,
-      multiplier = 0.5, // 0.5 ist ideal für Thumbnails/Vorschaubilder
-    } = options;
+  public generateThumbnail(options: ThumbnailOptions): string {
+    const { format = "png", quality = 0.8, multiplier = 0.5 } = options;
 
     this.canvas!.discardActiveObject();
     this.canvas!.requestRenderAll();
+
+    console.log(options);
 
     const dataUrl = this.canvas!.toDataURL({
       format,
