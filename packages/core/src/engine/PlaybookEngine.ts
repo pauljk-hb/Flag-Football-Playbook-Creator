@@ -215,8 +215,9 @@ export class PlaybookEngine {
 
     const command = new LoadFormationCommand(
       spawnData,
-      this.playManager, // bzw. EntityManager
+      this.playManager,
       this.canvasManager,
+      this.historyManager,
     );
 
     this.historyManager.execute(command);

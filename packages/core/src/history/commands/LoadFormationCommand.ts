@@ -4,6 +4,8 @@ import type { CanvasManager } from "../../managers/CanvasManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
 import type { PlayerSpawnData } from "../../types/presets";
+import type { HistoryManager } from "../HistoryManager";
+import { MovePlayerCommand } from "./MoveCommands";
 
 export class LoadFormationCommand implements ICommand {
   private previousPlayers: PlayerEntity[] = [];
@@ -13,6 +15,7 @@ export class LoadFormationCommand implements ICommand {
     private spawnData: PlayerSpawnData[],
     private playManager: PlayManager,
     private canvasManager: CanvasManager,
+    private historyManager: HistoryManager,
   ) {}
 
   public execute(): void {
@@ -36,6 +39,20 @@ export class LoadFormationCommand implements ICommand {
         color: data.color,
         shape: data.shape,
       });
+
+      player.onMoveComplete = (playerId, startX, startY, endX, endY) => {
+        const command = new MovePlayerCommand(
+          playerId,
+          startX,
+          startY,
+          endX,
+          endY,
+          this.playManager,
+          this.canvasManager,
+        );
+
+        this.historyManager.execute(command);
+      };
 
       this.playManager.addEntity(player);
       this.canvasManager.addEntity(player);
