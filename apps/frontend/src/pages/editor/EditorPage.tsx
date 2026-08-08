@@ -1,7 +1,7 @@
 import { Toolbar } from "./components/Toolbar";
 import { PlaybookCanvas } from "./components/PlaybookCanvas";
 import { PropertiesSidebar } from "./components/PropertiesSidebar";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "@/api/client";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
@@ -10,7 +10,6 @@ import { usePlaybook } from "@/hooks/usePlaybook";
 
 export function EditorLayout() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { engine } = usePlaybook();
 
   const { play } = usePlaybookActions();
@@ -25,22 +24,18 @@ export function EditorLayout() {
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
-      if (id) {
-        try {
-          const data = await api.plays.getById(id);
-          if (data) {
-            setRawPlayData(data);
-            setPlayTitle(data.title);
-            setPlayDescription(data.description || "");
-          }
-        } catch (error) {
-          console.error("Fehler beim Laden des Spielzugs:", error);
+      if (!id) return;
+      try {
+        const data = await api.plays.getById(id);
+        if (data) {
+          setRawPlayData(data);
+          setPlayTitle(data.title);
+          setPlayDescription(data.description || "");
         }
-      } else {
-        setPlayTitle("Unbenanntes Play");
-        setPlayDescription("");
-        setRawPlayData(null);
+      } catch (error) {
+        console.error("Fehler beim Laden des Spielzugs:", error);
       }
+
       setIsLoading(false);
     }
 
@@ -60,12 +55,8 @@ export function EditorLayout() {
         data: canvasData,
       };
 
-      if (id) {
-        await api.plays.update(id, payload);
-      } else {
-        const newId = await api.plays.save(payload);
-        navigate(`/editor/${newId}`, { replace: true });
-      }
+      if (!id) return;
+      await api.plays.update(id, payload);
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
     } finally {

@@ -32,6 +32,11 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
   const { addPlayer, addRoute, history } = usePlaybookActions();
   const navigate = useNavigate();
 
+  const handleBack = async () => {
+    onSave();
+    navigate("/");
+  };
+
   type RouteMode = "default" | "option_1" | "option_2";
   const [routeMode, setRouteMode] = useState<RouteMode>("default");
 
@@ -41,7 +46,7 @@ export function Toolbar({ title, onSave, drawRoute }: ToolbarProps) {
     <header className="px-4 border-b py-2">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate("/")}
+          onClick={handleBack}
           className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
           title="Zurück zur Übersicht"
           aria-label="Zurück"

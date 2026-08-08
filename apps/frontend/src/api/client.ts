@@ -45,17 +45,17 @@ export const api = {
       }
     },
 
-    save: async (play: PlayDTO): Promise<string> => {
+    create: async (): Promise<string> => {
       const id: string = crypto.randomUUID();
       const key = `${STORAGE_PREFIX}${id}`;
       const now = new Date().toISOString();
 
       const fullPlay: Play = {
         id,
-        title: play.title || "Unbenanntes Play",
-        description: play.description || "",
-        thumbnail: play.thumbnail,
-        data: typeof play.data === "string" ? JSON.parse(play.data) : play.data,
+        title: "Unbenanntes Play",
+        description: "",
+        thumbnail: "",
+        data: null,
         createdAt: now,
         updatedAt: now,
       };

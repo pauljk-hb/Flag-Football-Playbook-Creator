@@ -6,9 +6,11 @@ import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import type { Play } from "@/types/interface";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePlaybookOverview } from "./hooks/usePlayOverview";
 
 export function Playbook() {
   const navigate = useNavigate();
+  const { handleNewPlay } = usePlaybookOverview();
 
   const [plays, setPlays] = useState<Play[]>([]);
 
@@ -37,7 +39,7 @@ export function Playbook() {
 
   return (
     <>
-      <header className="px-4 border-b py-2">
+      <header className="px-4 border-b py-2 fixed top-0 left-0 right-0 z-10 bg-background">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
             <RouteTreeIcon className="w-6 h-6" />
@@ -51,13 +53,13 @@ export function Playbook() {
             </p>
           </div>
           <div className="ml-24">
-            <Button onClick={() => navigate(`/editor`)} className="w-full">
+            <Button onClick={handleNewPlay} className="w-full">
               Neues Play
             </Button>
           </div>
         </div>
       </header>
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <main className="mt-16 flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {" "}
         {plays.map((play) => (
           <Card key={play.id} className="overflow-hidden">
