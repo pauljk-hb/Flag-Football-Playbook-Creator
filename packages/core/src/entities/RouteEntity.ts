@@ -122,7 +122,6 @@ export class RouteEntity extends BaseEntity {
       [];
 
     this.nodes.forEach((node, index) => {
-      console.log("Initialize Controls for Node", index, node);
       if (index === 0) return; // Der Spieler/Startpunkt bekommt keine Route-Handles
 
       // 1. Standard Waypoint-Handle (weißer Kreis) erstellen
@@ -316,8 +315,6 @@ export class RouteEntity extends BaseEntity {
   private updatePathVisuals(): void {
     const newSvgString = generateSvgPathString(this.nodes);
     const tempPath = new fabric.Path(newSvgString);
-
-    console.log("GENERATED SVG PATH:", newSvgString);
 
     this.fabricPath.set({
       path: tempPath.path,

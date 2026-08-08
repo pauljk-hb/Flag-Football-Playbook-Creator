@@ -50,7 +50,6 @@ export class CanvasManager {
   }
 
   public requestRender(): void {
-    console.log("CanvasManager: Requesting render...");
     this.canvas?.requestRenderAll();
   }
 

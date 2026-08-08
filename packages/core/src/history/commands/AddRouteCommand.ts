@@ -13,7 +13,6 @@ export class AddRouteCommand implements ICommand {
 
   public execute(): void {
     if (this.oldRouteEntity) {
-      console.log("Removing old route entity:", this.oldRouteEntity.id);
       this.canvasManager.removeEntity(this.oldRouteEntity);
       this.oldRouteEntity.destroyAllHandles();
       this.playManager.removeEntity(this.oldRouteEntity.id);
