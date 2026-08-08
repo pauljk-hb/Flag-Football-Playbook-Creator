@@ -70,7 +70,7 @@ export function Toolbar({
 
   return (
     <header className="px-4 border-b py-2 bg-card">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-2">
         <Button
           variant="ghost"
           onClick={handleBack}

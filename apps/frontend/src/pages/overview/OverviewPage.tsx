@@ -7,6 +7,7 @@ import type { Play } from "@/types/interface";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePlaybookOverview } from "./hooks/usePlayOverview";
+import { Plus } from "lucide-react";
 
 export function Playbook() {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ export function Playbook() {
           </div>
           <div className="ml-24">
             <Button onClick={handleNewPlay} className="w-full">
-              Neues Play
+              <Plus />
             </Button>
           </div>
         </div>
