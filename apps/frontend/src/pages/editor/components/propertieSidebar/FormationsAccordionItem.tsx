@@ -36,7 +36,7 @@ export function FormationAccordionItem() {
                 <img
                   src={preset.thumbnail}
                   alt={preset.name}
-                  className="w-full h-28 object-cover rounded bg-background/50 p-1"
+                  className="w-full h-20 object-cover object-top rounded bg-background/50 p-1"
                   loading="lazy"
                 />
 

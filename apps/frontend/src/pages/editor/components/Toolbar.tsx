@@ -112,8 +112,8 @@ export function Toolbar({
   });
 
   return (
-    <header className="px-4 border-b py-2 bg-card">
-      <div className="flex items-center gap-3 mb-2">
+    <header className="px-4 border-b py-2 bg-muted">
+      <div className="flex items-center gap-3 mb-2 border-b">
         <Button
           variant="ghost"
           onClick={handleBack}
@@ -255,7 +255,6 @@ export function Toolbar({
             render={
               <Button
                 variant="secondary"
-                title="2: Slant"
                 className="h-11 w-11"
                 onClick={() => addRoute.slant(routeMode)}
               >
