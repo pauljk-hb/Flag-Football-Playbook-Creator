@@ -13,7 +13,15 @@ import type { Play } from "@/types/interface";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePlaybookOverview } from "./hooks/usePlayOverview";
-import { Filter, PlayIcon, Plus, Search, Settings, Share2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  Filter,
+  PlayIcon,
+  Plus,
+  Search,
+  Settings,
+  Share2,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -38,6 +46,15 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { ShareDialog } from "./components/ShareDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type SortOption = "date-desc" | "date-asc" | "alpha-asc" | "alpha-desc";
 
 export function Playbook() {
   const { handleNewPlay } = usePlaybookOverview();
@@ -53,9 +70,27 @@ export function Playbook() {
     run: false,
   });
 
+  const [sortBy, setSortBy] = useState<SortOption>("alpha-asc");
+
   const filteredPlays = plays.filter((play) =>
     play.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const sortedPlays = [...filteredPlays].sort((a, b) => {
+    if (sortBy === "alpha-asc") {
+      return a.title.localeCompare(b.title);
+    }
+    if (sortBy === "alpha-desc") {
+      return b.title.localeCompare(a.title);
+    }
+    if (sortBy === "date-desc") {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    }
+    if (sortBy === "date-asc") {
+      return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+    }
+    return 0;
+  });
 
   useEffect(() => {
     async function loadPlays() {
@@ -123,9 +158,27 @@ export function Playbook() {
 
       <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
         <div className="w-full space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight">Plays</h1>
+          <div className="flex flex-col mb-12 sm:flex-row items-start sm:items-end justify-between gap-4">
+            <div className="flex gap-4">
+              <h1 className="text-4xl font-bold tracking-tight -mt-2">Plays</h1>
+
+              <Select
+                value={sortBy}
+                onValueChange={(value) => setSortBy(value as SortOption)}
+              >
+                <SelectTrigger className="w-32 h-9">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Sortieren..." />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alpha-asc">Alphabetisch (A-Z)</SelectItem>
+                  <SelectItem value="alpha-desc">Alphabetisch (Z-A)</SelectItem>
+                  <SelectItem value="date-desc">Neueste zuerst</SelectItem>
+                  <SelectItem value="date-asc">Älteste zuerst</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Oben Rechts: Suche, Filter & Neuer Play Button */}
@@ -191,7 +244,6 @@ export function Playbook() {
                 </DropdownMenuContent>
               </DropdownMenu> */}
 
-              {/* Neuer Play Button */}
               <Button onClick={handleNewPlay} size="sm" className="h-9 ml-2">
                 <Plus className="h-4 w-4 mr-2" />
                 Neues Play
@@ -199,16 +251,19 @@ export function Playbook() {
             </div>
           </div>
 
-          {/* Grid-Sektion für die Plays */}
           {isLoading ? (
             <div className="h-64 flex items-center justify-center text-sm text-muted-foreground">
               Lade Plays...
             </div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-              {filteredPlays.map((play) => (
-                <PlayCard play={play} />
-              ))}
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(245px,1fr))] gap-6">
+              {sortedPlays.length === 0 ? (
+                <p className="text-foreground py-4">Keine Plays gefunden.</p>
+              ) : (
+                sortedPlays.map((play) => (
+                  <PlayCard key={play.id} play={play} />
+                ))
+              )}
             </div>
           )}
         </div>
