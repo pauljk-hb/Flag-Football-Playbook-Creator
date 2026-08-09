@@ -4,8 +4,28 @@ import { Playbook } from "./pages/overview/OverviewPage";
 import { EditorLayout } from "./pages/editor/EditorPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "./components/AppTabProvider";
+import { useThemeStore } from "./hooks/useThemeStore";
+import { useEffect } from "react";
 
 function App() {
+  const theme = useThemeStore((state) => state.theme);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      root.classList.add(systemTheme);
+      return;
+    }
+
+    root.classList.add(theme);
+  }, [theme]);
+
   return (
     <PlaybookProvider>
       <TooltipProvider delay={500}>
