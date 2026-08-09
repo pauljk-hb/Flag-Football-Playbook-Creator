@@ -4,7 +4,7 @@ import { Playbook } from "./pages/overview/OverviewPage";
 import { EditorLayout } from "./pages/editor/EditorPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "./components/AppTabProvider";
-import { useThemeStore } from "./hooks/useThemeStore";
+import { useThemeStore } from "./hooks/useAppStore";
 import { useEffect } from "react";
 
 function App() {

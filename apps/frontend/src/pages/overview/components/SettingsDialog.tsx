@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useThemeStore } from "@/hooks/useThemeStore";
+import { useThemeStore } from "@/hooks/useAppStore";
 import { cn } from "@/lib/utils";
 
 export function SettingsDialog() {

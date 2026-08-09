@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AlphaWarningDialog } from "./components/AlphaWarningDialog";
 
 export function Playbook() {
   const {
@@ -194,6 +195,8 @@ export function Playbook() {
           )}
         </div>
       </main>
+
+      <AlphaWarningDialog />
     </div>
   );
 }

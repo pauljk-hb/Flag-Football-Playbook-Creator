@@ -19,3 +19,20 @@ export const useThemeStore = create<ThemeState>()(
     },
   ),
 );
+
+interface AppState {
+  hasSeenAlphaWarning: boolean;
+  setHasSeenAlphaWarning: () => void;
+}
+
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      hasSeenAlphaWarning: false,
+      setHasSeenAlphaWarning: () => set({ hasSeenAlphaWarning: true }),
+    }),
+    {
+      name: "playbook-app-alpha-popUp",
+    },
+  ),
+);
