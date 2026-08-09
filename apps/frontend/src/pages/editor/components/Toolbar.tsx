@@ -16,6 +16,8 @@ import {
   Pen,
   Download,
   FileQuestionMark,
+  Pencil,
+  LayoutDashboard,
 } from "lucide-react";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +48,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Kbd } from "@/components/ui/kbd";
+import { ToolbarButton } from "./ToolbarButton";
+import { RouteToolbarGroup } from "./RouteToolbarGroup";
+import { useEditorStore } from "../store/useEditorStore";
 
 interface ToolbarProps {
   title: string;
@@ -70,300 +75,180 @@ export function Toolbar({
     navigate("/");
   };
 
-  type RouteMode = "default" | "option_1" | "option_2";
-  const [routeMode, setRouteMode] = useState<RouteMode>("default");
-
-  useHotkeys("mod+y", () => {
-    history.undo();
-  });
-  useHotkeys("mod+shift+y", () => {
-    history.redo();
-  });
-  useHotkeys("1", () => {
-    addRoute.quickOut(routeMode);
-  });
-  useHotkeys("2", () => {
-    addRoute.slant(routeMode);
-  });
-  useHotkeys("3", () => {
-    addRoute.comeBack(routeMode);
-  });
-  useHotkeys("4", () => {
-    addRoute.hitch(routeMode);
-  });
-  useHotkeys("5", () => {
-    addRoute.out(routeMode);
-  });
-  useHotkeys("6", () => {
-    addRoute.in(routeMode);
-  });
-  useHotkeys("7", () => {
-    addRoute.corner(routeMode);
-  });
-  useHotkeys("8", () => {
-    addRoute.post(routeMode);
-  });
-  useHotkeys("9", () => {
-    addRoute.go(routeMode);
-  });
-
-  useHotkeys("delete, backspace", () => {
-    engine?.deleteSelectedObject();
-  });
-
   return (
-    <header className="px-4 border-b py-2 bg-muted">
-      <div className="flex items-center gap-3 mb-2 border-b">
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          title="Zurück zur Übersicht"
-        >
-          <ChevronLeft className="size-6" />
-        </Button>
+    <header className="border-b bg-muted">
+      <div className="flex px-2 items-center py-1 border-b">
+        <div className="flex-1 flex justify-start">
+          <ToolbarButton
+            icon={LayoutDashboard}
+            onClick={handleBack}
+            label="Zur Übersicht"
+          />
+        </div>
 
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-lg text-center whitespace-nowrap px-4">{title}</h2>
+
+        <div className="flex-1" />
       </div>
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center px-2 py-2 shrink-0">
         {/* GRUPPE 1: Verlauf (Undo/Redo) */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="secondary"
+        <div className="flex items-center">
+          <ToolbarButton
+            icon={Undo2}
             onClick={() => history.undo()}
             disabled={!canUndo}
-            title="Rückgängig"
-            className="h-11 w-11"
-          >
-            <Undo2 className="size-5" />
-          </Button>
-          <Button
-            variant="secondary"
+            label="Rückgängig"
+            shortcut="strg+Z"
+          />
+
+          <ToolbarButton
+            icon={Redo2}
             onClick={() => history.redo()}
             disabled={!canRedo}
-            title="Wiederholen"
-            className="h-11 w-11"
-          >
-            <Redo2 className="size-5" />
-          </Button>
+            label="Wiederholen"
+            shortcut="strg+shift+Z"
+          />
         </div>
 
         <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
-        <Button
-          variant="secondary"
-          className="h-11 w-11"
-          title="1: Quick Out"
+        <ToolbarButton
+          icon="Q"
           onClick={() => addPlayer.qb()}
-        >
-          <QbPlayerIcon className="size-5 text-black" />
-        </Button>
-        <Button
-          variant="secondary"
-          className="h-11 w-11"
-          title="2: Slant"
+          label="Hinzufügen: QB"
+          shortcut="Q"
+        />
+
+        <ToolbarButton
+          icon="C"
           onClick={() => addPlayer.center()}
-        >
-          <CPlayerIcon className="size-5 text-lime-500" />
-        </Button>
-        <Button
-          variant="secondary"
-          className="h-11 w-11"
-          title="2: Slant"
+          label="Hinzufügen: Center"
+          shortcut="C"
+        />
+
+        <ToolbarButton
+          icon="X"
           onClick={() => addPlayer.wr1()}
-        >
-          <XPlayerIcon className="size-5 text-blue-500" />
-        </Button>
-        <Button
-          variant="secondary"
-          className="h-11 w-11"
-          title="2: Slant"
+          label="Hinzufügen: X"
+          shortcut="X"
+        />
+
+        <ToolbarButton
+          icon="Z"
           onClick={() => addPlayer.wr2()}
-        >
-          <ZPlayerIcon className="size-5 text-[#2ebfcc]" />
-        </Button>
-        <Button
-          variant="secondary"
-          className="h-11 w-11"
-          title="2: Slant"
+          label="Hinzufügen: Z"
+          shortcut="Z"
+        />
+
+        <ToolbarButton
+          icon="R"
           onClick={() => addPlayer.red()}
-        >
-          <RPlayerIcon className="size-5 text-red-500" />
-        </Button>
+          label="Hinzufügen: Red"
+          shortcut="R"
+        />
 
         <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
-        <div className="flex items-center bg-muted/50 p-1 rounded-md border">
-          <Button
-            variant="secondary"
-            size="sm"
-            className={`h-11 px-3 ${routeMode === "default" ? "bg-primary text-white" : "text-slate-500"}`}
-            onClick={() => setRouteMode("default")}
-          >
-            <RouteIcon className="w-3.5 h-3.5 mr-1" />
-            Std.
-          </Button>
+        <RouteToolbarGroup />
 
-          <Button
-            variant="secondary"
-            size="sm"
-            className={`h-11 px-3 ${routeMode === "option_1" ? "bg-primary text-white" : "text-slate-500"}`}
-            onClick={() => setRouteMode("option_1")}
-          >
-            <GitBranch className="w-3.5 h-3.5 mr-1" />
-            Opt. 1
-          </Button>
+        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
-          <Button
-            variant="secondary"
-            size="sm"
-            className={`h-11 px-3 ${routeMode === "option_2" ? "bg-primary text-white" : "text-slate-500"}`}
-            onClick={() => setRouteMode("option_2")}
-          >
-            <GitMerge className="w-3.5 h-3.5 mr-1" />
-            Opt. 2
-          </Button>
-        </div>
-
-        <Button
-          variant="secondary"
-          className="h-11 w-11"
-          onClick={() => drawRoute(routeMode)}
-        >
-          <Pen className="size-5" />
-        </Button>
+        <ToolbarButton
+          icon={Pencil}
+          onClick={() => drawRoute(useEditorStore.getState().routeMode)}
+          label="Route zeichnen - doppel Klick zum beenden"
+        />
 
         {/* Kurz */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="secondary"
-                className="h-11 w-11"
-                onClick={() => addRoute.quickOut(routeMode)}
-              >
-                <QuickOutRoute className="size-5" />
-              </Button>
-            }
-          />
-          <TooltipContent side="bottom">
-            Quick Out <Kbd>1</Kbd>
-          </TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={QuickOutRoute}
+          onClick={() => addRoute.quickOut(useEditorStore.getState().routeMode)}
+          label="Quick Out"
+          shortcut="1"
+        />
 
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="secondary"
-                className="h-11 w-11"
-                onClick={() => addRoute.slant(routeMode)}
-              >
-                <SlantRoute className="size-5" />
-              </Button>
-            }
-          />
-          <TooltipContent side="bottom">
-            Slant <Kbd>2</Kbd>
-          </TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={SlantRoute}
+          onClick={() => addRoute.slant(useEditorStore.getState().routeMode)}
+          label="Slant"
+          shortcut="2"
+        />
 
         {/* Mittel / Lang */}
-        <Button
-          variant="secondary"
-          title="3: Hitch"
-          className="h-11 w-11"
-          onClick={() => addRoute.comeBack(routeMode)}
-        >
-          <ComeBackRoute className="size-5" />
-        </Button>
+        <ToolbarButton
+          icon={ComeBackRoute}
+          onClick={() => addRoute.comeBack(useEditorStore.getState().routeMode)}
+          label="Comeback"
+          shortcut="3"
+        />
 
-        <Button
-          variant="secondary"
-          title="4: In / Dig"
-          className="h-11 w-11"
-          onClick={() => addRoute.hitch(routeMode)}
-        >
-          <HitchRoute className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          title="5: Out"
-          className="h-11 w-11"
-          onClick={() => addRoute.out(routeMode)}
-        >
-          <OutRoute className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          title="6: Comeback"
-          className="h-11 w-11"
-          onClick={() => addRoute.in(routeMode)}
-        >
-          <InRoute className="size-5" />
-        </Button>
+        <ToolbarButton
+          icon={HitchRoute}
+          onClick={() => addRoute.hitch(useEditorStore.getState().routeMode)}
+          label="Hitch"
+          shortcut="4"
+        />
+
+        <ToolbarButton
+          icon={OutRoute}
+          onClick={() => addRoute.out(useEditorStore.getState().routeMode)}
+          label="Out"
+          shortcut="5"
+        />
+
+        <ToolbarButton
+          icon={InRoute}
+          onClick={() => addRoute.in(useEditorStore.getState().routeMode)}
+          label="In"
+          shortcut="6"
+        />
 
         {/* Tief */}
-        <Button
-          variant="secondary"
-          title="7: Post"
-          className="h-11 w-11"
-          onClick={() => addRoute.corner(routeMode)}
-        >
-          <CornerRoute className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          title="8: Corner"
-          className="h-11 w-11"
-          onClick={() => addRoute.post(routeMode)}
-        >
-          <PostRoute className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          title="9: Go / Fly"
-          className="h-11 w-11"
-          onClick={() => addRoute.go(routeMode)}
-        >
-          <GoRoute className="size-5" />
-        </Button>
+
+        <ToolbarButton
+          icon={CornerRoute}
+          onClick={() => addRoute.corner(useEditorStore.getState().routeMode)}
+          label="Corner"
+          shortcut="7"
+        />
+
+        <ToolbarButton
+          icon={PostRoute}
+          onClick={() => addRoute.post(useEditorStore.getState().routeMode)}
+          label="Post"
+          shortcut="8"
+        />
+
+        <ToolbarButton
+          icon={GoRoute}
+          onClick={() => addRoute.go(useEditorStore.getState().routeMode)}
+          label="Go"
+          shortcut="9"
+        />
 
         <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
-        <Button
-          variant="secondary"
+        <ToolbarButton
+          icon={Trash2}
           onClick={() => engine?.deleteSelectedObject()}
-          className="h-11 w-11"
-        >
-          <Trash2 className="size-5 " />
-        </Button>
+          label="Löschen"
+          shortcut="delete"
+        />
 
         <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
 
-        <Button
-          variant="secondary"
+        {/* <ToolbarButton
+          icon={Save}
           onClick={() => onSave()}
-          className="h-11 w-11"
-        >
-          <Save className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
+          label="Speichern"
+          shortcut="strg+s"
+        /> */}
+
+        <ToolbarButton
+          icon={Download}
           onClick={() => onDownload()}
-          className="h-11 w-11"
-        >
-          <Download className="size-5" />
-        </Button>
-
-        <Separator orientation="vertical" className="h-9 mx-2 my-auto" />
-
-        <Button
-          variant="ghost"
-          onClick={() => onSave()}
-          className="h-11 w-11 border-secondary"
-        >
-          ?
-        </Button>
+          label="Download PLay"
+        />
       </div>
     </header>
   );

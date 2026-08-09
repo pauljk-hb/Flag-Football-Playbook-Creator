@@ -9,11 +9,13 @@ import type { Play, PlayDTO } from "@/types/interface";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { Toaster } from "@/components/ui/sonner";
 import { useEngineNotifications } from "./hooks/useEngineNotifications";
+import { useEditorHotkeys } from "./hooks/useEditorHotkeys";
 
 export function EditorLayout() {
   const { id } = useParams<{ id: string }>();
   const { engine } = usePlaybook();
   useEngineNotifications();
+  useEditorHotkeys();
   const { play } = usePlaybookActions();
 
   const [playTitle, setPlayTitle] = useState("Unbenanntes Play");
