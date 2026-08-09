@@ -1,15 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { Play } from "@/types/interface";
 import { useNavigate } from "react-router-dom";
+import { AlertDialog, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { DeletePopUp } from "./DeletePopUp";
 
 interface PlayCardProps {
   play: Play;
+  onDelete: (playId: string) => void;
 }
 
-export function PlayCard({ play }: PlayCardProps) {
+export function PlayCard({ play, onDelete }: PlayCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -52,13 +55,31 @@ export function PlayCard({ play }: PlayCardProps) {
           })}
         </span>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 text-muted-foreground hover:bg-primary/10"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              }
+            />
+            <DeletePopUp play={play} onDelete={onDelete} />
+          </AlertDialog>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:bg-primary/10"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

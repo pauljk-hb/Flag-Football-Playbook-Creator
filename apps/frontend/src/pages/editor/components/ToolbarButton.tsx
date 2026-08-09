@@ -32,7 +32,7 @@ export function ToolbarButton({
           <Button
             variant="secondary"
             className={cn(
-              "h-10 w-10 flex bg-muted items-center justify-center transition-colors hover:bg-foreground/20",
+              "cursor-pointer h-10 w-10 flex bg-muted items-center justify-center transition-colors hover:bg-foreground/20",
 
               isActive &&
                 "bg-primary text-primary-foreground hover:bg-primary/80",
@@ -41,7 +41,7 @@ export function ToolbarButton({
             disabled={disabled}
           >
             {typeof IconOrText === "string" ? (
-              <span className="text-lg leading-none">{IconOrText}</span>
+              <span className="leading-none">{IconOrText}</span>
             ) : (
               <IconOrText className="size-5" />
             )}

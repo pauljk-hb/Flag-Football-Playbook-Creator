@@ -1,43 +1,8 @@
-import { api } from "@/api/client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
-import type { Play } from "@/types/interface";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { usePlaybookOverview } from "./hooks/usePlayOverview";
-import {
-  ArrowUpDown,
-  Filter,
-  PlayIcon,
-  Plus,
-  Search,
-  Settings,
-  Share2,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { usePlaybookOverview, type SortOption } from "./hooks/usePlayOverview";
+import { ArrowUpDown, Plus, Search, Settings, Share2 } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { PlayCard } from "./components/PlayCard";
 import {
@@ -54,58 +19,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type SortOption = "date-desc" | "date-asc" | "alpha-asc" | "alpha-desc";
-
 export function Playbook() {
-  const { handleNewPlay } = usePlaybookOverview();
-
-  const [plays, setPlays] = useState<Play[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterTags, setFilterTags] = useState({
-    offense: true,
-    defense: true,
-    pass: false,
-    run: false,
-  });
-
-  const [sortBy, setSortBy] = useState<SortOption>("alpha-asc");
-
-  const filteredPlays = plays.filter((play) =>
-    play.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const sortedPlays = [...filteredPlays].sort((a, b) => {
-    if (sortBy === "alpha-asc") {
-      return a.title.localeCompare(b.title);
-    }
-    if (sortBy === "alpha-desc") {
-      return b.title.localeCompare(a.title);
-    }
-    if (sortBy === "date-desc") {
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    }
-    if (sortBy === "date-asc") {
-      return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-    }
-    return 0;
-  });
-
-  useEffect(() => {
-    async function loadPlays() {
-      try {
-        const data = await api.plays.getAll();
-        setPlays(data);
-      } catch (error) {
-        console.error("Fehler beim Laden der Plays:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadPlays();
-  }, []);
+  const {
+    plays,
+    isLoading,
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    filterTags,
+    setFilterTags,
+    handleNewPlay,
+    onDelete,
+  } = usePlaybookOverview();
 
   if (isLoading) {
     return (
@@ -257,11 +183,11 @@ export function Playbook() {
             </div>
           ) : (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(245px,1fr))] gap-6">
-              {sortedPlays.length === 0 ? (
+              {plays.length === 0 ? (
                 <p className="text-foreground py-4">Keine Plays gefunden.</p>
               ) : (
-                sortedPlays.map((play) => (
-                  <PlayCard key={play.id} play={play} />
+                plays.map((play) => (
+                  <PlayCard key={play.id} play={play} onDelete={onDelete} />
                 ))
               )}
             </div>
