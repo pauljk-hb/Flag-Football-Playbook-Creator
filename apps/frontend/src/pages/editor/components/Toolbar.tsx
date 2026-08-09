@@ -80,7 +80,7 @@ export function Toolbar({
       <div className="flex px-2 items-center py-1 border-b">
         <div className="flex-1 flex justify-start">
           <ToolbarButton
-            icon={LayoutDashboard}
+            icon={ChevronLeft}
             onClick={handleBack}
             label="Zur Übersicht"
           />

@@ -1,21 +1,61 @@
 import { api } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import type { Play } from "@/types/interface";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePlaybookOverview } from "./hooks/usePlayOverview";
-import { Plus } from "lucide-react";
+import { Filter, PlayIcon, Plus, Search, Settings, Share2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { PlayCard } from "./components/PlayCard";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { ShareDialog } from "./components/ShareDialog";
 
 export function Playbook() {
-  const navigate = useNavigate();
   const { handleNewPlay } = usePlaybookOverview();
 
   const [plays, setPlays] = useState<Play[]>([]);
-
   const [isLoading, setIsLoading] = useState(true);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTags, setFilterTags] = useState({
+    offense: true,
+    defense: true,
+    pass: false,
+    run: false,
+  });
+
+  const filteredPlays = plays.filter((play) =>
+    play.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   useEffect(() => {
     async function loadPlays() {
@@ -39,71 +79,140 @@ export function Playbook() {
   }
 
   return (
-    <>
-      <header className="px-4 bg-muted border-b py-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-600/20 rounded-lg border border-indigo-500/30">
-            <RouteTreeIcon className="w-6 h-6 text-indigo-400" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight">
-              Playbook Designer
-            </h1>
-            <p className="text-xs text-slate-400">
-              Play-Bibliothek & Strategie-Editor
-            </p>
-          </div>
-          <div className="ml-24">
-            <Button onClick={handleNewPlay} className="w-full">
-              <Plus />
-            </Button>
-          </div>
+    <div className="flex flex-col h-full w-full bg-background">
+      <header className="flex items-center justify-between px-4 h-12 border-b bg-muted flex-none">
+        <div className="flex items-center gap-2">
+          <RouteTreeIcon className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold tracking-tight text-muted-foreground">
+            Playbook Designer
+          </span>
+        </div>
+
+        <div className="flex gap-2">
+          <Dialog>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              }
+            />
+            <ShareDialog />
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              }
+            />
+            <SettingsDialog />
+          </Dialog>
         </div>
       </header>
-      <main className="mt-16 flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {" "}
-        {plays.map((play) => (
-          <Card key={play.id} className="overflow-hidden">
-            <div className="aspect-4/3 w-full bg-muted flex items-center justify-center border-b">
-              {play.thumbnail ? (
-                <img
-                  src={play.thumbnail}
-                  alt={play.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-xs text-muted-foreground font-mono">
-                  [ Field Preview ]
-                </span>
-              )}
+
+      <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
+        <div className="w-full space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight">Plays</h1>
             </div>
 
-            {/* 2. Alle Infos gebündelt darunter */}
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Badge>Badge</Badge>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(play.updatedAt).toLocaleDateString("de-DE", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <CardTitle className="pt-1">{play.title}</CardTitle>
-            </CardHeader>
+            {/* Oben Rechts: Suche, Filter & Neuer Play Button */}
+            <div className="flex items-center gap-2">
+              {/* Suchfeld mit Icon */}
+              <InputGroup className="max-w-xs">
+                <InputGroupInput
+                  placeholder="Suchen..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <InputGroupAddon>
+                  <Search />
+                </InputGroupAddon>
+              </InputGroup>
 
-            <CardFooter>
-              <Button
-                onClick={() => navigate(`/editor/${play.id}`)}
-                className="w-full"
-              >
-                Play öffnen
+              {/* Filter Dropdown */}
+              {/* <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button variant="outline" size="sm" className="h-9">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Nach Tags filtern</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuCheckboxItem
+                    checked={filterTags.offense}
+                    onCheckedChange={(c) =>
+                      setFilterTags({ ...filterTags, offense: c })
+                    }
+                  >
+                    Offense
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={filterTags.defense}
+                    onCheckedChange={(c) =>
+                      setFilterTags({ ...filterTags, defense: c })
+                    }
+                  >
+                    Defense
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuCheckboxItem
+                    checked={filterTags.pass}
+                    onCheckedChange={(c) =>
+                      setFilterTags({ ...filterTags, pass: c })
+                    }
+                  >
+                    Pass
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={filterTags.run}
+                    onCheckedChange={(c) =>
+                      setFilterTags({ ...filterTags, run: c })
+                    }
+                  >
+                    Run
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu> */}
+
+              {/* Neuer Play Button */}
+              <Button onClick={handleNewPlay} size="sm" className="h-9 ml-2">
+                <Plus className="h-4 w-4 mr-2" />
+                Neues Play
               </Button>
-            </CardFooter>
-          </Card>
-        ))}
+            </div>
+          </div>
+
+          {/* Grid-Sektion für die Plays */}
+          {isLoading ? (
+            <div className="h-64 flex items-center justify-center text-sm text-muted-foreground">
+              Lade Plays...
+            </div>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+              {filteredPlays.map((play) => (
+                <PlayCard play={play} />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
-    </>
+    </div>
   );
 }
