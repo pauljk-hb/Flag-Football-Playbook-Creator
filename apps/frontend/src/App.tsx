@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "./components/AppTabProvider";
 import { useThemeStore } from "./hooks/useAppStore";
 import { useEffect } from "react";
+import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
 
 function App() {
   const theme = useThemeStore((state) => state.theme);
@@ -31,6 +33,11 @@ function App() {
       <TooltipProvider delay={500}>
         <BrowserRouter>
           <Routes>
+            {/* Öffentliche Seiten */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<SignupPage />} />
+
+            {/* Geschützte Kern App */}
             <Route element={<AppLayout />}>
               <Route path="/" element={<Playbook />} />
               <Route path="/editor/:id?" element={<EditorLayout />} />

@@ -1,5 +1,8 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { BackendTest } from "./BackendTest";
+import { useSession } from "@/lib/auth-client";
+import { useEffect } from "react";
 
 interface TabButtonProps {
   to: string;
@@ -26,11 +29,28 @@ function TabButton({ to, isActive, label }: TabButtonProps) {
 
 export function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const { data: session, isPending } = useSession();
 
   const isPlaybookActive =
     location.pathname === "/" || location.pathname.startsWith("/editor");
 
   const isExportActive = location.pathname.startsWith("/export");
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      navigate("/login", { replace: true });
+    }
+  }, [session, isPending, navigate]);
+
+  if (isPending || !session) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background text-muted-foreground text-sm">
+        Lade Anwendung...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden">

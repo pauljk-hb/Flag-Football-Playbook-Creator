@@ -8,7 +8,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAppStore } from "@/hooks/useAppStore";
-import { AlertTriangle, CheckCircle2, Clock, Bug } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Bug,
+  Database,
+} from "lucide-react";
 
 export function AlphaWarningDialog() {
   const hasSeenAlphaWarning = useAppStore((state) => state.hasSeenAlphaWarning);
@@ -69,6 +75,14 @@ export function AlphaWarningDialog() {
               damit wir die Fehler gemeinsam schnell ausräumen können!
             </p>
           </div>
+        </div>
+
+        <div className="bg-muted/50 p-3 rounded-lg border flex items-start gap-3">
+          <Database className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            Achtung: Aufgrund von laufenden Datenbank-Migrationen in der
+            Alpha-Phase kann es aktuell noch zu Datenverlusten kommen.
+          </p>
         </div>
 
         <AlertDialogFooter className="mt-2">

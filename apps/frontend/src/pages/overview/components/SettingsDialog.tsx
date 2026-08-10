@@ -18,10 +18,12 @@ import {
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useThemeStore } from "@/hooks/useAppStore";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
 
 export function SettingsDialog() {
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
+  const { data: session } = useSession();
 
   return (
     // Breiterer Dialog (600px) für mehr Platz und ein "Fenster"-Gefühl
@@ -130,7 +132,8 @@ export function SettingsDialog() {
           >
             <div className="space-y-4">
               <p className="text-xs text-muted-foreground">
-                Hier folgen Einstellungen zum Nutzerprofil...
+                Hier folgen Einstellungen zum Nutzerprofil von{" "}
+                {session?.user.name}...
               </p>
             </div>
           </TabsContent>
