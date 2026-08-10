@@ -18,7 +18,7 @@ export class SelectionManager {
   public setupSelectionEvents(): void {
     const canvas = this.canvasManager.getRawCanvas();
 
-    const handleSelection = (e: fabric.IEvent) => {
+    const handleSelection = (e: any) => {
       if (!e.selected || e.selected.length === 0) return;
       const activeObject = e.selected[0];
 

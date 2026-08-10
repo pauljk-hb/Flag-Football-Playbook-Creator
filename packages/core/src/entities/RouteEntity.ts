@@ -233,20 +233,22 @@ export class RouteEntity extends BaseEntity {
           if (!this.dragStartNodes)
             this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
 
+          const startNodes = this.dragStartNodes!;
+
           // Berechnung der vertikalen Verschiebung (dy)
-          const startHandleY = this.dragStartNodes[index].y + STRETCH_OFFSET_Y;
+          const startHandleY = startNodes[index].y + STRETCH_OFFSET_Y;
           const currentHandleY = stretchHandle!.rect.top ?? 0;
           const dy = currentHandleY - startHandleY;
 
           // Stretch-Loop: Verschiebt diesen Node und ALLE FOLGENDEN auf der Y-Achse
           for (let i = index; i < this.nodes.length; i++) {
-            this.nodes[i].y = this.dragStartNodes[i].y + dy;
+            this.nodes[i].y = startNodes[i].y + dy;
 
             // Kurven-Kontrollpunkte synchronisieren (falls vorhanden)
             if (this.nodes[i].cpInY !== undefined)
-              this.nodes[i].cpInY = this.dragStartNodes[i].cpInY! + dy;
+              this.nodes[i].cpInY = startNodes[i].cpInY! + dy;
             if (this.nodes[i].cpOutY !== undefined)
-              this.nodes[i].cpOutY = this.dragStartNodes[i].cpOutY! + dy;
+              this.nodes[i].cpOutY = startNodes[i].cpOutY! + dy;
 
             // Visuelles Update der anderen Handles, damit sie live mit der Linie mitlaufen
             if (controlsMap[i]) {
@@ -357,8 +359,8 @@ export class RouteEntity extends BaseEntity {
     // Wenn sie aktuell existieren, müssen sie zerstört und neu gebaut werden
     // (oder man gibt jedem Handle eine translate() Methode, das wäre performanter).
     // Fürs Erste (da sie meist beim Bewegen des Spielers unsichtbar sind):
-    if (this.handles.length > 0 && this.handles[0].circle?.canvas) {
-      this.initializeControls(this.handles[0].circle.canvas);
+    if (this.handles.length > 0 && this.fabricPath.canvas) {
+      this.initializeControls(this.fabricPath.canvas);
     }
   }
 

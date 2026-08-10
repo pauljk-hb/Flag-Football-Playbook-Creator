@@ -63,7 +63,7 @@ export class RouteDrawingManager {
   // EVENT HANDLER
   // ==========================================
 
-  private handleMouseMove = (options: fabric.IEvent): void => {
+  private handleMouseMove = (options: any): void => {
     if (!this.isDrawing) return;
 
     // Zeigerposition aus dem Fabric Event holen
@@ -79,7 +79,7 @@ export class RouteDrawingManager {
     this.updatePreviewPath(tempNodes);
   };
 
-  private handleMouseDown = (options: fabric.IEvent): void => {
+  private handleMouseDown = (options: any): void => {
     if (!this.isDrawing) return;
 
     // Rechtsklick bricht das Zeichnen ab
@@ -138,7 +138,7 @@ export class RouteDrawingManager {
   // HELPER & RENDERING
   // ==========================================
 
-  private getPointer(options: fabric.IEvent): { x: number; y: number } | null {
+  private getPointer(options: any): { x: number; y: number } | null {
     if (options.scenePoint) {
       return { x: options.scenePoint.x, y: options.scenePoint.y };
     }

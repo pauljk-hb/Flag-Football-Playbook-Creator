@@ -124,8 +124,8 @@ export class PlayerEntity extends BaseEntity {
         this.fabricGroup.getScaledHeight(),
         CANVAS_SIZE.width,
         CANVAS_SIZE.height,
-        this.fabricGroup.originX,
-        this.fabricGroup.originY,
+        this.fabricGroup.originX as string,
+        this.fabricGroup.originY as string,
       );
 
       // --- 3. WERTE ZURÜCKSCHREIBEN ---
