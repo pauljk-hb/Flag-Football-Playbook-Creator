@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/accordion";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
+import { PlayTags } from "../PlayTags";
+import { Input } from "@/components/ui/input";
 
 interface SidebarProps {
   title: string;
@@ -30,16 +32,17 @@ export function GeneralAccordionItem({
           <label className="text-xs font-medium text-muted-foreground">
             Play Name
           </label>
-          <input
-            type="text"
+          <Input
+            placeholder="Play Titel"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
         <div className="space-y-2">
           <Field>
-            <FieldLabel htmlFor="textarea-message">Anmerkungen</FieldLabel>
+            <label className="text-xs font-medium text-muted-foreground">
+              Anmerkungen
+            </label>
             <Textarea
               id="textarea-message"
               value={description}
@@ -47,6 +50,12 @@ export function GeneralAccordionItem({
               placeholder="Anmerkungen..."
             />
           </Field>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">
+            Tags
+          </label>
+          <PlayTags />
         </div>
       </AccordionContent>
     </AccordionItem>

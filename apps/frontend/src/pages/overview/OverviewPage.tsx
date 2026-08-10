@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AlphaWarningDialog } from "./components/AlphaWarningDialog";
+import { TagFilterInput } from "./components/TagFilterInput";
 
 export function Playbook() {
   const {
@@ -122,54 +123,7 @@ export function Playbook() {
                 </InputGroupAddon>
               </InputGroup>
 
-              {/* Filter Dropdown */}
-              {/* <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="outline" size="sm" className="h-9">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filter
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Nach Tags filtern</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={filterTags.offense}
-                    onCheckedChange={(c) =>
-                      setFilterTags({ ...filterTags, offense: c })
-                    }
-                  >
-                    Offense
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterTags.defense}
-                    onCheckedChange={(c) =>
-                      setFilterTags({ ...filterTags, defense: c })
-                    }
-                  >
-                    Defense
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={filterTags.pass}
-                    onCheckedChange={(c) =>
-                      setFilterTags({ ...filterTags, pass: c })
-                    }
-                  >
-                    Pass
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterTags.run}
-                    onCheckedChange={(c) =>
-                      setFilterTags({ ...filterTags, run: c })
-                    }
-                  >
-                    Run
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu> */}
+              <TagFilterInput />
 
               <Button onClick={handleNewPlay} size="sm" className="h-9 ml-2">
                 <Plus className="h-4 w-4 mr-2" />
