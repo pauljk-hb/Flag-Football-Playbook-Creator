@@ -24,6 +24,7 @@ import { TagFilterInput } from "./components/TagFilterInput";
 export function Playbook() {
   const {
     plays,
+    tags,
     isLoading,
     searchQuery,
     setSearchQuery,
@@ -123,7 +124,7 @@ export function Playbook() {
                 </InputGroupAddon>
               </InputGroup>
 
-              <TagFilterInput />
+              <TagFilterInput tags={tags} />
 
               <Button onClick={handleNewPlay} size="sm" className="h-9 ml-2">
                 <Plus className="h-4 w-4 mr-2" />

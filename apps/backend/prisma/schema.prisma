@@ -86,7 +86,7 @@ model Play {
   playbookId  String
   name        String
   description String?
-  canvasData  String
+  canvasData  String?
   thumbnail   String?
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())

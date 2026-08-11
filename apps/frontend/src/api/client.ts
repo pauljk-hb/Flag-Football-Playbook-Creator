@@ -1,103 +1,130 @@
-import type { Play, PlayDTO } from "@/types/interface";
+import type {
+  CreatePlaybookDTO,
+  CreatePlayDTO,
+  CreateTagDTO,
+  Play,
+  Playbook,
+  Tag,
+  UpdatePlaybookDTO,
+  UpdatePlayDTO,
+  UpdateTagDTO,
+} from "@/types/interface";
 
-const STORAGE_PREFIX = "play_";
+const API_BASE_URL = "http://localhost:4000";
 
+/**
+ * Zentraler Fetch-Wrapper, der sich um JSON, Fehler und Auth-Cookies kümmert.
+ */
+async function fetchApi<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(
+      errorData?.message ||
+        `API Error: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  if (
+    response.status === 204 ||
+    response.headers.get("content-length") === "0"
+  ) {
+    return null as T;
+  }
+
+  return response.json();
+}
+
+/**
+ * Dein neuer API Client
+ */
 export const api = {
+  playbooks: {
+    getAll: () => fetchApi<Playbook[]>("/api/v1/playbooks"),
+
+    create: (data: CreatePlaybookDTO) =>
+      fetchApi<Playbook>("/api/v1/playbooks", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    update: (id: string, data: UpdatePlaybookDTO) =>
+      fetchApi<Playbook>(`/api/v1/playbooks/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id: string) =>
+      fetchApi<void>(`/api/v1/playbooks/${id}`, {
+        method: "DELETE",
+      }),
+  },
+
   plays: {
-    getAll: async (): Promise<Play[]> => {
-      const plays: Play[] = [];
+    getAllByPlaybook: (playbookId: string) =>
+      fetchApi<Play[]>(`/api/v1/plays/playbook/${playbookId}`),
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+    getById: (id: string) => fetchApi<Play>(`/api/v1/plays/${id}`),
 
-        // Nutze den Prefix oder filtere nach deinen Keys
-        if (key && (key.startsWith(STORAGE_PREFIX) || key.startsWith("Play"))) {
-          const rawData = localStorage.getItem(key);
-          if (rawData) {
-            try {
-              const parsedPlay = JSON.parse(rawData) as Play;
-              plays.push(parsedPlay);
-            } catch (error) {
-              console.error(`Fehler beim Parsen von Key "${key}":`, error);
-            }
-          }
-        }
-      }
+    create: (playbookId: string, data: CreatePlayDTO) =>
+      fetchApi<Play>(`/api/v1/plays/playbook/${playbookId}`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
 
-      return plays;
-    },
+    update: (id: string, data: UpdatePlayDTO) =>
+      fetchApi<Play>(`/api/v1/plays/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
 
-    getById: async (id: string): Promise<Play | null> => {
-      const rawData =
-        localStorage.getItem(`${STORAGE_PREFIX}${id}`) ||
-        localStorage.getItem(id);
+    delete: (id: string) =>
+      fetchApi<void>(`/api/v1/plays/${id}`, {
+        method: "DELETE",
+      }),
 
-      if (!rawData) {
-        return null;
-      }
+    addTag: (playId: string, tagId: string) =>
+      fetchApi<void>(`/api/v1/plays/${playId}/tags`, {
+        method: "POST",
+        body: JSON.stringify({ tagId }),
+      }),
 
-      try {
-        const play = JSON.parse(rawData) as Play;
-        return play;
-      } catch (error) {
-        console.error(`Fehler beim Parsen des Plays mit ID "${id}":`, error);
-        return null;
-      }
-    },
+    removeTag: (playId: string, tagId: string) =>
+      fetchApi<void>(`/api/v1/plays/${playId}/tags/${tagId}`, {
+        method: "DELETE",
+      }),
+  },
 
-    create: async (): Promise<string> => {
-      const id: string = crypto.randomUUID();
-      const key = `${STORAGE_PREFIX}${id}`;
-      const now = new Date().toISOString();
+  tags: {
+    getAllByPlaybook: (playbookId: string) =>
+      fetchApi<Tag[]>(`/api/v1/tags/playbook/${playbookId}`),
 
-      const fullPlay: Play = {
-        id,
-        title: "Unbenanntes Play",
-        description: "",
-        thumbnail: "",
-        data: null,
-        createdAt: now,
-        updatedAt: now,
-      };
+    create: (playbookId: string, data: CreateTagDTO) =>
+      fetchApi<Tag>(`/api/v1/tags/playbook/${playbookId}`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
 
-      localStorage.setItem(key, JSON.stringify(fullPlay));
-      return id;
-    },
+    update: (id: string, data: UpdateTagDTO) =>
+      fetchApi<Tag>(`/api/v1/tags/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
 
-    update: async (id: string, play: PlayDTO): Promise<void> => {
-      const key = `${STORAGE_PREFIX}${id}`;
-      const now = new Date().toISOString();
-
-      let createdAt = now;
-      const existingRaw = localStorage.getItem(key);
-      if (existingRaw) {
-        try {
-          const existingPlay = JSON.parse(existingRaw);
-          if (existingPlay.createdAt) {
-            createdAt = existingPlay.createdAt;
-          }
-        } catch {
-          // Fallback auf 'now' falls Parse fehlschlägt
-        }
-      }
-
-      const updatedPlay: Play = {
-        id,
-        title: play.title || "Unbenanntes Play",
-        description: play.description || "",
-        thumbnail: play.thumbnail,
-        data: typeof play.data === "string" ? JSON.parse(play.data) : play.data,
-        createdAt,
-        updatedAt: now,
-      };
-
-      localStorage.setItem(key, JSON.stringify(updatedPlay));
-    },
-
-    delete: async (id: string): Promise<boolean> => {
-      const key = `${STORAGE_PREFIX}${id}`;
-      localStorage.removeItem(key);
-      return true;
-    },
+    delete: (id: string) =>
+      fetchApi<void>(`/api/v1/tags/${id}`, {
+        method: "DELETE",
+      }),
   },
 };

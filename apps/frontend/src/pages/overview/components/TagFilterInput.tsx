@@ -9,6 +9,7 @@ import {
   TagsTrigger,
   TagsValue,
 } from "@/components/kibo-ui/tags";
+import type { Tag } from "@/types/interface";
 import { CheckIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -18,8 +19,14 @@ const tags = [
   { id: "pass", label: "Redzone", color: "#f97316" }, // Orange
 ];
 
-export function TagFilterInput() {
+interface TagFilterInputProps {
+  tags: Tag[];
+}
+
+export function TagFilterInput({ tags }: TagFilterInputProps) {
   const [selected, setSelected] = useState<string[]>([]);
+
+  console.log(tags);
 
   const handleRemove = (value: string) => {
     if (!selected.includes(value)) {
@@ -53,7 +60,7 @@ export function TagFilterInput() {
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: currentTag?.color || "#71717a" }}
                 />
-                {currentTag?.label}
+                {currentTag?.name}
               </div>
             </TagsValue>
           );
@@ -66,7 +73,7 @@ export function TagFilterInput() {
           <TagsGroup>
             {tags.map((tag) => (
               <TagsItem key={tag.id} onSelect={handleSelect} value={tag.id}>
-                {tag.label}
+                {tag.name}
                 {selected.includes(tag.id) && (
                   <CheckIcon className="text-muted-foreground" size={14} />
                 )}

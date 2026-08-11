@@ -30,13 +30,10 @@ export const PlayController = {
     try {
       const playbookId = req.params.playbookId as string;
       const userId = res.locals.user.id;
-      const { name, description, canvasData, thumbnail, sortOrder } = req.body;
+      let { name, description, canvasData, thumbnail, sortOrder } = req.body;
 
-      if (!name || !canvasData) {
-        res
-          .status(400)
-          .json({ error: "Name und CanvasData sind erforderlich." });
-        return;
+      if (!name) {
+        name = "Unbenanntes Play";
       }
 
       const play = await PlayService.createPlay(playbookId, userId, {

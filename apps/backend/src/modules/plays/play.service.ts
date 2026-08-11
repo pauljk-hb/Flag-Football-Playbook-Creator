@@ -32,7 +32,7 @@ export const PlayService = {
     data: {
       name: string;
       description?: string;
-      canvasData: string;
+      canvasData?: string | null;
       thumbnail?: string;
       sortOrder?: number;
     },
@@ -48,7 +48,7 @@ export const PlayService = {
         playbookId,
         name: data.name,
         description: data.description ?? null,
-        canvasData: data.canvasData,
+        canvasData: data.canvasData ?? null,
         thumbnail: data.thumbnail ?? null,
         sortOrder: data.sortOrder ?? 0,
       },

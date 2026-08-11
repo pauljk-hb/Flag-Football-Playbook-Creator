@@ -23,7 +23,7 @@ export function PlayCard({ play, onDelete }: PlayCardProps) {
       {play.thumbnail ? (
         <img
           src={play.thumbnail}
-          alt={play.title}
+          alt={play.name}
           className="aspect-4/3 w-full object-cover"
         />
       ) : (
@@ -35,14 +35,32 @@ export function PlayCard({ play, onDelete }: PlayCardProps) {
       )}
 
       <CardHeader className="px-4">
-        <div className="mb-1.5">
-          <Badge variant="secondary" className="text-[10px] py-0">
-            Offense
-          </Badge>
+        <div className="mb-1.5 flex flex-wrap gap-1 min-h-[20px]">
+          {play.tags && play.tags.length > 0 ? (
+            play.tags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 flex items-center gap-1 font-medium"
+              >
+                {tag.color && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: tag.color }}
+                  />
+                )}
+                {tag.name}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-[10px] text-transparent select-none">
+              Keine Tags
+            </span>
+          )}
         </div>
 
         <CardTitle className="text-sm font-semibold line-clamp-2">
-          {play.title}
+          {play.name}
         </CardTitle>
       </CardHeader>
 

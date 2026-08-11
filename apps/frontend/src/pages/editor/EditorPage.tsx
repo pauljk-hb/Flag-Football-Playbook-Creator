@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "@/api/client";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
-import type { Play, PlayDTO } from "@/types/interface";
+import type { Play, UpdatePlayDTO } from "@/types/interface";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { Toaster } from "@/components/ui/sonner";
 import { useEngineNotifications } from "./hooks/useEngineNotifications";
@@ -33,7 +33,7 @@ export function EditorLayout() {
         const data = await api.plays.getById(id);
         if (data) {
           setRawPlayData(data);
-          setPlayTitle(data.title);
+          setPlayTitle(data.name);
           setPlayDescription(data.description || "");
         }
       } catch (error) {
@@ -52,11 +52,11 @@ export function EditorLayout() {
       const thumbnailString = play.exportThumbnail();
       const canvasData = play.exportCanvasJSON();
 
-      const payload: PlayDTO = {
-        title: playTitle,
+      const payload: UpdatePlayDTO = {
+        name: playTitle,
         description: playDescription,
         thumbnail: thumbnailString,
-        data: canvasData,
+        canvasData: canvasData,
       };
 
       if (!id) return;
@@ -102,7 +102,7 @@ export function EditorLayout() {
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative flex items-center justify-center p-4">
-          <PlaybookCanvas initialPlayData={rawPlayData?.data} />
+          <PlaybookCanvas initialPlayData={rawPlayData?.canvasData} />
         </main>
 
         <PropertiesSidebar

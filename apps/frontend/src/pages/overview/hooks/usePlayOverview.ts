@@ -1,5 +1,5 @@
 import { api } from "@/api/client";
-import type { Play } from "@/types/interface";
+import type { Play, Tag } from "@/types/interface";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,23 +8,43 @@ export type SortOption = "date-desc" | "date-asc" | "alpha-asc" | "alpha-desc";
 export function usePlaybookOverview() {
   const navigate = useNavigate();
 
+  const [activePlaybookId, setActivePlaybookId] = useState<string | null>(null);
   const [plays, setPlays] = useState<Play[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
-  const [filterTags, setFilterTags] = useState({
-    offense: true,
-    defense: true,
-    pass: false,
-    run: false,
-  });
+  const [filterTags, setFilterTags] = useState<Tag[]>();
 
   useEffect(() => {
-    async function loadPlays() {
+    async function initializeDashboard() {
+      setIsLoading(true);
       try {
-        const data = await api.plays.getAll();
-        setPlays(data);
+        let playbooks = await api.playbooks.getAll();
+        let currentPlaybookId: string | undefined;
+
+        if (!playbooks || playbooks.length === 0) {
+          console.log("Kein Playbook gefunden. Erstelle Standard-Playbook...");
+          const newPlaybook = await api.playbooks.create({
+            name: "Mein Playbook",
+            description: "Mein erstes Playbook",
+          });
+          currentPlaybookId = newPlaybook.id;
+        }
+
+        if (playbooks && playbooks.length > 0) {
+          currentPlaybookId = playbooks[0].id;
+        }
+
+        if (!currentPlaybookId) return;
+        setActivePlaybookId(currentPlaybookId);
+
+        const playsData = await api.plays.getAllByPlaybook(currentPlaybookId);
+        setPlays(playsData);
+        const tags = await api.tags.getAllByPlaybook(currentPlaybookId);
+        setTags(tags);
       } catch (error) {
         console.error("Fehler beim Laden der Plays:", error);
       } finally {
@@ -32,17 +52,17 @@ export function usePlaybookOverview() {
       }
     }
 
-    loadPlays();
+    initializeDashboard();
   }, []);
 
   const sortedAndFilteredPlays = useMemo(() => {
     const filtered = plays.filter((play) =>
-      play.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      play.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     return filtered.sort((a, b) => {
-      if (sortBy === "alpha-asc") return a.title.localeCompare(b.title);
-      if (sortBy === "alpha-desc") return b.title.localeCompare(a.title);
+      if (sortBy === "alpha-asc") return a.name.localeCompare(b.name);
+      if (sortBy === "alpha-desc") return b.name.localeCompare(a.name);
       if (sortBy === "date-desc") {
         return (
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -58,8 +78,17 @@ export function usePlaybookOverview() {
   }, [plays, searchQuery, sortBy]);
 
   const handleNewPlay = async () => {
-    const newId = await api.plays.create();
-    navigate(`/editor/${newId}`, { replace: true });
+    if (!activePlaybookId) return;
+    try {
+      const newPlay = await api.plays.create(activePlaybookId, {
+        name: "Neues Play",
+        canvasData: null,
+      });
+
+      navigate(`/editor/${newPlay.id}`, { replace: true });
+    } catch (error) {
+      console.error("Fehler beim Erstellen eines neuen Plays:", error);
+    }
   };
 
   const onDelete = async (playId: string) => {
@@ -73,6 +102,7 @@ export function usePlaybookOverview() {
 
   return {
     plays: sortedAndFilteredPlays,
+    tags,
     isLoading,
     searchQuery,
     setSearchQuery,
