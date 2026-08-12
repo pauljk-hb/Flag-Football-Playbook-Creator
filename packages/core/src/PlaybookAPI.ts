@@ -183,7 +183,7 @@ export class PlaybookAPI {
 
   /**
    * Aboniert über Änderungen im History Stack (undo/redo)
-   * * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
+   * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
    * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
    */
   public subscribeToHistoryChanges(callback: () => void): () => void {

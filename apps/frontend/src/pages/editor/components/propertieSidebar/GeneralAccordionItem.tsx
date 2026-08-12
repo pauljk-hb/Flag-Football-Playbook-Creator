@@ -1,14 +1,13 @@
 import {
-  Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import { Textarea } from "@/components/ui/textarea";
-import { PlayTags } from "../PlayTags";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { Play } from "@/types/interface";
+import { PlayTags } from "../PlayTags";
 
 interface SidebarProps {
   play: Play;

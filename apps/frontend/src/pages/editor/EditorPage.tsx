@@ -24,9 +24,7 @@ export function EditorPage() {
     playDescription,
     setPlayDescription,
     isLoading,
-    isSaving,
     handleSave,
-    handleBack,
     downloadAsImage,
   } = useEditor(id);
 

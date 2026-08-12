@@ -1,30 +1,8 @@
-import { usePlaybookHistory } from "../../../hooks/usePlaybookHistory";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useHotkeys } from "react-hotkeys-hook";
+import { usePlaybookHistory } from "../../../hooks/usePlaybookHistory";
 
 // Lucide Icons
 import {
-  Undo2,
-  Redo2,
-  Route as RouteIcon,
-  Save,
-  Trash2,
-  ChevronLeft,
-  GitBranch,
-  GitMerge,
-  Pen,
-  Download,
-  FileQuestionMark,
-  Pencil,
-  LayoutDashboard,
-} from "lucide-react";
-import { usePlaybookActions } from "@/hooks/usePlaybookActions";
-import { useNavigate } from "react-router-dom";
-import { usePlaybook } from "@/hooks/usePlaybook";
-import { useState } from "react";
-import {
-  AddQB,
   ComeBackRoute,
   CornerRoute,
   GoRoute,
@@ -35,22 +13,20 @@ import {
   QuickOutRoute,
   SlantRoute,
 } from "@/components/ui/icons/custom.icons";
+import { usePlaybook } from "@/hooks/usePlaybook";
+import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import {
-  CPlayerIcon,
-  QbPlayerIcon,
-  RPlayerIcon,
-  XPlayerIcon,
-  ZPlayerIcon,
-} from "@/components/ui/icons/PlayerIcon";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Kbd } from "@/components/ui/kbd";
-import { ToolbarButton } from "./ToolbarButton";
-import { RouteToolbarGroup } from "./RouteToolbarGroup";
+  ChevronLeft,
+  Download,
+  Pencil,
+  Redo2,
+  Trash2,
+  Undo2,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useEditorStore } from "../store/useEditorStore";
+import { RouteToolbarGroup } from "./RouteToolbarGroup";
+import { ToolbarButton } from "./ToolbarButton";
 
 interface ToolbarProps {
   title: string;

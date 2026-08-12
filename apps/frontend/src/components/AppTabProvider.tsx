@@ -1,8 +1,7 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { BackendTest } from "./BackendTest";
 import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 interface TabButtonProps {
   to: string;
