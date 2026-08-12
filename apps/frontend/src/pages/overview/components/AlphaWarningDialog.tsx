@@ -25,7 +25,7 @@ export function AlphaWarningDialog() {
   return (
     <AlertDialog open={!hasSeenAlphaWarning}>
       {/* max-w-md macht den Dialog etwas breiter, damit die Listen gut wirken */}
-      <AlertDialogContent className="sm:max-w-md bg-background">
+      <AlertDialogContent className="max-w-lg! sm:max-w-md bg-background">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-xl">
             <AlertTriangle className="h-6 w-6 text-amber-500" />
@@ -46,10 +46,15 @@ export function AlphaWarningDialog() {
               Bereits integriert
             </h4>
             <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-1">
-              <li>Zeichnen von Routen via fabric.js</li>
-              <li>Playbook-Dashboard & Grid-Ansicht</li>
+              <li>Playbook Grid-Ansicht</li>
+              <li>Verschiedene Playbooks</li>
+              <li>Plays filtern</li>
+              <li>Spieler & Formationen einfügen</li>
+              <li>Zeichnen & Einfügen von Routen</li>
               <li>Light / Dark Mode Unterstützung</li>
               <li>Tastenkürzel (Hotkeys) im Editor</li>
+              <li>Undo / Redo von Operationen</li>
+              <li>Cloud-Synchronisation</li>
             </ul>
           </div>
 
@@ -61,9 +66,11 @@ export function AlphaWarningDialog() {
             </h4>
             <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-1">
               <li>PDF-Export von Playbooks</li>
-              <li>Zuweisung von Spielernamen & Positionen</li>
-              <li>Kopieren & Einfügen von Routen</li>
-              <li>Cloud-Synchronisation</li>
+              <li>Playbooks teilen</li>
+              <li>Preset Routen beim Einfügen an Rand anpassen</li>
+              <li>Beabeiten von Player Presets</li>
+              <li>Speichern von Routen Presets</li>
+              <li>Gemeinsames bearbeiten von Playbooks</li>
             </ul>
           </div>
 
