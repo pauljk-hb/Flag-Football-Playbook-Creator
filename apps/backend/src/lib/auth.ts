@@ -1,7 +1,7 @@
-import { betterAuth } from "better-auth";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { prisma } from "./prisma";
+import { betterAuth } from "better-auth";
 import "dotenv/config";
+import { prisma } from "./prisma";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -39,7 +39,6 @@ export const auth = betterAuth({
               },
             },
           });
-          console.log(`✅ Setup für neuen User ${user.email} abgeschlossen!`);
         },
       },
     },

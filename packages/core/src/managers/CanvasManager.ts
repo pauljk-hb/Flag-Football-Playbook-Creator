@@ -1,6 +1,6 @@
 import * as fabric from "fabric";
-import type { ThumbnailOptions } from "../types/interfaces";
 import type { BaseEntity } from "../entities/BaseEntity";
+import type { ThumbnailOptions } from "../types/interfaces";
 
 export const CANVAS_SIZE = {
   width: 800,
@@ -94,8 +94,6 @@ export class CanvasManager {
 
     this.canvas!.discardActiveObject();
     this.canvas!.requestRenderAll();
-
-    console.log(options);
 
     const dataUrl = this.canvas!.toDataURL({
       format,

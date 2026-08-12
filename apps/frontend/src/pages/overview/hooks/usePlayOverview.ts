@@ -61,7 +61,6 @@ export function usePlaybookOverview() {
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
-      console.log(play, selectedTags);
       const matchesTag =
         !selectedTags || selectedTags.length === 0
           ? true

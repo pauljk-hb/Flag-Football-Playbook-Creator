@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { PlaybookAPI } from "@playbook/core";
+import { useEffect, useRef } from "react";
 
 interface PlaybookCanvasProps {
   initialPlayData?: any;
@@ -10,7 +10,6 @@ export function PlaybookCanvas({ initialPlayData }: PlaybookCanvasProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { setEngine } = usePlaybook();
-  console.log(initialPlayData);
 
   useEffect(() => {
     if (!canvasRef.current || !wrapperRef.current) return;
