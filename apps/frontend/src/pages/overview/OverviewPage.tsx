@@ -26,12 +26,12 @@ export function Playbook() {
     plays,
     tags,
     isLoading,
+    selectedTags,
+    setSelectedTags,
     searchQuery,
     setSearchQuery,
     sortBy,
     setSortBy,
-    filterTags,
-    setFilterTags,
     handleNewPlay,
     onDelete,
   } = usePlaybookOverview();
@@ -124,7 +124,11 @@ export function Playbook() {
                 </InputGroupAddon>
               </InputGroup>
 
-              <TagFilterInput tags={tags} />
+              <TagFilterInput
+                tags={tags}
+                selectedTags={selectedTags}
+                setSelectedTags={setSelectedTags}
+              />
 
               <Button onClick={handleNewPlay} size="sm" className="h-9 ml-2">
                 <Plus className="h-4 w-4 mr-2" />

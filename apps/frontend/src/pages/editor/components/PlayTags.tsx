@@ -1,3 +1,4 @@
+import { api } from "@/api/client";
 import {
   Tags,
   TagsContent,
@@ -9,58 +10,86 @@ import {
   TagsTrigger,
   TagsValue,
 } from "@/components/kibo-ui/tags";
+import type { Play, Tag } from "@/types/interface";
 import { CheckIcon, PlusIcon, Pencil } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const defaultTags = [
-  { id: "offense", label: "Short Yard", color: "#3b82f6" }, // Blau
-  { id: "defense", label: "Long Yard", color: "#22c55e" }, // Rot
-  { id: "pass", label: "Redzone", color: "#f97316" }, // Orange
-];
+interface PlayTagsProps {
+  play: Play;
+}
 
-export function PlayTags() {
-  const [selected, setSelected] = useState<string[]>([]);
+export function PlayTags({ play }: PlayTagsProps) {
+  const initialSelectedIds = play.tags?.map((t) => t.id) || [];
+
+  const [selected, setSelected] = useState<string[]>(initialSelectedIds);
   const [newTag, setNewTag] = useState<string>("");
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 1. STATE: Einfach das Farbattribut hinzugefügt
-  const [tags, setTags] =
-    useState<{ id: string; label: string; color: string }[]>(defaultTags);
-
-  const handleRemove = (value: string) => {
-    if (!selected.includes(value)) {
-      return;
+  useEffect(() => {
+    async function fetchPlaybookTags() {
+      setIsLoading(true);
+      try {
+        const fetchedTags = await api.tags.getAllByPlaybook(play.playbookId);
+        setTags(fetchedTags);
+      } catch (error) {
+        console.error("Fehler beim Laden der Playbook-Tags:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    console.log(`removed: ${value}`);
-    setSelected((prev) => prev.filter((v) => v !== value));
+
+    if (play.playbookId) {
+      fetchPlaybookTags();
+    }
+  }, [play.playbookId]);
+
+  const handleRemove = async (tagId: string) => {
+    if (!selected.includes(tagId)) return;
+
+    try {
+      await api.plays.removeTag(play.id, tagId);
+      setSelected((prev) => prev.filter((id) => id !== tagId));
+    } catch (error) {
+      console.error("Fehler beim Entfernen des Tags:", error);
+    }
   };
 
-  const handleSelect = (value: string) => {
-    if (selected.includes(value)) {
-      handleRemove(value);
-      return;
+  const handleSelect = async (tagId: string) => {
+    try {
+      if (selected.includes(tagId)) {
+        await api.plays.removeTag(play.id, tagId);
+        setSelected((prev) => prev.filter((id) => id !== tagId));
+      } else {
+        await api.plays.addTag(play.id, tagId);
+        setSelected((prev) => [...prev, tagId]);
+      }
+    } catch (error) {
+      console.error("Fehler beim Verknüpfen des Tags:", error);
     }
-    console.log(`selected: ${value}`);
-    setSelected((prev) => [...prev, value]);
   };
 
-  const handleCreateTag = () => {
-    console.log(`created: ${newTag}`);
-    setTags((prev) => [
-      ...prev,
-      {
-        id: newTag,
-        label: newTag,
+  const handleCreateTag = async () => {
+    if (!newTag.trim()) return;
+
+    try {
+      const createdTag = await api.tags.create(play.playbookId, play.id, {
+        name: newTag.trim(),
         color: "#71717a",
-      },
-    ]);
-    setSelected((prev) => [...prev, newTag]);
-    setNewTag("");
+      });
+
+      setTags((prev) => [...prev, createdTag]);
+      setSelected((prev) => [...prev, createdTag.id]);
+      setNewTag("");
+    } catch (error) {
+      console.error("Fehler beim Erstellen des Tags:", error);
+    }
   };
 
   const handleEdit = (e: React.MouseEvent, tagId: string) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log(`Edit tag triggered for: ${tagId}`);
+    // Hier später den Color-Picker aufrufen und api.tags.update(tagId, { color: ... }) feuern
   };
 
   return (
@@ -70,14 +99,16 @@ export function PlayTags() {
           const currentTag = tags.find((t) => t.id === tag);
 
           return (
-            <TagsValue key={tag} onRemove={() => handleRemove(tag)}>
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: currentTag?.color || "#71717a" }}
-                />
-                {currentTag?.label}
-              </div>
+            <TagsValue
+              key={tag}
+              onRemove={() => handleRemove(tag)}
+              style={
+                currentTag?.color
+                  ? { backgroundColor: `${currentTag.color}40` }
+                  : undefined
+              }
+            >
+              {currentTag?.name}
             </TagsValue>
           );
         })}
@@ -104,8 +135,8 @@ export function PlayTags() {
             {tags.map((tag) => (
               <TagsItem
                 key={tag.id}
-                onSelect={handleSelect}
-                value={tag.id}
+                onSelect={() => handleSelect(tag.id)}
+                value={tag.name}
                 className="group"
               >
                 {/* 3. VISUELL: Flex-Container für sauberes Layout (Farbe, Text, Icons) */}
@@ -115,7 +146,7 @@ export function PlayTags() {
                       className="w-2 h-2 rounded-full shrink-0"
                       style={{ backgroundColor: tag.color }}
                     />
-                    {tag.label}
+                    {tag.name}
                   </div>
 
                   <div className="flex items-center gap-1 ml-auto">

@@ -14,7 +14,7 @@ export interface Tag {
   id: string;
   playbookId: string;
   name: string;
-  color: string | null;
+  color: string;
   createdAt: string;
 }
 

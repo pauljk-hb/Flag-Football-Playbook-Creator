@@ -110,8 +110,8 @@ export const api = {
     getAllByPlaybook: (playbookId: string) =>
       fetchApi<Tag[]>(`/api/v1/tags/playbook/${playbookId}`),
 
-    create: (playbookId: string, data: CreateTagDTO) =>
-      fetchApi<Tag>(`/api/v1/tags/playbook/${playbookId}`, {
+    create: (playbookId: string, playId: string, data: CreateTagDTO) =>
+      fetchApi<Tag>(`/api/v1/tags/playbook/${playbookId}/play/${playId}`, {
         method: "POST",
         body: JSON.stringify(data),
       }),

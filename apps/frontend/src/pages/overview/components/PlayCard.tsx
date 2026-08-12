@@ -35,20 +35,17 @@ export function PlayCard({ play, onDelete }: PlayCardProps) {
       )}
 
       <CardHeader className="px-4">
-        <div className="mb-1.5 flex flex-wrap gap-1 min-h-[20px]">
+        <div className="mb-1.5 flex flex-wrap gap-1 min-h-5">
           {play.tags && play.tags.length > 0 ? (
             play.tags.map((tag) => (
               <Badge
                 key={tag.id}
                 variant="secondary"
                 className="text-[10px] px-1.5 py-0 flex items-center gap-1 font-medium"
+                style={
+                  tag.color ? { backgroundColor: `${tag.color}40` } : undefined
+                }
               >
-                {tag.color && (
-                  <div
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: tag.color }}
-                  />
-                )}
                 {tag.name}
               </Badge>
             ))

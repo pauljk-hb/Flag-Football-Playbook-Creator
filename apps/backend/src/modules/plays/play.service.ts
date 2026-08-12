@@ -12,6 +12,7 @@ export const PlayService = {
     return await prisma.play.findMany({
       where: { playbookId },
       orderBy: { sortOrder: "asc" },
+      include: { tags: true },
     });
   },
 

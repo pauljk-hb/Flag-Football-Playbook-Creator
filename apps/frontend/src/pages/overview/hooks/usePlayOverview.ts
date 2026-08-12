@@ -14,9 +14,9 @@ export function usePlaybookOverview() {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
-  const [filterTags, setFilterTags] = useState<Tag[]>();
 
   useEffect(() => {
     async function initializeDashboard() {
@@ -56,9 +56,23 @@ export function usePlaybookOverview() {
   }, []);
 
   const sortedAndFilteredPlays = useMemo(() => {
-    const filtered = plays.filter((play) =>
-      play.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    const filtered = plays.filter((play) => {
+      const matchesName = play.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+      console.log(play, selectedTags);
+      const matchesTag =
+        !selectedTags || selectedTags.length === 0
+          ? true
+          : !!play.tags?.some(
+              (tag) =>
+                selectedTags.includes(tag.id) ||
+                selectedTags.includes(tag.name),
+            );
+
+      return matchesName && matchesTag;
+    });
 
     return filtered.sort((a, b) => {
       if (sortBy === "alpha-asc") return a.name.localeCompare(b.name);
@@ -75,7 +89,7 @@ export function usePlaybookOverview() {
       }
       return 0;
     });
-  }, [plays, searchQuery, sortBy]);
+  }, [plays, searchQuery, selectedTags, sortBy]);
 
   const handleNewPlay = async () => {
     if (!activePlaybookId) return;
@@ -103,13 +117,13 @@ export function usePlaybookOverview() {
   return {
     plays: sortedAndFilteredPlays,
     tags,
+    selectedTags,
+    setSelectedTags,
     isLoading,
     searchQuery,
     setSearchQuery,
     sortBy,
     setSortBy,
-    filterTags,
-    setFilterTags,
     handleNewPlay,
     onDelete,
   };

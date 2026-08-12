@@ -1,7 +1,7 @@
 import { Toolbar } from "./components/Toolbar";
 import { PlaybookCanvas } from "./components/PlaybookCanvas";
 import { PropertiesSidebar } from "./components/PropertiesSidebar";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "@/api/client";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
@@ -10,6 +10,7 @@ import { usePlaybook } from "@/hooks/usePlaybook";
 import { Toaster } from "@/components/ui/sonner";
 import { useEngineNotifications } from "./hooks/useEngineNotifications";
 import { useEditorHotkeys } from "./hooks/useEditorHotkeys";
+import { Button } from "@/components/ui/button";
 
 export function EditorLayout() {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +24,8 @@ export function EditorLayout() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [rawPlayData, setRawPlayData] = useState<Play | null>(null);
+  const [playData, setPlayData] = useState<Play | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadData() {
@@ -32,7 +34,7 @@ export function EditorLayout() {
       try {
         const data = await api.plays.getById(id);
         if (data) {
-          setRawPlayData(data);
+          setPlayData(data);
           setPlayTitle(data.name);
           setPlayDescription(data.description || "");
         }
@@ -91,6 +93,19 @@ export function EditorLayout() {
     );
   }
 
+  if (!playData) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center bg-background gap-4">
+        <p className="text-destructive font-medium">
+          Spielzug konnte nicht gefunden werden.
+        </p>
+        <Button onClick={() => navigate("/")} variant="outline">
+          Zurück zum Dashboard
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-background">
       <Toolbar
@@ -102,11 +117,11 @@ export function EditorLayout() {
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative flex items-center justify-center p-4">
-          <PlaybookCanvas initialPlayData={rawPlayData?.canvasData} />
+          <PlaybookCanvas initialPlayData={playData?.canvasData} />
         </main>
 
         <PropertiesSidebar
-          title={playTitle}
+          play={playData}
           onTitleChange={setPlayTitle}
           description={playDescription}
           onDescriptionChange={setPlayDescription}

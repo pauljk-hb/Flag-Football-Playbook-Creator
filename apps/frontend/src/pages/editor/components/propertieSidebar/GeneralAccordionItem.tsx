@@ -8,16 +8,17 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { PlayTags } from "../PlayTags";
 import { Input } from "@/components/ui/input";
+import type { Play } from "@/types/interface";
 
 interface SidebarProps {
-  title: string;
+  play: Play;
   onTitleChange: (title: string) => void;
   description: string;
   onDescriptionChange: (title: string) => void;
 }
 
 export function GeneralAccordionItem({
-  title,
+  play,
   onTitleChange,
   description,
   onDescriptionChange,
@@ -34,7 +35,7 @@ export function GeneralAccordionItem({
           </label>
           <Input
             placeholder="Play Titel"
-            value={title}
+            value={play.name}
             onChange={(e) => onTitleChange(e.target.value)}
           />
         </div>
@@ -55,7 +56,7 @@ export function GeneralAccordionItem({
           <label className="text-xs font-medium text-muted-foreground">
             Tags
           </label>
-          <PlayTags />
+          <PlayTags play={play} />
         </div>
       </AccordionContent>
     </AccordionItem>

@@ -3,16 +3,17 @@ import { GeneralAccordionItem } from "./propertieSidebar/GeneralAccordionItem";
 import { FormationAccordionItem } from "./propertieSidebar/FormationsAccordionItem";
 import { FieldAccordionItem } from "./propertieSidebar/FieldAccordionItem";
 import { RouteAccordionItem } from "./propertieSidebar/RouteAccordionItem";
+import type { Play } from "@/types/interface";
 
 interface SidebarProps {
-  title: string;
+  play: Play;
   onTitleChange: (title: string) => void;
   description: string;
   onDescriptionChange: (title: string) => void;
 }
 
 export function PropertiesSidebar({
-  title,
+  play,
   onTitleChange,
   description,
   onDescriptionChange,
@@ -25,7 +26,7 @@ export function PropertiesSidebar({
 
       <Accordion defaultValue={["general"]} className="w-full">
         <GeneralAccordionItem
-          title={title}
+          play={play}
           onTitleChange={onTitleChange}
           description={description}
           onDescriptionChange={onDescriptionChange}
