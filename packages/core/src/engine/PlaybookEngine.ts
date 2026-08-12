@@ -588,6 +588,7 @@ export class PlaybookEngine {
         newNodes,
         this.playManager,
         this.canvasManager,
+        this.notificationManager,
       );
       this.historyManager.execute(moveCommand);
     };
