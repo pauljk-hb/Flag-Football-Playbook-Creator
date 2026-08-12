@@ -55,9 +55,9 @@ npm run dev
 
 Das Projekt ist in modular getrennte Bereiche unterteilt, um eine klare Separation of Concerns zu gewährleisten. Für tiefergehende Informationen zu den einzelnen Subsystemen konsultiere die jeweiligen Dokumentationen:
 
-- **[[Core Documentation](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/tree/main/packages/core/ReadMe.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/packages/core/readMe.md)(https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/packages/core/readMe.md):** Headless Engine, Fabric.js Canvas-Rendering, Command-Pattern (Undo/Redo), RouteDrawingManager & Event-Driven Architecture.
-- **[[[Frontend Documentation](https://www.google.com/search?q=./src/frontend/README.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/apps/frontend/README.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/apps/frontend/README.md):** React Components, UI-Toolbars, State-Synchronization, Theme-Handling & Hotkeys.
-- **[[Backend Documentation](https://www.google.com/search?q=./src/backend/README.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/apps/backend/readMe.md):** API-Routen, Datenbank-Schemas, Authentifizierung & Cloud-Synchronisation.
+- **[Core README](packages/core/readMe.md):** Headless Engine, Fabric.js Canvas-Rendering, Command-Pattern (Undo/Redo), RouteDrawingManager & Event-Driven Architecture.
+- **[Frontend README](apps/frontend/README.md):** React Components, UI-Toolbars, State-Synchronization, Theme-Handling & Hotkeys.
+- **[Backend README](apps/backend/readMe.md):** API-Routen, Datenbank-Schemas, Authentifizierung & Cloud-Synchronisation.
 
 # Features & Roadmap
 
