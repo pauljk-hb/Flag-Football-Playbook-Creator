@@ -11,6 +11,7 @@ import { PlayTags } from "../PlayTags";
 
 interface SidebarProps {
   play: Play;
+  playTitle: string;
   onTitleChange: (title: string) => void;
   description: string;
   onDescriptionChange: (title: string) => void;
@@ -18,6 +19,7 @@ interface SidebarProps {
 
 export function GeneralAccordionItem({
   play,
+  playTitle,
   onTitleChange,
   description,
   onDescriptionChange,
@@ -34,7 +36,7 @@ export function GeneralAccordionItem({
           </label>
           <Input
             placeholder="Play Titel"
-            value={play.name}
+            value={playTitle}
             onChange={(e) => onTitleChange(e.target.value)}
           />
         </div>

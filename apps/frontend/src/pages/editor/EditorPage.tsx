@@ -65,6 +65,7 @@ export function EditorPage() {
 
         <PropertiesSidebar
           play={playData}
+          playTitle={playTitle}
           onTitleChange={setPlayTitle}
           description={playDescription}
           onDescriptionChange={setPlayDescription}

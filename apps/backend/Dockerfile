@@ -39,7 +39,7 @@ COPY --from=builder /app ./
 # Ordner für SQLite-Volume erstellen
 RUN mkdir -p /app/apps/backend/prisma/data
 
-EXPOSE 3000
+EXPOSE 4000
 
 # Wichtig: "migrate deploy" nutzt die Migrations-Dateien für ein sicheres Update
 CMD ["sh", "-c", "cd apps/backend && DATABASE_URL=file:/app/apps/backend/prisma/data/prod.db npx prisma migrate deploy && cd /app && npm run start -w backend"]

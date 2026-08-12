@@ -10,7 +10,7 @@ import type {
   UpdateTagDTO,
 } from "@/types/interface";
 
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 /**
  * Zentraler Fetch-Wrapper, der sich um JSON, Fehler und Auth-Cookies kümmert.

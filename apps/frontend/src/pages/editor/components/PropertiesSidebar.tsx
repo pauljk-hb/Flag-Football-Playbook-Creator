@@ -1,12 +1,13 @@
 import { Accordion } from "@/components/ui/accordion";
-import { GeneralAccordionItem } from "./propertieSidebar/GeneralAccordionItem";
-import { FormationAccordionItem } from "./propertieSidebar/FormationsAccordionItem";
-import { FieldAccordionItem } from "./propertieSidebar/FieldAccordionItem";
-import { RouteAccordionItem } from "./propertieSidebar/RouteAccordionItem";
 import type { Play } from "@/types/interface";
+import { FieldAccordionItem } from "./propertieSidebar/FieldAccordionItem";
+import { FormationAccordionItem } from "./propertieSidebar/FormationsAccordionItem";
+import { GeneralAccordionItem } from "./propertieSidebar/GeneralAccordionItem";
+import { RouteAccordionItem } from "./propertieSidebar/RouteAccordionItem";
 
 interface SidebarProps {
   play: Play;
+  playTitle: string;
   onTitleChange: (title: string) => void;
   description: string;
   onDescriptionChange: (title: string) => void;
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export function PropertiesSidebar({
   play,
+  playTitle,
   onTitleChange,
   description,
   onDescriptionChange,
@@ -27,6 +29,7 @@ export function PropertiesSidebar({
       <Accordion defaultValue={["general"]} className="w-full">
         <GeneralAccordionItem
           play={play}
+          playTitle={playTitle}
           onTitleChange={onTitleChange}
           description={description}
           onDescriptionChange={onDescriptionChange}
