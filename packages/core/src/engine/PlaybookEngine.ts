@@ -365,6 +365,7 @@ export class PlaybookEngine {
   }
 
   public generateThumbnail(options: ThumbnailOptions = {}): string {
+    this.selectionManager.hideAllRouteControls();
     return this.canvasManager.generateThumbnail(options);
   }
 

@@ -75,7 +75,7 @@ export class SelectionManager {
     });
   }
 
-  private hideAllRouteControls(): void {
+  public hideAllRouteControls(): void {
     const allEntities = this.playManager.getAllEntities();
 
     for (const entity of allEntities) {
