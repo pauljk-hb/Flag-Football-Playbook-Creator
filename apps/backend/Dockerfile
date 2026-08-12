@@ -42,4 +42,4 @@ RUN mkdir -p /app/apps/backend/prisma/data
 EXPOSE 3000
 
 # Wichtig: "migrate deploy" nutzt die Migrations-Dateien für ein sicheres Update
-CMD ["sh", "-c", "DATABASE_URL=file:/app/apps/backend/prisma/data/prod.db npx prisma migrate deploy --schema=apps/backend/prisma/schema.prisma && npm run start -w backend"]
+CMD ["sh", "-c", "cd apps/backend && DATABASE_URL=file:/app/apps/backend/prisma/data/prod.db npx prisma migrate deploy && cd /app && npm run start -w backend"]
