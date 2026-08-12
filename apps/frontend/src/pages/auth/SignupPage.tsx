@@ -45,7 +45,6 @@ export function SignupForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <form onSubmit={handleEmailSignup}>
         <FieldGroup>
-          {/* HEADER MIT PLAYBOOK BRANDING */}
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="p-2.5 bg-indigo-600/20 rounded-xl border border-indigo-500/30 mb-1">
               <RouteTreeIcon className="w-6 h-6 text-indigo-400" />

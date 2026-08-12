@@ -24,7 +24,7 @@ export function DeletePopUp({ play, onDelete }: DeletePopUpProps) {
       <AlertDialogHeader>
         <AlertDialogTitle>Play wirklich löschen?</AlertDialogTitle>
         <AlertDialogDescription>
-          Möchtest du das Play "{play.title}" endgültig löschen? Diese Aktion
+          Möchtest du das Play "{play.name}" endgültig löschen? Diese Aktion
           kann nicht rückgängig gemacht werden.
         </AlertDialogDescription>
       </AlertDialogHeader>

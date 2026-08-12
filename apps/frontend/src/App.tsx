@@ -1,13 +1,13 @@
-import { PlaybookProvider } from "./contexts/PlaybookContext";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Playbook } from "./pages/overview/OverviewPage";
-import { EditorLayout } from "./pages/editor/EditorPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AppLayout } from "./components/AppTabProvider";
-import { useThemeStore } from "./hooks/useAppStore";
 import { useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AppLayout } from "./components/AppTabProvider";
+import { PlaybookProvider } from "./contexts/PlaybookContext";
+import { useThemeStore } from "./hooks/useAppStore";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import { EditorPage } from "./pages/editor/EditorPage";
+import { Playbook } from "./pages/overview/OverviewPage";
 
 function App() {
   const theme = useThemeStore((state) => state.theme);
@@ -40,7 +40,7 @@ function App() {
             {/* Geschützte Kern App */}
             <Route element={<AppLayout />}>
               <Route path="/" element={<Playbook />} />
-              <Route path="/editor/:id?" element={<EditorLayout />} />
+              <Route path="/editor/:id?" element={<EditorPage />} />
 
               <Route path="/export" element={<div>Export</div>} />
 

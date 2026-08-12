@@ -1,4 +1,3 @@
-import { api } from "@/api/client";
 import {
   Tags,
   TagsContent,
@@ -11,96 +10,42 @@ import {
   TagsValue,
 } from "@/components/kibo-ui/tags";
 import { TagPopoverEditor } from "@/components/TagPopoverEditor";
-import type { Play, Tag } from "@/types/interface";
+import type { Play } from "@/types/interface";
 import { CheckIcon, PlusIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePlayTags } from "../hooks/usePlayTags";
 
 interface PlayTagsProps {
   play: Play;
 }
 
 export function PlayTags({ play }: PlayTagsProps) {
-  const initialSelectedIds = play.tags?.map((t) => t.id) || [];
+  const {
+    selectedIds,
+    allTags,
+    isLoadingTags,
+    toggleTag,
+    removeTag,
+    createNewTag,
+    updateTag,
+  } = usePlayTags(play);
 
-  const [selected, setSelected] = useState<string[]>(initialSelectedIds);
-  const [newTag, setNewTag] = useState<string>("");
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [newTagInput, setNewTagInput] = useState("");
 
-  useEffect(() => {
-    async function fetchPlaybookTags() {
-      setIsLoading(true);
-      try {
-        const fetchedTags = await api.tags.getAllByPlaybook(play.playbookId);
-        setTags(fetchedTags);
-      } catch (error) {
-        console.error("Fehler beim Laden der Playbook-Tags:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (play.playbookId) {
-      fetchPlaybookTags();
-    }
-  }, [play.playbookId]);
-
-  const handleRemove = async (tagId: string) => {
-    if (!selected.includes(tagId)) return;
-
-    try {
-      await api.plays.removeTag(play.id, tagId);
-      setSelected((prev) => prev.filter((id) => id !== tagId));
-    } catch (error) {
-      console.error("Fehler beim Entfernen des Tags:", error);
-    }
-  };
-
-  const handleSelect = async (tagId: string) => {
-    try {
-      if (selected.includes(tagId)) {
-        await api.plays.removeTag(play.id, tagId);
-        setSelected((prev) => prev.filter((id) => id !== tagId));
-      } else {
-        await api.plays.addTag(play.id, tagId);
-        setSelected((prev) => [...prev, tagId]);
-      }
-    } catch (error) {
-      console.error("Fehler beim Verknüpfen des Tags:", error);
-    }
-  };
-
-  const handleCreateTag = async () => {
-    if (!newTag.trim()) return;
-
-    try {
-      const createdTag = await api.tags.create(play.playbookId, play.id, {
-        name: newTag.trim(),
-        color: "#71717a",
-      });
-
-      setTags((prev) => [...prev, createdTag]);
-      setSelected((prev) => [...prev, createdTag.id]);
-      setNewTag("");
-    } catch (error) {
-      console.error("Fehler beim Erstellen des Tags:", error);
-    }
-  };
-
-  if (isLoading) {
+  if (isLoadingTags) {
     return <p>Laden</p>;
   }
 
   return (
     <Tags className="w-full">
       <TagsTrigger>
-        {selected.map((tag) => {
-          const currentTag = tags.find((t) => t.id === tag);
+        {selectedIds.map((tag) => {
+          const currentTag = allTags.find((t) => t.id === tag);
 
           return (
             <TagsValue
               key={tag}
-              onRemove={() => handleRemove(tag)}
+              onRemove={() => removeTag(tag)}
               style={
                 currentTag?.color
                   ? { backgroundColor: `${currentTag.color}40` }
@@ -115,26 +60,26 @@ export function PlayTags({ play }: PlayTagsProps) {
 
       <TagsContent>
         <TagsInput
-          onValueChange={setNewTag}
+          onValueChange={setNewTagInput}
           placeholder="Search or create tag..."
         />
         <TagsList>
           <TagsEmpty>
             <button
               className="mx-auto flex cursor-pointer items-center gap-2 py-1"
-              onClick={handleCreateTag}
+              onClick={() => createNewTag(newTagInput)}
               type="button"
             >
               <PlusIcon className="text-muted-foreground" size={14} />
-              Create new tag: "{newTag}"
+              Create new tag: "{newTagInput}"
             </button>
           </TagsEmpty>
 
           <TagsGroup>
-            {tags.map((tag) => (
+            {allTags.map((tag) => (
               <TagsItem
                 key={tag.id}
-                onSelect={() => handleSelect(tag.id)}
+                onSelect={() => toggleTag(tag.id)}
                 value={tag.name}
                 className="group"
               >
@@ -152,15 +97,11 @@ export function PlayTags({ play }: PlayTagsProps) {
                     <TagPopoverEditor
                       tag={tag}
                       onSuccess={(updatedTag) => {
-                        setTags((prev) =>
-                          prev.map((t) =>
-                            t.id === updatedTag.id ? updatedTag : t,
-                          ),
-                        );
+                        updateTag(updatedTag);
                       }}
                     />
 
-                    {selected.includes(tag.id) && (
+                    {selectedIds.includes(tag.id) && (
                       <CheckIcon className="text-muted-foreground" size={14} />
                     )}
                   </div>

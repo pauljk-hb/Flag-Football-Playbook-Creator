@@ -1,98 +1,39 @@
-import { Toolbar } from "./components/Toolbar";
+import { Toaster } from "@/components/ui/sonner";
+import { usePlaybook } from "@/hooks/usePlaybook";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { PlaybookCanvas } from "./components/PlaybookCanvas";
 import { PropertiesSidebar } from "./components/PropertiesSidebar";
-import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { api } from "@/api/client";
-import { usePlaybookActions } from "@/hooks/usePlaybookActions";
-import type { Play, UpdatePlayDTO } from "@/types/interface";
-import { usePlaybook } from "@/hooks/usePlaybook";
-import { Toaster } from "@/components/ui/sonner";
-import { useEngineNotifications } from "./hooks/useEngineNotifications";
+import { Toolbar } from "./components/Toolbar";
+import { useEditor } from "./hooks/useEditor";
 import { useEditorHotkeys } from "./hooks/useEditorHotkeys";
-import { Button } from "@/components/ui/button";
+import { useEngineNotifications } from "./hooks/useEngineNotifications";
 
-export function EditorLayout() {
+export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const { engine } = usePlaybook();
   useEngineNotifications();
   useEditorHotkeys();
-  const { play } = usePlaybookActions();
 
-  const [playTitle, setPlayTitle] = useState("Unbenanntes Play");
-  const [playDescription, setPlayDescription] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
 
-  const [playData, setPlayData] = useState<Play | null>(null);
-  const navigate = useNavigate();
+  const {
+    playData,
+    playTitle,
+    setPlayTitle,
+    playDescription,
+    setPlayDescription,
+    isLoading,
+    isSaving,
+    handleSave,
+    handleBack,
+    downloadAsImage,
+  } = useEditor(id);
 
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      if (!id) return;
-      try {
-        const data = await api.plays.getById(id);
-        if (data) {
-          setPlayData(data);
-          setPlayTitle(data.name);
-          setPlayDescription(data.description || "");
-        }
-      } catch (error) {
-        console.error("Fehler beim Laden des Spielzugs:", error);
-      }
-
-      setIsLoading(false);
-    }
-
-    loadData();
-  }, [id]);
-
-  useEffect(() => {
-    const unsubscribe = engine?.subscribeToDrawingMode((isDrawing) => {
-      setIsDrawingMode(isDrawing);
-    });
-
+    const unsubscribe = engine?.subscribeToDrawingMode(setIsDrawingMode);
     return () => unsubscribe?.();
   }, [engine]);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const thumbnailString = play.exportThumbnail();
-      const canvasData = play.exportCanvasJSON();
-
-      const payload: UpdatePlayDTO = {
-        name: playTitle,
-        description: playDescription,
-        thumbnail: thumbnailString,
-        canvasData: canvasData,
-      };
-
-      if (!id) return;
-      await api.plays.update(id, payload);
-    } catch (error) {
-      console.error("Fehler beim Speichern:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const downloadPlayAsImage = () => {
-    const dataURL = play.exportThumbnail({
-      format: "png",
-      quality: 0.8,
-      multiplier: 2,
-    });
-    const link = document.createElement("a");
-    link.href = dataURL;
-    link.download = `${playTitle}-play_export.png`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   if (!playData) {
     return (
@@ -100,9 +41,7 @@ export function EditorLayout() {
         <p className="text-destructive font-medium">
           Spielzug konnte nicht gefunden werden.
         </p>
-        <Button onClick={() => navigate("/")} variant="outline">
-          Zurück zum Dashboard
-        </Button>
+        <Link to="/">Zurück zum Dashboard</Link>
       </div>
     );
   }
@@ -113,7 +52,7 @@ export function EditorLayout() {
         title={playTitle}
         isDrawingMode={isDrawingMode}
         onSave={handleSave}
-        onDownload={downloadPlayAsImage}
+        onDownload={downloadAsImage}
         drawRoute={(routeMode: string) => engine?.startDrawingRoute(routeMode)}
       />
 

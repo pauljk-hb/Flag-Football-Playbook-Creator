@@ -67,7 +67,6 @@ export function SettingsDialog() {
   ];
 
   return (
-    // Breiterer Dialog (600px) für mehr Platz und ein "Fenster"-Gefühl
     <DialogContent className="sm:max-w-2xl p-0 overflow-hidden flex flex-col bg-muted">
       <DialogHeader className="px-6 pt-6 pb-4 border-b">
         <DialogTitle className="text-xl">Einstellungen</DialogTitle>

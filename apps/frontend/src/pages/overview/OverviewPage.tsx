@@ -1,16 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
-import { usePlaybookOverview, type SortOption } from "./hooks/usePlayOverview";
-import { ArrowUpDown, Plus, Search, Settings, Share2 } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { SettingsDialog } from "./components/SettingsDialog";
-import { PlayCard } from "./components/PlayCard";
+import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { ShareDialog } from "./components/ShareDialog";
 import {
   Select,
   SelectContent,
@@ -18,8 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ArrowUpDown, Plus, Search, Settings, Share2 } from "lucide-react";
 import { AlphaWarningDialog } from "./components/AlphaWarningDialog";
+import { PlayCard } from "./components/PlayCard";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { ShareDialog } from "./components/ShareDialog";
 import { TagFilterInput } from "./components/TagFilterInput";
+import { usePlaybookOverview, type SortOption } from "./hooks/usePlayOverview";
 
 export function Playbook() {
   const {
@@ -89,6 +89,7 @@ export function Playbook() {
       <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
         <div className="w-full space-y-6">
           <div className="flex flex-col mb-12 sm:flex-row items-start sm:items-end justify-between gap-4">
+            {/* Oben Links: Titel & Sortierung */}
             <div className="flex gap-4">
               <h1 className="text-4xl font-bold tracking-tight -mt-2">Plays</h1>
 
@@ -113,7 +114,6 @@ export function Playbook() {
 
             {/* Oben Rechts: Suche, Filter & Neuer Play Button */}
             <div className="flex items-center gap-2">
-              {/* Suchfeld mit Icon */}
               <InputGroup className="max-w-xs">
                 <InputGroupInput
                   placeholder="Suchen..."
