@@ -12,14 +12,17 @@ import {
 import { CheckIcon, Pencil } from "lucide-react";
 import { usePlaybookOverview } from "../hooks/usePlayOverview";
 import type { Tag } from "@/types/interface";
+import { TagPopoverEditor } from "@/components/TagPopoverEditor";
 
 interface TagFilterInputProps {
   tags: Tag[];
+  setTags: React.Dispatch<React.SetStateAction<Tag[]>>;
   selectedTags: string[];
   setSelectedTags: React.Dispatch<React.SetStateAction<string[]>>;
 }
 export function TagFilterInput({
   tags,
+  setTags,
   selectedTags,
   setSelectedTags,
 }: TagFilterInputProps) {
@@ -80,10 +83,16 @@ export function TagFilterInput({
                   </div>
 
                   <div className="flex items-center gap-1 ml-auto">
-                    {/* EDIT BUTTON (Sichtbar beim Hovern über die Zeile) */}
-                    <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted-foreground/10 rounded transition-all text-muted-foreground hover:text-foreground">
-                      <Pencil size={14} />
-                    </button>
+                    <TagPopoverEditor
+                      tag={tag}
+                      onSuccess={(updatedTag) => {
+                        setTags((prev) =>
+                          prev.map((t) =>
+                            t.id === updatedTag.id ? updatedTag : t,
+                          ),
+                        );
+                      }}
+                    />
 
                     {/* STANDARD CHECK ICON VON KIBO */}
                     {selectedTags.includes(tag.id) && (

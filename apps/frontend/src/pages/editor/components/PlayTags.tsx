@@ -10,6 +10,7 @@ import {
   TagsTrigger,
   TagsValue,
 } from "@/components/kibo-ui/tags";
+import { TagPopoverEditor } from "@/components/TagPopoverEditor";
 import type { Play, Tag } from "@/types/interface";
 import { CheckIcon, PlusIcon, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -86,12 +87,6 @@ export function PlayTags({ play }: PlayTagsProps) {
     }
   };
 
-  const handleEdit = (e: React.MouseEvent, tagId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    // Hier später den Color-Picker aufrufen und api.tags.update(tagId, { color: ... }) feuern
-  };
-
   return (
     <Tags className="w-full">
       <TagsTrigger>
@@ -150,15 +145,17 @@ export function PlayTags({ play }: PlayTagsProps) {
                   </div>
 
                   <div className="flex items-center gap-1 ml-auto">
-                    {/* EDIT BUTTON (Sichtbar beim Hovern über die Zeile) */}
-                    <button
-                      onClick={(e) => handleEdit(e, tag.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted-foreground/10 rounded transition-all text-muted-foreground hover:text-foreground"
-                    >
-                      <Pencil size={14} />
-                    </button>
+                    <TagPopoverEditor
+                      tag={tag}
+                      onSuccess={(updatedTag) => {
+                        setTags((prev) =>
+                          prev.map((t) =>
+                            t.id === updatedTag.id ? updatedTag : t,
+                          ),
+                        );
+                      }}
+                    />
 
-                    {/* STANDARD CHECK ICON VON KIBO */}
                     {selected.includes(tag.id) && (
                       <CheckIcon className="text-muted-foreground" size={14} />
                     )}

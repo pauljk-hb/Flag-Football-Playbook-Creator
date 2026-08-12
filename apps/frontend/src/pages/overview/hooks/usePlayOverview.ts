@@ -117,6 +117,7 @@ export function usePlaybookOverview() {
   return {
     plays: sortedAndFilteredPlays,
     tags,
+    setTags,
     selectedTags,
     setSelectedTags,
     isLoading,

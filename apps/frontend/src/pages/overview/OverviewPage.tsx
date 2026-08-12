@@ -25,6 +25,7 @@ export function Playbook() {
   const {
     plays,
     tags,
+    setTags,
     isLoading,
     selectedTags,
     setSelectedTags,
@@ -126,6 +127,7 @@ export function Playbook() {
 
               <TagFilterInput
                 tags={tags}
+                setTags={setTags}
                 selectedTags={selectedTags}
                 setSelectedTags={setSelectedTags}
               />
