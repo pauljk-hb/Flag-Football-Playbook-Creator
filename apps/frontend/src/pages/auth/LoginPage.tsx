@@ -1,19 +1,18 @@
-import { useState } from "react";
-import { data, Link, useNavigate } from "react-router-dom";
-import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { signIn } from "@/lib/auth-client"; // Dein Better Auth Client
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from "@/components/ui/field"; // Oder deine Standard-UI-Komponenten
+} from "@/components/ui/field";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
   return (
@@ -29,38 +28,16 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    const { data, error } = await signIn.email({
-      email,
-      password,
-    });
-
-    setIsLoading(false);
-
-    if (error) {
-      setErrorMessage(error.message || "Ein Fehler ist aufgetreten.");
-    } else if (data) {
-      navigate("/");
-    }
-  };
-
-  // Google Social Login (Better Auth Standard)
-  const handleGoogleLogin = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: "/", // Nach Google-Auth zurück zur Hauptseite
-    });
-  };
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    isLoading,
+    errorMessage,
+    handleEmailLogin,
+    handleGoogleLogin,
+  } = useAuth();
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

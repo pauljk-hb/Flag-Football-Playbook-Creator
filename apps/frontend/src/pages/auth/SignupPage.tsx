@@ -1,11 +1,8 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { signUp, signIn } from "@/lib/auth-client"; // Better Auth Client
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Field,
   FieldDescription,
@@ -14,6 +11,8 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SignupPage() {
   return (
@@ -29,41 +28,18 @@ export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // E-Mail / Passwort Registrierung mit Better Auth
-  const handleEmailSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    const { error } = await signUp.email({
-      name,
-      email,
-      password,
-    });
-
-    setIsLoading(false);
-
-    if (error) {
-      setErrorMessage(error.message || "Ein Fehler ist aufgetreten.");
-    } else {
-      navigate("/");
-    }
-  };
-
-  // Google Social Signup
-  const handleGoogleSignup = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: "/",
-    });
-  };
+  const {
+    name,
+    setName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    isLoading,
+    errorMessage,
+    handleEmailSignup,
+    handleGoogleSignup,
+  } = useAuth();
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
