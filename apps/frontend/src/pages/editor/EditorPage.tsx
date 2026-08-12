@@ -85,14 +85,6 @@ export function EditorLayout() {
     document.body.removeChild(link);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Lade Playbook-Editor...</p>
-      </div>
-    );
-  }
-
   if (!playData) {
     return (
       <div className="flex flex-col h-screen items-center justify-center bg-background gap-4">
@@ -117,7 +109,11 @@ export function EditorLayout() {
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative flex items-center justify-center p-4">
-          <PlaybookCanvas initialPlayData={playData?.canvasData} />
+          {isLoading ? (
+            <p>Loading....</p>
+          ) : (
+            <PlaybookCanvas initialPlayData={playData?.canvasData} />
+          )}
         </main>
 
         <PropertiesSidebar

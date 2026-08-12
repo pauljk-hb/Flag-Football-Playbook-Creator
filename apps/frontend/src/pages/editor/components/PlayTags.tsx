@@ -12,7 +12,7 @@ import {
 } from "@/components/kibo-ui/tags";
 import { TagPopoverEditor } from "@/components/TagPopoverEditor";
 import type { Play, Tag } from "@/types/interface";
-import { CheckIcon, PlusIcon, Pencil } from "lucide-react";
+import { CheckIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface PlayTagsProps {
@@ -86,6 +86,10 @@ export function PlayTags({ play }: PlayTagsProps) {
       console.error("Fehler beim Erstellen des Tags:", error);
     }
   };
+
+  if (isLoading) {
+    return <p>Laden</p>;
+  }
 
   return (
     <Tags className="w-full">

@@ -9,8 +9,7 @@ import {
   TagsTrigger,
   TagsValue,
 } from "@/components/kibo-ui/tags";
-import { CheckIcon, Pencil } from "lucide-react";
-import { usePlaybookOverview } from "../hooks/usePlayOverview";
+import { CheckIcon } from "lucide-react";
 import type { Tag } from "@/types/interface";
 import { TagPopoverEditor } from "@/components/TagPopoverEditor";
 
