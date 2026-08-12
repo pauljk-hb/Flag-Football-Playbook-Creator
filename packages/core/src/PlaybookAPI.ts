@@ -203,4 +203,16 @@ export class PlaybookAPI {
     const unsubscribe = this.engine.onNotification(callback);
     return unsubscribe;
   }
+
+  /**
+   * Aboniert über Änderungen für den Drawing Mode
+   *
+   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
+   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   */
+  public subscribeToDrawingMode(
+    callback: (isDrawing: boolean) => void,
+  ): () => void {
+    return this.engine.subscribeToDrawingMode(callback);
+  }
 }

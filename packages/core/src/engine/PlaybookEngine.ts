@@ -473,6 +473,12 @@ export class PlaybookEngine {
     return unsubscribe;
   }
 
+  public subscribeToDrawingMode(
+    callback: (isDrawing: boolean) => void,
+  ): () => void {
+    return this.routeDrawingManager.onStateChange(callback);
+  }
+
   /*-------------------*/
   /*  Hilfsfunktionen  */
   /*-------------------*/

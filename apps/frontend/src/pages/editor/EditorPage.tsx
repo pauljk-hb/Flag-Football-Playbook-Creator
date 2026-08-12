@@ -23,6 +23,7 @@ export function EditorLayout() {
   const [playDescription, setPlayDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
 
   const [playData, setPlayData] = useState<Play | null>(null);
   const navigate = useNavigate();
@@ -47,6 +48,14 @@ export function EditorLayout() {
 
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    const unsubscribe = engine?.subscribeToDrawingMode((isDrawing) => {
+      setIsDrawingMode(isDrawing);
+    });
+
+    return () => unsubscribe?.();
+  }, [engine]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -102,6 +111,7 @@ export function EditorLayout() {
     <div className="flex flex-col h-screen bg-background">
       <Toolbar
         title={playTitle}
+        isDrawingMode={isDrawingMode}
         onSave={handleSave}
         onDownload={downloadPlayAsImage}
         drawRoute={(routeMode: string) => engine?.startDrawingRoute(routeMode)}

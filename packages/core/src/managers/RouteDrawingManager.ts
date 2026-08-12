@@ -18,6 +18,8 @@ export class RouteDrawingManager {
     routeType: string,
   ) => void;
 
+  private stateListeners: ((isDrawing: boolean) => void)[] = [];
+
   constructor(private canvasManager: CanvasManager) {}
 
   /**
@@ -27,6 +29,7 @@ export class RouteDrawingManager {
     if (this.isDrawing) this.cancelDrawing();
 
     this.isDrawing = true;
+    this.notifyStateChange();
     this.activePlayer = player;
     this.routeType = routeType;
 
@@ -37,6 +40,23 @@ export class RouteDrawingManager {
     // Objekte auf dem Canvas sperren, damit man sie beim Klicken nicht verschiebt
     this.toggleCanvasInteractions(false);
     this.bindEvents();
+  }
+
+  /**
+   * Frontend oder Engine können sich hier anmelden.
+   */
+  public onStateChange(callback: (isDrawing: boolean) => void): () => void {
+    this.stateListeners.push(callback);
+
+    callback(this.isDrawing);
+
+    return () => {
+      this.stateListeners = this.stateListeners.filter((cb) => cb !== callback);
+    };
+  }
+
+  private notifyStateChange(): void {
+    this.stateListeners.forEach((listener) => listener(this.isDrawing));
   }
 
   private bindEvents(): void {
@@ -204,6 +224,7 @@ export class RouteDrawingManager {
     this.toggleCanvasInteractions(true);
 
     this.isDrawing = false;
+    this.notifyStateChange();
     this.activePlayer = null;
     this.collectedNodes = [];
 

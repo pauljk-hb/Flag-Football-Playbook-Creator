@@ -54,6 +54,7 @@ import { useEditorStore } from "../store/useEditorStore";
 
 interface ToolbarProps {
   title: string;
+  isDrawingMode: boolean;
   onSave: () => void;
   onDownload: () => void;
   drawRoute: (routeMode: string) => void;
@@ -61,6 +62,7 @@ interface ToolbarProps {
 
 export function Toolbar({
   title,
+  isDrawingMode,
   onSave,
   onDownload,
   drawRoute,
@@ -155,6 +157,7 @@ export function Toolbar({
 
         <ToolbarButton
           icon={Pencil}
+          isActive={isDrawingMode}
           onClick={() => drawRoute(useEditorStore.getState().routeMode)}
           label="Route zeichnen - doppel Klick zum beenden"
         />
