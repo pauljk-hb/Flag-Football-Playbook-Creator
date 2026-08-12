@@ -1,12 +1,11 @@
-// entities/PlayerEntity.ts
 import * as fabric from "fabric";
-import { BaseEntity } from "./BaseEntity.js";
+import { DEFAULT_LOS_Y } from "../data/presets/fields.js";
+import { CANVAS_SIZE } from "../managers/CanvasManager.js";
 import {
   clampPositionWithinBounds,
   snapToCoordinate,
 } from "../utils/geometry.js";
-import { DEFAULT_LOS_Y } from "../data/presets/fields.js";
-import { CANVAS_SIZE } from "../managers/CanvasManager.js";
+import { BaseEntity } from "./BaseEntity.js";
 
 export interface PlayerConfig {
   id?: string;
@@ -109,9 +108,6 @@ export class PlayerEntity extends BaseEntity {
     this.fabricGroup.on("moving", () => {
       const SNAP_THRESHOLD = 20;
 
-      const canvas = this.fabricGroup.canvas;
-      if (!canvas) return;
-
       let currentX = this.fabricGroup.left ?? 0;
       let currentY = this.fabricGroup.top ?? 0;
 
@@ -128,8 +124,6 @@ export class PlayerEntity extends BaseEntity {
         this.fabricGroup.originY as string,
       );
 
-      // --- 3. WERTE ZURÜCKSCHREIBEN ---
-      // Überschreibt die Mausposition mit den berechneten Limits
       this.fabricGroup.set({
         left: clamped.x,
         top: clamped.y,
@@ -168,7 +162,7 @@ export class PlayerEntity extends BaseEntity {
   public setSelectable(enabled: boolean): void {
     if (this.fabricGroup) {
       this.fabricGroup.selectable = enabled;
-      this.fabricGroup.evented = enabled; // evented = false schaltet auch Hover-Effekte ab
+      this.fabricGroup.evented = enabled;
     }
   }
 
@@ -177,7 +171,7 @@ export class PlayerEntity extends BaseEntity {
    */
   public setPosition(x: number, y: number): void {
     this.fabricGroup.set({ left: x, top: y });
-    this.fabricGroup.setCoords(); // Wichtig für Fabric, um die Hitbox upzudaten
+    this.fabricGroup.setCoords();
   }
 
   /**

@@ -11,4 +11,8 @@ export abstract class BaseEntity implements IEntity {
   public abstract getFabricObjects(): fabric.Object[];
 
   public abstract setSelectable(enabled: boolean): void;
+
+  public abstract showControls(): void;
+
+  public abstract hideControls(): void;
 }

@@ -1,9 +1,9 @@
+import * as fabric from "fabric";
 import type { BaseEntity } from "../entities/BaseEntity";
 import { PlayerEntity } from "../entities/PlayerEntity";
 import { RouteEntity } from "../entities/RouteEntity";
 import type { CanvasManager } from "./CanvasManager";
 import type { PlayManager } from "./PlayManager";
-import * as fabric from "fabric";
 
 export class SelectionManager {
   constructor(
@@ -33,10 +33,9 @@ export class SelectionManager {
             this.canvasManager.requestRender();
           }
         }
-        return; // Jetzt können wir sicher abbrechen
+        return;
       }
 
-      // Wenn es kein Handle war, alles verstecken und neu auswerten
       this.hideAllRouteControls();
 
       const entityId = activeObject.get("id" as keyof fabric.Object) as string;
@@ -69,7 +68,7 @@ export class SelectionManager {
     canvas.on("mouse:down", (e) => {
       if (!e.target) {
         this.hideAllRouteControls();
-        canvas.discardActiveObject(); // Aktive Auswahl in Fabric aufheben
+        canvas.discardActiveObject();
         this.canvasManager.requestRender();
       }
     });

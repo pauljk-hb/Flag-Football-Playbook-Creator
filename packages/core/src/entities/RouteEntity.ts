@@ -1,9 +1,9 @@
 import * as fabric from "fabric";
-import { BaseEntity } from "./BaseEntity";
-import { calculateArrowheadMetrics } from "../utils/geometry";
-import { generateSvgPathString } from "../utils/PathUtils";
 import type { RouteNode } from "../types/interfaces";
 import { SegmentType } from "../types/interfaces";
+import { calculateArrowheadMetrics } from "../utils/geometry";
+import { generateSvgPathString } from "../utils/PathUtils";
+import { BaseEntity } from "./BaseEntity";
 import {
   BezierHandle,
   StretchHandle,
@@ -13,8 +13,8 @@ import {
 
 export interface RouteConfig {
   id?: string;
-  playerId: string; // Foreign Key zum Spieler!
-  routeType: string; // 'main', 'option_1' etc.
+  playerId: string;
+  routeType: string;
   nodes: RouteNode[];
   color: string;
 }
@@ -45,7 +45,6 @@ export class RouteEntity extends BaseEntity {
     this.nodes = config.nodes;
     this.color = config.color;
 
-    // 1. Pfad-Geometrie aus Nodes berechnen
     const pathString = generateSvgPathString(this.nodes);
 
     this.fabricPath = new fabric.Path(pathString, this.getPathStyleConfig());
@@ -71,15 +70,19 @@ export class RouteEntity extends BaseEntity {
   private getPathStyleConfig(): any {
     let dashArray: number[] | undefined = undefined;
 
-    // Styling-Logik (Akzeptiert 'option_1', 'option1', etc.)
-    if (this.routeType.includes("option_1") || this.routeType === "option1") {
-      dashArray = [12, 10];
-    } else if (
-      this.routeType.includes("option_2") ||
-      this.routeType === "option2"
-    ) {
-      this.color = "#FFA500";
+    switch (this.routeType) {
+      case "option_1":
+        dashArray = [12, 10];
+        break;
+      case "option_2":
+        this.color = "#FFA500";
+        break;
+      case "default":
+        break;
+      default:
+        break;
     }
+
     return {
       fill: "transparent",
       stroke: this.color,
@@ -129,27 +132,21 @@ export class RouteEntity extends BaseEntity {
   public initializeControls(canvas: fabric.Canvas): void {
     this.destroyAllHandles();
 
-    const STRETCH_OFFSET_Y = -25; // Abstand des gelben Vierecks unter dem weißen Punkt
+    const STRETCH_OFFSET_Y = -25;
 
-    // Array (aufgebaut nach Index), um Griffe beim Multi-Node-Stretch synchron mitzuziehen
     const controlsMap: { waypoint: WaypointHandle; stretch?: StretchHandle }[] =
       [];
 
     this.nodes.forEach((node, index) => {
-      if (index === 0) return; // Der Spieler/Startpunkt bekommt keine Route-Handles
+      if (index === 0) return;
 
-      // 1. Standard Waypoint-Handle (weißer Kreis) erstellen
       const waypoint = new WaypointHandle(node.x, node.y, canvas, this.id);
       this.handles.push(waypoint);
 
-      // 2. PRÜFUNG: Ist die Linie zu diesem Punkt vertikal?
-      // Wir vergleichen die X-Achse mit dem vorherigen Punkt (Toleranz: 10 Pixel)
       const prevNode = this.nodes[index - 1];
       const isVerticalLine = Math.abs(node.x - prevNode.x) < 10;
-
       let stretchHandle: StretchHandle | undefined;
 
-      // Nur wenn die Linie vertikal verläuft, fügen wir das Stretch-Handle hinzu!
       if (isVerticalLine) {
         stretchHandle = new StretchHandle(
           node.x,
@@ -161,12 +158,8 @@ export class RouteEntity extends BaseEntity {
         this.handles.push(stretchHandle);
       }
 
-      // In der Map speichern, damit wir später darauf zugreifen können
       controlsMap[index] = { waypoint, stretch: stretchHandle };
 
-      // ==========================================
-      // NEU: BEZIER HANDLE FÜR KURVEN (HIER EINFÜGEN!)
-      // ==========================================
       let bezierHandle: BezierHandle | undefined;
 
       if (
@@ -184,10 +177,8 @@ export class RouteEntity extends BaseEntity {
         );
         this.handles.push(bezierHandle);
 
-        // Verbindet die gestrichelte Linie mit dem weißen Punkt
         waypoint.attachBezier(bezierHandle);
 
-        // Wenn der blaue Kontrollpunkt gezogen wird:
         bezierHandle.onMoved = (newX, newY) => {
           if (!this.dragStartNodes) {
             this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
@@ -201,13 +192,10 @@ export class RouteEntity extends BaseEntity {
           canvas.requestRenderAll();
         };
 
-        // Wenn der Nutzer die Maus loslässt (Undo/Redo Command feuern)
         bezierHandle.onMoveComplete = () => this.fireModifiedEvent();
       }
 
-      // ==========================================
-      // EVENTS FÜR DEN WAYPOINT (Normales Bewegen)
-      // ==========================================
+      // Event für WaypointHandle
       waypoint.circle.on("mousedown", () => {
         this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
       });
@@ -219,7 +207,6 @@ export class RouteEntity extends BaseEntity {
         this.nodes[index].x = waypoint.circle.left ?? 0;
         this.nodes[index].y = waypoint.circle.top ?? 0;
 
-        // Wenn dieser Punkt ein Stretch-Handle hat, ziehe es synchron mit!
         if (stretchHandle) {
           stretchHandle.rect.set({
             left: this.nodes[index].x,
@@ -235,9 +222,7 @@ export class RouteEntity extends BaseEntity {
 
       waypoint.circle.on("modified", () => this.fireModifiedEvent());
 
-      // ==========================================
-      // EVENTS FÜR DAS STRETCH-HANDLE (Nur Y-Achse)
-      // ==========================================
+      // Event für StretchHandle
       if (stretchHandle) {
         stretchHandle.rect.on("mousedown", () => {
           this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
@@ -249,7 +234,6 @@ export class RouteEntity extends BaseEntity {
 
           const startNodes = this.dragStartNodes!;
 
-          // Berechnung der vertikalen Verschiebung (dy)
           const startHandleY = startNodes[index].y + STRETCH_OFFSET_Y;
           const currentHandleY = stretchHandle!.rect.top ?? 0;
           const dy = currentHandleY - startHandleY;
@@ -295,7 +279,6 @@ export class RouteEntity extends BaseEntity {
     if (this.dragStartNodes && this.onNodesModified) {
       const newNodes = JSON.parse(JSON.stringify(this.nodes));
 
-      // Nur Command an die Engine schicken, wenn sich die Koordinaten wirklich geändert haben
       if (JSON.stringify(this.dragStartNodes) !== JSON.stringify(newNodes)) {
         this.onNodesModified(this.id, this.dragStartNodes, newNodes);
       }
@@ -366,13 +349,8 @@ export class RouteEntity extends BaseEntity {
       if (node.cpOutY !== undefined) node.cpOutY += dy;
     });
 
-    // 2. Den Pfad neu zeichnen
     this.updatePathVisuals();
 
-    // 3. ACHTUNG: Die Handles liegen absolut auf dem Canvas.
-    // Wenn sie aktuell existieren, müssen sie zerstört und neu gebaut werden
-    // (oder man gibt jedem Handle eine translate() Methode, das wäre performanter).
-    // Fürs Erste (da sie meist beim Bewegen des Spielers unsichtbar sind):
     if (this.handles.length > 0 && this.fabricPath.canvas) {
       this.initializeControls(this.fabricPath.canvas);
     }

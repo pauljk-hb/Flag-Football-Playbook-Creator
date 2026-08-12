@@ -8,7 +8,7 @@ export interface IControlHandle {
   onMoveComplete?: () => void;
 }
 
-const DEFAULT_HANDLE_COLOR = "#ffd147"; // Blau für Bezier-Punkte
+const DEFAULT_HANDLE_COLOR = "#ffd147";
 
 export class WaypointHandle implements IControlHandle {
   public circle: fabric.Circle;
@@ -20,7 +20,7 @@ export class WaypointHandle implements IControlHandle {
     x: number,
     y: number,
     private canvas: fabric.Canvas,
-    routeId: string, // NEU: routeId für die Markierung
+    routeId: string,
   ) {
     this.circle = new fabric.Circle({
       left: x,
@@ -97,15 +97,15 @@ export class BezierHandle implements IControlHandle {
     anchorX: number,
     anchorY: number,
     private canvas: fabric.Canvas,
-    routeId: string, // NEU: routeId
+    routeId: string,
   ) {
     this.tetherLine = new fabric.Line([anchorX, anchorY, startX, startY], {
       stroke: "#424242",
       strokeWidth: 2,
       strokeDashArray: [3, 3],
-      selectable: false, // Die Linie selbst kann man nicht anklicken
+      selectable: false,
       evented: false,
-      visible: false, // WICHTIG: Anfangs unsichtbar
+      visible: false,
     });
 
     this.controlPoint = new fabric.Circle({
@@ -113,7 +113,7 @@ export class BezierHandle implements IControlHandle {
       top: startY,
       radius: 4,
       fill: "#ffffff",
-      stroke: DEFAULT_HANDLE_COLOR, // Blau markiert es als Bezier-Punkt
+      stroke: DEFAULT_HANDLE_COLOR,
       strokeWidth: 2,
       originX: "center",
       originY: "center",
@@ -121,12 +121,11 @@ export class BezierHandle implements IControlHandle {
       hasBorders: false,
       hoverCursor: "pointer",
       evented: true,
-      visible: false, // WICHTIG: Anfangs unsichtbar
+      visible: false,
     });
 
     this.setupEvents();
 
-    // Markierung an das klickbare ControlPoint binden
     this.controlPoint.set("isRouteHandle" as keyof fabric.Object, true);
     this.controlPoint.set("parentRouteId" as keyof fabric.Object, routeId);
 
@@ -158,7 +157,7 @@ export class BezierHandle implements IControlHandle {
     this.controlPoint.set({ visible: true });
     this.tetherLine.set({ visible: true });
     this.canvas.bringObjectToFront(this.tetherLine);
-    this.canvas.bringObjectToFront(this.controlPoint); // Der Punkt muss GANZ oben liegen
+    this.canvas.bringObjectToFront(this.controlPoint);
   }
 
   public hide(): void {
@@ -181,7 +180,7 @@ export class StretchHandle implements IControlHandle {
     y: number,
     stretchAxis: "X" | "Y" | "BOTH",
     private canvas: fabric.Canvas,
-    routeId: string, // NEU: routeId
+    routeId: string,
   ) {
     const cursor =
       stretchAxis === "X"
@@ -212,7 +211,6 @@ export class StretchHandle implements IControlHandle {
 
     this.setupEvents();
 
-    // Markierung
     this.rect.set("isRouteHandle" as keyof fabric.Object, true);
     this.rect.set("parentRouteId" as keyof fabric.Object, routeId);
 

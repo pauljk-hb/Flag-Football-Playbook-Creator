@@ -1,8 +1,7 @@
-// history/commands/AddPlayerCommand.ts
-import type { ICommand } from "../../types/history";
-import { type PlayerConfig, PlayerEntity } from "../../entities/PlayerEntity";
+import { PlayerEntity } from "../../entities/PlayerEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
 import type { PlayManager } from "../../managers/PlayManager";
+import type { ICommand } from "../../types/history";
 
 export class AddPlayerCommand implements ICommand {
   private playerEntity: PlayerEntity;

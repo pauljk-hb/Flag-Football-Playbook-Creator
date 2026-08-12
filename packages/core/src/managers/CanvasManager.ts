@@ -23,10 +23,6 @@ export class CanvasManager {
     return this.canvas;
   }
 
-  public getCanvasDimensions(): { width: number; height: number } {
-    return { width: this.LOGICAL_WIDTH, height: this.LOGICAL_HEIGHT };
-  }
-
   public dispose(): void {
     if (this.canvas) {
       this.canvas.dispose();
@@ -86,9 +82,6 @@ export class CanvasManager {
     this.canvas?.clear();
   }
 
-  /**
-   * Generiert ein Base64-Vorschaubild (Data-URL) des aktuellen Canvas.
-   */
   public generateThumbnail(options: ThumbnailOptions): string {
     const { format = "png", quality = 0.8, multiplier = 0.5 } = options;
 
@@ -104,16 +97,10 @@ export class CanvasManager {
     return dataUrl;
   }
 
-  /**
-   * Schickt ein Objekt in den Hintergrund (z.B. für Routen).
-   */
   public sendToBack(object: fabric.Object): void {
     this.canvas?.sendObjectToBack(object);
   }
 
-  /**
-   * Holt ein Objekt in den Vordergrund (z.B. für Spieler).
-   */
   public bringObjectToFront(object: BaseEntity): void {
     const [firstObject] = object.getFabricObjects();
     if (!firstObject) return;

@@ -73,18 +73,22 @@ export class MoveRouteCommand implements ICommand {
     newNodes: RouteNode[],
     private playMngr: PlayManager,
     private canvasMngr: CanvasManager,
+    private notificationManager: NotificationManager,
   ) {
-    // Tiefe Kopie (Deep Copy) ist extrem wichtig, da Nodes Objekte sind!
     this.oldNodes = JSON.parse(JSON.stringify(oldNodes));
     this.newNodes = JSON.parse(JSON.stringify(newNodes));
   }
 
   public execute(): void {
     const route = this.playMngr.getEntity<RouteEntity>(this.routeId);
-    if (!route) return;
+    if (!route) {
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist keine Spieler Route!",
+      );
+      return;
+    }
 
-    // Wir rufen nicht mehr updatePoints auf, sondern greifen direkt
-    // auf das Property zu und triggern das Neu-Zeichnen
     route.nodes = JSON.parse(JSON.stringify(this.newNodes));
 
     const canvas = route.getFabricObjects()[0]?.canvas;

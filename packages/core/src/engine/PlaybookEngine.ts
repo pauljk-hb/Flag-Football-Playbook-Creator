@@ -1,13 +1,28 @@
+import { Line } from "fabric";
+import {
+  FIELD_PRESETS,
+  FORMATION_PRESETS,
+  ROUTE_PRESETS,
+} from "../data/presets";
+import { DEFAULT_LOS_Y } from "../data/presets/fields";
+import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
+import { RouteEntity } from "../entities/RouteEntity";
+import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
+import { AddRouteCommand } from "../history/commands/AddRouteCommand";
+import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
+import {
+  MovePlayerCommand,
+  MoveRouteCommand,
+} from "../history/commands/MoveCommands";
+import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
+import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 import { HistoryManager } from "../history/HistoryManager";
 import { CANVAS_SIZE, CanvasManager } from "../managers/CanvasManager";
-import { SelectionManager } from "../managers/SelectionManager";
 import { FieldManager } from "../managers/FieldManager";
-import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
-import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
-import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
-import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
+import { NotificationManager } from "../managers/NotificationManager";
 import { PlayManager } from "../managers/PlayManager";
-import { RouteEntity } from "../entities/RouteEntity";
+import { RouteDrawingManager } from "../managers/RouteDrawingManager";
+import { SelectionManager } from "../managers/SelectionManager";
 import {
   SegmentType,
   type CoreNotification,
@@ -15,23 +30,8 @@ import {
   type RouteNode,
   type ThumbnailOptions,
 } from "../types/interfaces";
-import {
-  FIELD_PRESETS,
-  FORMATION_PRESETS,
-  ROUTE_PRESETS,
-} from "../data/presets";
-import {
-  MovePlayerCommand,
-  MoveRouteCommand,
-} from "../history/commands/MoveCommands";
-import { AddRouteCommand } from "../history/commands/AddRouteCommand";
 import type { RoutePreset } from "../types/presets";
-import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 import { FormationBuilder } from "../utils/FormationBuilder";
-import { RouteDrawingManager } from "../managers/RouteDrawingManager";
-import { DEFAULT_LOS_Y } from "../data/presets/fields";
-import { Line } from "fabric";
-import { NotificationManager } from "../managers/NotificationManager";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
@@ -88,16 +88,24 @@ export class PlaybookEngine {
     this.canvasManager.requestRender();
   }
 
+  /**
+   * Wartet auf Abschluss des Render Cycles und zerstört dann die Canvas
+   */
   public dispose(): void {
     this.canvasManager.dispose();
   }
 
+  /**
+   * Skaliert die Canvas auf die Auflösung eines Parent Containers
+   *  @param {number} [containerWidth] Breite des Parent Containers der Canvas
+   */
   public handleResize(containerWidth: number): void {
     this.canvasManager.handleResize(containerWidth);
   }
 
   /**
    * Fügt einen neuen Spieler hinzu.
+   * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
   public addPlayer(config: PlayerConfig): void {
     const playerEntity = new PlayerEntity(config);
@@ -124,6 +132,11 @@ export class PlaybookEngine {
     };
   }
 
+  /**
+   * Fügt eine neue Route an den ausgewählten Spieler hinzu.
+   * @param {RoutePreset} [preset] ein gespeichertes Route-Preset
+   * @param {string} [routeType] setzt den Typ der Route (default, option_1, option_2), standart ist 'default'
+   */
   public addRouteFromPreset(
     preset: RoutePreset,
     routeType: string = "default",
@@ -172,7 +185,8 @@ export class PlaybookEngine {
   }
 
   /**
-   * Wird vom Frontend aufgerufen, um das Zeichnen für einen Spieler zu starten.
+   * Startet das freie Zeichnen einer Route für einen ausgewählten Spieler
+   * @param {string} [routeType] setzt den Typ der Route (default, option_1, option_2), standart ist 'default'
    */
   public startDrawingRoute(routeType = "default"): void {
     const player = this.selectionManager.getSelectedObject();
@@ -188,12 +202,15 @@ export class PlaybookEngine {
   }
 
   /**
-   * Bricht das Zeichnen ab (z. B. wenn der User einen 'Abbrechen'-Button klickt).
+   * Beendet das freie Zeichnen einer Route
    */
   public cancelDrawingRoute(): void {
     this.routeDrawingManager.cancelDrawing();
   }
 
+  /**
+   * Löscht die ausgewähtle Entität mit seinen Abhänigkeiten
+   */
   public deleteSelectedObject(): void {
     const selected = this.selectionManager.getSelectedObject();
 
@@ -214,7 +231,10 @@ export class PlaybookEngine {
   }
 
   /**
-   * Lädt eine komplette Formation auf das Feld.
+   * Fügt eine neue Route an den ausgewählten Spieler hinzu.
+   * @param {string} [formationId] id einer gespeicherten Formation
+   * @param {number} [customX] ? setzt einen eigenen X-orgin Wert für Formation
+   * @param {number} [customY] ? setzt einen eigenen Y-orgin Wert für Formation
    */
   public loadFormation(
     formationId: string,
@@ -247,7 +267,8 @@ export class PlaybookEngine {
   }
 
   /**
-   * Ändert das Spielfeld-Design (z.B. Highschool, NFL, etc.).
+   * Ändert das Untergrund Feld aus einer Liste von Presets
+   * @param {string} [presetId] id eines Untergrund Feldes
    */
   public changeFieldPreset(presetId: string): void {
     this.currentFieldPresetId = presetId;
@@ -259,14 +280,16 @@ export class PlaybookEngine {
   }
 
   /**
-   * Generiert einen JSON-String des aktuellen Spielfelds.
+   * Ändert das Untergrund Feld aus einer Liste von Presets
+   * @returns {string} Gibt einen `string` von einem Play Objekt zurück
    */
   public exportPlay(): string {
     return JSON.stringify(this.playManager.exportPlay());
   }
 
   /**
-   * Lädt ein Spielfeld anhand eines JSON-Strings.
+   * Lädt und initzaliert ein Play in der Engine
+   * @param {string} [jsonString] `string` eines Play Objektes
    */
   public loadPlay(data: string): void {
     const playData = JSON.parse(data) as PlayExportData;
@@ -328,6 +351,7 @@ export class PlaybookEngine {
           newNodes,
           this.playManager,
           this.canvasManager,
+          this.notificationManager,
         );
         this.historyManager.execute(moveCommand);
       };
@@ -352,29 +376,40 @@ export class PlaybookEngine {
     );
   }
 
+  /**
+   * Gibt ID's aller System Routen
+   * @returns {string[]} Gibt ein `string []` von allen System Routen id's zurück
+   */
   public getAllSystemRoutes(): string[] {
     return Object.keys(ROUTE_PRESETS);
   }
 
+  /**
+   * Gibt ID's aller System Formationen
+   * @returns {string[]} Gibt ein `string []` von allen System Formationen id's zurück
+   */
   public getAllSystemFormations(): string[] {
     return Object.keys(FORMATION_PRESETS);
   }
 
+  /**
+   * Gibt ID's aller System Feld Presets
+   * @returns {string[]} Gibt ein `string []` von allen System Feld Presets id's zurück
+   */
   public getAllSystemFields(): string[] {
     return Object.keys(FIELD_PRESETS);
   }
 
+  /**
+   * Generiert ein Bild der Canvas
+   * @param {ThumbnailOptions} [options] Export-Optionen
+   * @returns {string} Gibt ein `string` von einem Base64 IMG zurück
+   */
   public generateThumbnail(options: ThumbnailOptions = {}): string {
     this.selectionManager.hideAllRouteControls();
     return this.canvasManager.generateThumbnail(options);
   }
 
-  /**
-   * Generiert ein Vorschaubild (Base64 PNG) der aktuellen Formation.
-   * - Volle Breite
-   * - Vertikal beschnitten: 120px über und unter der LOS
-   * - Blendet alles außer Spielern aus (kein Restore des alten Zustands)
-   */
   public exportFormationThumbnail(): string {
     const canvas = this.canvasManager.getRawCanvas();
 
@@ -437,27 +472,40 @@ export class PlaybookEngine {
   }
 
   /**
-   * Macht die letzte Aktion rückgängig.
+   * Macht die letzte Aktion rückgänig
    */
   public undo(): void {
     this.historyManager.undo();
   }
 
   /**
-   * Stellt die letzte rückgängig gemachte Aktion wieder her.
+   * Stellt die letzte Aktion wieder her
    */
   public redo(): void {
     this.historyManager.redo();
   }
 
+  /**
+   * Kann Rückgänig gemacht werden?
+   * @returns {boolean} `boolean`
+   */
   public canUndo(): boolean {
     return this.historyManager.canUndo();
   }
 
+  /**
+   * Kann Wiederhergestellt werden?
+   * @returns {boolean} `boolean`
+   */
   public canRedo(): boolean {
     return this.historyManager.canRedo();
   }
 
+  /**
+   * Aboniert über Änderungen im History Stack (undo/redo)
+   * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
+   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   */
   public subscribeToHistoryChanges(callback: () => void): () => void {
     const unsubscribe = this.historyManager.subscribe(callback);
     return unsubscribe;
@@ -476,6 +524,12 @@ export class PlaybookEngine {
     return unsubscribe;
   }
 
+  /**
+   * Aboniert über Änderungen für den Drawing Mode
+   *
+   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
+   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   */
   public subscribeToDrawingMode(
     callback: (isDrawing: boolean) => void,
   ): () => void {

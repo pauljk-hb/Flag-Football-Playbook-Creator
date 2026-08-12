@@ -66,23 +66,19 @@ export class LoadFormationCommand implements ICommand {
   }
 
   public undo(): void {
-    // 1. Die eben geladenen Spieler wieder entfernen
     this.newPlayers.forEach((player) => {
       this.canvasManager.removeEntity(player);
       this.playManager.removeEntity(player.id);
     });
 
-    // 2. Die alten Spieler (und ihre Routen) wiederherstellen (alte Logik aus restorePlayers)
     this.previousPlayers.forEach((player) => {
       this.playManager.addEntity(player);
       this.canvasManager.addEntity(player);
 
-      // Falls der Spieler Routen hatte, diese wieder aufs Feld holen
       const playerRoutes = this.playManager.getAllRoutesFromPlayer(player.id);
       playerRoutes.forEach((route) => {
         this.canvasManager.addEntity(route);
         route.initializeControls(this.canvasManager.getRawCanvas());
-        // Route optisch unter den Spieler schieben
         route
           .getFabricObjects()
           .forEach((obj) => this.canvasManager.sendToBack(obj));

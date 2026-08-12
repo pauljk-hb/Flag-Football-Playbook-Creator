@@ -1,5 +1,8 @@
 import { SegmentType, type RouteNode } from "../types/interfaces";
 
+/**
+ * Generiert einen SVG Path aus Array von RouteNodes
+ */
 export function generateSvgPathString(nodes: RouteNode[]): string {
   if (!nodes || nodes.length === 0) return "";
 

@@ -155,7 +155,6 @@ export function clampPositionWithinBounds(
   originX: string = "center",
   originY: string = "center",
 ): { x: number; y: number } {
-  // Wenn der Ursprung in der Mitte ist, darf das Objekt nur bis zur Hälfte an den Rand
   const minX = originX === "center" ? objWidth / 2 : 0;
   const minY = originY === "center" ? objHeight / 2 : 0;
   const maxX =

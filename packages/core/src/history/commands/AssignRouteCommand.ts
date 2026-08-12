@@ -7,7 +7,7 @@ import type { RouteNode } from "../../types/interfaces";
 
 export class AddRouteCommand implements ICommand {
   private newRouteEntity: RouteEntity;
-  private oldRouteEntity: RouteEntity | null = null; // Hier merken wir uns die alte Route!
+  private oldRouteEntity: RouteEntity | null = null;
 
   /**
    * @param playerId Die ID des Spielers, dem die Route gehören soll
