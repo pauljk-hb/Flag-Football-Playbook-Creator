@@ -17,8 +17,8 @@ COPY apps/frontend ./apps/frontend
 # 1. ZUERST den Core bauen (generiert den 'dist'-Ordner und Typen)
 RUN npm run build -w @playbook/core
 
-# 2. DANN erst das Frontend bauen
-RUN npm run build -w frontend
+WORKDIR /app/apps/frontend
+RUN npm run build
 
 # --- STAGE 2: Nginx Webserver ---
 FROM nginx:alpine
