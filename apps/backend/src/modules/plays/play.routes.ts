@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/requireAuth";
-import { PlayController } from "./play.controller";
+import { requireAuth } from "../../middleware/requireAuth.js";
+import { PlayController } from "./play.controller.js";
 
 export const playRouter = Router();
 

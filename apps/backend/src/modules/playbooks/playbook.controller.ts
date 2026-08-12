@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PlaybookService } from "./playbook.service";
+import { PlaybookService } from "./playbook.service.js";
 
 export const PlaybookController = {
   async getPlaybooks(req: Request, res: Response) {

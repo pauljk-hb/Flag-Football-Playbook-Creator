@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { TagService } from "./tag.service";
+import { TagService } from "./tag.service.js";
 
 export const TagController = {
   async getTags(req: Request, res: Response) {

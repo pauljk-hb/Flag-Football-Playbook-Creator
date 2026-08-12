@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PlayService } from "./play.service";
+import { PlayService } from "./play.service.js";
 
 export const PlayController = {
   async getPlays(req: Request, res: Response) {

@@ -1,11 +1,11 @@
-import express from "express";
-import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "./lib/auth";
+import cors from "cors";
 import "dotenv/config";
-import { playbookRouter } from "./modules/playbooks/playbook.routes";
-import { playRouter } from "./modules/plays/play.routes";
-import { tagRouter } from "./modules/tags/tag.routes";
+import express from "express";
+import { auth } from "./lib/auth.js";
+import { playbookRouter } from "./modules/playbooks/playbook.routes.js";
+import { playRouter } from "./modules/plays/play.routes.js";
+import { tagRouter } from "./modules/tags/tag.routes.js";
 
 export const app = express();
 

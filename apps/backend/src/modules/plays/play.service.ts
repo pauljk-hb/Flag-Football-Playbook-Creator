@@ -1,4 +1,4 @@
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../lib/prisma.js";
 
 export const PlayService = {
   async getPlays(playbookId: string, userId: string) {
