@@ -1,3 +1,8 @@
+# Playbook Designer
+
+<img width="1919" height="939" alt="image" src="https://github.com/user-attachments/assets/7b9719b5-e659-40d3-9bb9-5efe4bf8e372" />
+
+
 > ⚠️ **Achtung: Alpha-Phase & Breaking Changes**
 >
 > Dieses Projekt befindet sich aktuell in einer **frühen Alpha-Phase**. Es finden fortlaufend Datenbank-Migrationen und tiefgreifende Architektur-Änderungen statt. **Es kann aktuell zu Datenverlusten kommen.** Nutze die Anwendung derzeit bitte noch nicht für kritische Produktionsdaten.
@@ -50,9 +55,9 @@ npm run dev
 
 Das Projekt ist in modular getrennte Bereiche unterteilt, um eine klare Separation of Concerns zu gewährleisten. Für tiefergehende Informationen zu den einzelnen Subsystemen konsultiere die jeweiligen Dokumentationen:
 
-- **[Core Documentation](/src/core/README.md):** Headless Engine, Fabric.js Canvas-Rendering, Command-Pattern (Undo/Redo), RouteDrawingManager & Event-Driven Architecture.
-- **[Frontend Documentation](https://www.google.com/search?q=./src/frontend/README.md):** React Components, UI-Toolbars, State-Synchronization, Theme-Handling & Hotkeys.
-- **[Backend Documentation](https://www.google.com/search?q=./src/backend/README.md):** API-Routen, Datenbank-Schemas, Authentifizierung & Cloud-Synchronisation.
+- **[[Core Documentation](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/tree/main/packages/core/ReadMe.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/packages/core/readMe.md)(https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/packages/core/readMe.md):** Headless Engine, Fabric.js Canvas-Rendering, Command-Pattern (Undo/Redo), RouteDrawingManager & Event-Driven Architecture.
+- **[[[Frontend Documentation](https://www.google.com/search?q=./src/frontend/README.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/apps/frontend/README.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/apps/frontend/README.md):** React Components, UI-Toolbars, State-Synchronization, Theme-Handling & Hotkeys.
+- **[[Backend Documentation](https://www.google.com/search?q=./src/backend/README.md)](https://github.com/pauljk-hb/Flag-Football-Playbook-Creator/blob/main/apps/backend/readMe.md):** API-Routen, Datenbank-Schemas, Authentifizierung & Cloud-Synchronisation.
 
 # Features & Roadmap
 
