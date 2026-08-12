@@ -163,6 +163,16 @@ export class PlayerEntity extends BaseEntity {
   }
 
   /**
+   * Steuert, ob der Spieler auf dem Canvas angeklickt/bewegt werden darf.
+   */
+  public setSelectable(enabled: boolean): void {
+    if (this.fabricGroup) {
+      this.fabricGroup.selectable = enabled;
+      this.fabricGroup.evented = enabled; // evented = false schaltet auch Hover-Effekte ab
+    }
+  }
+
+  /**
    * Wird vom MovePlayerCommand aufgerufen, wenn der Spieler bewegt wird.
    */
   public setPosition(x: number, y: number): void {

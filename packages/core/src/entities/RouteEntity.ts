@@ -108,6 +108,20 @@ export class RouteEntity extends BaseEntity {
     return [this.fabricPath, this.arrowHead];
   }
 
+  public setSelectable(enabled: boolean): void {
+    if (this.fabricPath) {
+      this.fabricPath.selectable = enabled;
+      this.fabricPath.evented = enabled;
+    }
+
+    if (this.arrowHead) {
+      this.arrowHead.selectable = false;
+      this.arrowHead.evented = false;
+      this.arrowHead.hasControls = false;
+      this.arrowHead.hasBorders = false;
+    }
+  }
+
   /**
    * Wird aufgerufen (z.B. vom SelectionManager oder beim AddRouteCommand),
    * um die Editier-Punkte auf das Canvas zu legen.

@@ -76,8 +76,6 @@ export class SelectionManager {
   }
 
   private hideAllRouteControls(): void {
-    // Nimmt an, dass PlayManager eine Methode hat, um alle Entitäten zu bekommen
-    // Falls sie bei dir anders heißt, bitte anpassen (z.B. getEntities())
     const allEntities = this.playManager.getAllEntities();
 
     for (const entity of allEntities) {
@@ -103,5 +101,39 @@ export class SelectionManager {
     const entity = this.playManager.getEntity(entityId);
 
     return entity ?? null;
+  }
+
+  /**
+   * Hebt die aktuelle Auswahl vollständig auf, versteckt alle Bedienelemente (Handles)
+   * und setzt den internen Status zurück.
+   */
+  public clearCurrentSelection(): void {
+    const canvas = this.canvasManager.getRawCanvas();
+
+    this.hideAllRouteControls();
+    canvas.discardActiveObject();
+
+    this.canvasManager.requestRender();
+  }
+
+  /**
+   * Aktiviert oder deaktiviert die Interaktion mit allen Playbook-Objekten.
+   * Wird z.B. genutzt, wenn der Zeichenmodus aktiv ist.
+   */
+  public setInteractionsEnabled(enabled: boolean): void {
+    const canvas = this.canvasManager.getRawCanvas();
+
+    if (!enabled) {
+      this.clearCurrentSelection();
+    }
+
+    const allEntities = this.playManager.getAllEntities();
+    allEntities.forEach((entity) => {
+      if (typeof (entity as any).setSelectable === "function") {
+        (entity as any).setSelectable(enabled);
+      }
+    });
+
+    this.canvasManager.requestRender();
   }
 }

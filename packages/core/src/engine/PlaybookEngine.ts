@@ -37,11 +37,10 @@ export class PlaybookEngine {
   private historyManager: HistoryManager;
   private playManager: PlayManager;
   private canvasManager: CanvasManager;
-  private selectionManager!: SelectionManager;
+  private selectionManager: SelectionManager;
   private fieldManager: FieldManager;
   private routeDrawingManager: RouteDrawingManager;
   private notificationManager: NotificationManager;
-
   private currentFieldPresetId: string = "STANDARD";
 
   constructor() {
@@ -57,7 +56,15 @@ export class PlaybookEngine {
       this.notificationManager,
     );
 
-    this.routeDrawingManager = new RouteDrawingManager(this.canvasManager);
+    this.selectionManager = new SelectionManager(
+      this.canvasManager,
+      this.playManager,
+    );
+
+    this.routeDrawingManager = new RouteDrawingManager(
+      this.canvasManager,
+      this.selectionManager,
+    );
   }
 
   /*------------------------*/
@@ -66,11 +73,6 @@ export class PlaybookEngine {
 
   public init(canvasElement: HTMLCanvasElement): void {
     this.canvasManager.init(canvasElement);
-
-    this.selectionManager = new SelectionManager(
-      this.canvasManager,
-      this.playManager,
-    );
 
     this.selectionManager.setupSelectionEvents();
 

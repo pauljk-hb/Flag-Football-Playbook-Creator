@@ -3,6 +3,7 @@ import type { CanvasManager } from "./CanvasManager";
 import type { PlayerEntity } from "../entities/PlayerEntity";
 import { type RouteNode, SegmentType } from "../types/interfaces";
 import { generateSvgPathString } from "../utils/PathUtils";
+import type { SelectionManager } from "./SelectionManager";
 
 export class RouteDrawingManager {
   private isDrawing = false;
@@ -20,7 +21,10 @@ export class RouteDrawingManager {
 
   private stateListeners: ((isDrawing: boolean) => void)[] = [];
 
-  constructor(private canvasManager: CanvasManager) {}
+  constructor(
+    private canvasManager: CanvasManager,
+    private selectionManager: SelectionManager,
+  ) {}
 
   /**
    * Startet den Zeichenmodus für den übergebenen Spieler.
@@ -232,11 +236,6 @@ export class RouteDrawingManager {
   }
 
   private toggleCanvasInteractions(enable: boolean): void {
-    const canvas = this.canvasManager.getRawCanvas();
-    canvas.selection = enable;
-
-    canvas.forEachObject((obj) => {
-      obj.selectable = enable;
-    });
+    this.selectionManager.setInteractionsEnabled(enable);
   }
 }
