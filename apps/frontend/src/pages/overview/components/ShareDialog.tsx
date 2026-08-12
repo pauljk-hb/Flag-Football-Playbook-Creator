@@ -6,7 +6,7 @@ import {
 
 export function ShareDialog() {
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-[425px] bg-muted">
       <DialogHeader>
         <DialogTitle>Teilen</DialogTitle>
       </DialogHeader>
