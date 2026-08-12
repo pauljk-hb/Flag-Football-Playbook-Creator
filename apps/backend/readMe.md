@@ -27,12 +27,12 @@
 
 ### Tags (`/api/v1/tags`)
 
-| Methode    | Endpunkt                            | Beschreibung                                       | Request Body (JSON)                      |
-| ---------- | ----------------------------------- | -------------------------------------------------- | ---------------------------------------- |
-| **GET**    | `/api/v1/tags/playbook/:playbookId` | Lädt den kompletten Tag-Pool für dieses Playbook.  | -                                        |
-| **POST**   | `/api/v1/tags/playbook/:playbookId` | Erstellt einen neuen Tag im Pool dieses Playbooks. | `{ "name": "...", "color"?: "#3b82f6" }` |
-| **PUT**    | `/api/v1/tags/:id`                  | Aktualisiert den Namen oder die Farbe eines Tags.  | `{ "name"?: "...", "color"?: "..." }`    |
-| **DELETE** | `/api/v1/tags/:id`                  | Löscht den Tag komplett aus dem Playbook.          | -                                        |
+| Methode    | Endpunkt                                         | Beschreibung                                       | Request Body (JSON)                      |
+| ---------- | ------------------------------------------------ | -------------------------------------------------- | ---------------------------------------- |
+| **GET**    | `/api/v1/tags/playbook/:playbookId`              | Lädt den kompletten Tag-Pool für dieses Playbook.  | -                                        |
+| **POST**   | `/api/v1/tags/playbook/:playbookId/play/:playId` | Erstellt einen neuen Tag im Pool dieses Playbooks. | `{ "name": "...", "color"?: "#3b82f6" }` |
+| **PUT**    | `/api/v1/tags/:id`                               | Aktualisiert den Namen oder die Farbe eines Tags.  | `{ "name"?: "...", "color"?: "..." }`    |
+| **DELETE** | `/api/v1/tags/:id`                               | Löscht den Tag komplett aus dem Playbook.          | -                                        |
 
 ---
 
