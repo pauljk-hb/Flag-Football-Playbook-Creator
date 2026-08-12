@@ -23,8 +23,6 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
-    ports:
-      - "80:80"
     restart: unless-stopped
     depends_on:
       - backend
