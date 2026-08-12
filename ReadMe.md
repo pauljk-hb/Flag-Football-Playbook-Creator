@@ -1,3 +1,8 @@
+#Playbook Designer
+
+<img width="1919" height="939" alt="image" src="https://github.com/user-attachments/assets/7b9719b5-e659-40d3-9bb9-5efe4bf8e372" />
+
+
 > ⚠️ **Achtung: Alpha-Phase & Breaking Changes**
 >
 > Dieses Projekt befindet sich aktuell in einer **frühen Alpha-Phase**. Es finden fortlaufend Datenbank-Migrationen und tiefgreifende Architektur-Änderungen statt. **Es kann aktuell zu Datenverlusten kommen.** Nutze die Anwendung derzeit bitte noch nicht für kritische Produktionsdaten.
