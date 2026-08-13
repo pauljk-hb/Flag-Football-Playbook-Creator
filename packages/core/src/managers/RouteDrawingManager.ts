@@ -143,7 +143,7 @@ export class RouteDrawingManager {
     if (e.key === "Enter") {
       this.handleFinish();
     } else if (e.key === "Escape") {
-      this.cancelDrawing();
+      this.stopDrawing();
     }
   };
 
@@ -194,7 +194,11 @@ export class RouteDrawingManager {
   }
 
   public cancelDrawing(): void {
-    this.stopDrawing();
+    if (this.collectedNodes.length < 2) {
+      this.stopDrawing();
+      return;
+    }
+    this.handleFinish();
   }
 
   private stopDrawing(): void {

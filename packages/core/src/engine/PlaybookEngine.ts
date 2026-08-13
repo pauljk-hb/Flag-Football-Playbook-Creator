@@ -204,7 +204,7 @@ export class PlaybookEngine {
   /**
    * Beendet das freie Zeichnen einer Route
    */
-  public cancelDrawingRoute(): void {
+  public stopDrawingRoute(): void {
     this.routeDrawingManager.cancelDrawing();
   }
 

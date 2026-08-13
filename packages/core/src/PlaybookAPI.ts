@@ -65,8 +65,8 @@ export class PlaybookAPI {
   /**
    * Beendet das freie Zeichnen einer Route
    */
-  public cancelDrawingRoute(): void {
-    this.engine.cancelDrawingRoute();
+  public stopDrawingRoute(): void {
+    this.engine.stopDrawingRoute();
   }
 
   /**

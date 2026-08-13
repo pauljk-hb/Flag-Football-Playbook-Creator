@@ -34,6 +34,7 @@ interface ToolbarProps {
   onSave: () => void;
   onDownload: () => void;
   drawRoute: (routeMode: string) => void;
+  stopDrawRoute: () => void;
 }
 
 export function DesktopToolbar({
@@ -42,6 +43,7 @@ export function DesktopToolbar({
   onSave,
   onDownload,
   drawRoute,
+  stopDrawRoute,
 }: ToolbarProps) {
   const { engine } = usePlaybook();
   const { canUndo, canRedo } = usePlaybookHistory();
@@ -134,7 +136,14 @@ export function DesktopToolbar({
         <ToolbarButton
           icon={Pencil}
           isActive={isDrawingMode}
-          onClick={() => drawRoute(useEditorStore.getState().routeMode)}
+          onClick={() => {
+            if (isDrawingMode) {
+              stopDrawRoute();
+            } else {
+              const currentMode = useEditorStore.getState().routeMode;
+              drawRoute(currentMode);
+            }
+          }}
           label="Route zeichnen - doppel Klick zum beenden"
         />
 

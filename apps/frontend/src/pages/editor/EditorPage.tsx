@@ -1,7 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { usePlaybook } from "@/hooks/usePlaybook";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { DesktopToolbar } from "./components/DesktopToolbar";
 import { MobileToolbar } from "./components/MobileToolbar";
 import { PlaybookCanvas } from "./components/PlaybookCanvas";
@@ -37,10 +38,7 @@ export function EditorPage() {
   if (!playData) {
     return (
       <div className="flex flex-col h-screen items-center justify-center bg-background gap-4">
-        <p className="text-destructive font-medium">
-          Spielzug konnte nicht gefunden werden.
-        </p>
-        <Link to="/">Zurück zum Dashboard</Link>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       </div>
     );
   }
@@ -64,13 +62,14 @@ export function EditorPage() {
           drawRoute={(routeMode: string) =>
             engine?.startDrawingRoute(routeMode)
           }
+          stopDrawRoute={() => engine?.stopDrawingRoute()}
         />
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative flex items-center justify-center p-2 sm:p-4 w-full overflow-hidden">
           {isLoading ? (
-            <p>Loading....</p>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <PlaybookCanvas initialPlayData={playData?.canvasData} />
           )}
