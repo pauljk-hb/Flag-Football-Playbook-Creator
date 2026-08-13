@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { DesktopToolbar } from "./components/DesktopToolbar";
+import { MobileToolbar } from "./components/MobileToolbar";
 import { PlaybookCanvas } from "./components/PlaybookCanvas";
 import { PropertiesSidebar } from "./components/PropertiesSidebar";
-import { Toolbar } from "./components/Toolbar";
 import { useEditor } from "./hooks/useEditor";
 import { useEditorHotkeys } from "./hooks/useEditorHotkeys";
 import { useEngineNotifications } from "./hooks/useEngineNotifications";
@@ -46,16 +47,32 @@ export function EditorPage() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <Toolbar
-        title={playTitle}
-        isDrawingMode={isDrawingMode}
-        onSave={handleSave}
-        onDownload={downloadAsImage}
-        drawRoute={(routeMode: string) => engine?.startDrawingRoute(routeMode)}
-      />
+      <div className="block md:hidden w-full">
+        <MobileToolbar
+          title={playTitle}
+          isDrawingMode={isDrawingMode}
+          onSave={handleSave}
+          onDownload={downloadAsImage}
+          drawRoute={(routeMode: string) =>
+            engine?.startDrawingRoute(routeMode)
+          }
+        />
+      </div>
+
+      <div className="hidden md:block w-full">
+        <DesktopToolbar
+          title={playTitle}
+          isDrawingMode={isDrawingMode}
+          onSave={handleSave}
+          onDownload={downloadAsImage}
+          drawRoute={(routeMode: string) =>
+            engine?.startDrawingRoute(routeMode)
+          }
+        />
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 relative flex items-center justify-center p-4">
+        <main className="flex-1 relative flex items-center justify-center p-2 sm:p-4 w-full overflow-hidden">
           {isLoading ? (
             <p>Loading....</p>
           ) : (
@@ -63,14 +80,17 @@ export function EditorPage() {
           )}
         </main>
 
-        <PropertiesSidebar
-          play={playData}
-          playTitle={playTitle}
-          onTitleChange={setPlayTitle}
-          description={playDescription}
-          onDescriptionChange={setPlayDescription}
-        />
+        <aside className="hidden md:flex shrink-0">
+          <PropertiesSidebar
+            play={playData}
+            playTitle={playTitle}
+            onTitleChange={setPlayTitle}
+            description={playDescription}
+            onDescriptionChange={setPlayDescription}
+          />
+        </aside>
       </div>
+
       <Toaster position="bottom-left" richColors closeButton />
     </div>
   );

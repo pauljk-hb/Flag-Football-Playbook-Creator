@@ -9,9 +9,9 @@ import {
   TagsTrigger,
   TagsValue,
 } from "@/components/kibo-ui/tags";
-import { CheckIcon } from "lucide-react";
-import type { Tag } from "@/types/interface";
 import { TagPopoverEditor } from "@/components/TagPopoverEditor";
+import type { Tag } from "@/types/interface";
+import { CheckIcon } from "lucide-react";
 
 interface TagFilterInputProps {
   tags: Tag[];
@@ -39,7 +39,7 @@ export function TagFilterInput({
   };
 
   return (
-    <Tags className="w-75">
+    <Tags>
       <TagsTrigger>
         {selectedTags.map((tag) => {
           const currentTag = tags.find((t) => t.id === tag);

@@ -36,7 +36,7 @@ interface ToolbarProps {
   drawRoute: (routeMode: string) => void;
 }
 
-export function Toolbar({
+export function DesktopToolbar({
   title,
   isDrawingMode,
   onSave,

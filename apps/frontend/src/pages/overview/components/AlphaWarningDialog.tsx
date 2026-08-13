@@ -10,9 +10,9 @@ import {
 import { useAppStore } from "@/hooks/useAppStore";
 import {
   AlertTriangle,
+  Bug,
   CheckCircle2,
   Clock,
-  Bug,
   Database,
 } from "lucide-react";
 
@@ -24,8 +24,7 @@ export function AlphaWarningDialog() {
 
   return (
     <AlertDialog open={!hasSeenAlphaWarning}>
-      {/* max-w-md macht den Dialog etwas breiter, damit die Listen gut wirken */}
-      <AlertDialogContent className="max-w-lg! sm:max-w-md bg-background">
+      <AlertDialogContent className="max-w-lg! sm:max-w-md bg-background max-h-[90vh] flex flex-col p-6">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-xl">
             <AlertTriangle className="h-6 w-6 text-amber-500" />
@@ -38,7 +37,7 @@ export function AlphaWarningDialog() {
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="py-2 space-y-4">
+        <div className="py-2 space-y-4 overflow-y-auto pr-2 -mr-2">
           {/* BEREITS DRIN */}
           <div className="space-y-2">
             <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">

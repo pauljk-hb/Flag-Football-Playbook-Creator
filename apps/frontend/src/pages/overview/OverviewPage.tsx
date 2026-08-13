@@ -113,8 +113,8 @@ export function Playbook() {
             </div>
 
             {/* Oben Rechts: Suche, Filter & Neuer Play Button */}
-            <div className="flex items-center gap-2">
-              <InputGroup className="max-w-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <InputGroup className="w-full sm:max-w-xs">
                 <InputGroupInput
                   placeholder="Suchen..."
                   value={searchQuery}
@@ -125,14 +125,20 @@ export function Playbook() {
                 </InputGroupAddon>
               </InputGroup>
 
-              <TagFilterInput
-                tags={tags}
-                setTags={setTags}
-                selectedTags={selectedTags}
-                setSelectedTags={setSelectedTags}
-              />
+              <div className="w-full md:w-80 sm:w-auto">
+                <TagFilterInput
+                  tags={tags}
+                  setTags={setTags}
+                  selectedTags={selectedTags}
+                  setSelectedTags={setSelectedTags}
+                />
+              </div>
 
-              <Button onClick={handleNewPlay} size="sm" className="h-9 ml-2">
+              <Button
+                onClick={handleNewPlay}
+                size="sm"
+                className="h-9 w-full sm:w-auto sm:ml-2"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Neues Play
               </Button>
