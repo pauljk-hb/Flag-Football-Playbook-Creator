@@ -2,7 +2,6 @@
 
 <img width="1919" height="939" alt="image" src="https://github.com/user-attachments/assets/7b9719b5-e659-40d3-9bb9-5efe4bf8e372" />
 
-
 > ⚠️ **Achtung: Alpha-Phase & Breaking Changes**
 >
 > Dieses Projekt befindet sich aktuell in einer **frühen Alpha-Phase**. Es finden fortlaufend Datenbank-Migrationen und tiefgreifende Architektur-Änderungen statt. **Es kann aktuell zu Datenverlusten kommen.** Nutze die Anwendung derzeit bitte noch nicht für kritische Produktionsdaten.
@@ -36,12 +35,23 @@ cd apps/backend
 ```
 
 Umgebungsvariablen einrichten:
-Erstelle eine `.env` Datei und konfiguriere `DATABASE_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, und `GOOGLE_CLIENT_SECRET`.
+Erstelle eine `.env` Datei und konfiguriere folgende Parameter
+
+```
+DATABASE_URL="file:./dev.db"
+BETTER_AUTH_SECRET=[openssl rand -base64 32 || https://better-auth.com/docs/installation]
+BETTER_AUTH_URL=http://localhost:5173/
+CLIENT_URL="http://localhost:5173"
+SERVER_URL="http://localhost:4000"
+
+GOOGLE_CLIENT_ID=[Create in Google Console]
+GOOGLE_CLIENT_SECRET=[Create in Google Console]
+```
 
 Generiere den Prisma-Client und übertrage das Schema in die lokale SQLite-Datenbank:
 
 ```bash
-npx prisma db push
+npx prisma migrate dev
 npx prisma generate
 ```
 
