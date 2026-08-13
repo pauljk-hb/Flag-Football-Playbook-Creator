@@ -5,15 +5,13 @@ import { ToolbarButton } from "./ToolbarButton";
 
 interface ToolbarProps {
   title: string;
-  onSave: () => void;
   onDownload: () => void;
 }
 
-export function MobileToolbar({ title, onSave, onDownload }: ToolbarProps) {
+export function MobileToolbar({ title, onDownload }: ToolbarProps) {
   const navigate = useNavigate();
 
   const handleBack = async () => {
-    onSave();
     navigate("/");
   };
 

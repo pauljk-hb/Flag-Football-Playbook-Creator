@@ -46,11 +46,7 @@ export function EditorPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="block md:hidden w-full">
-        <MobileToolbar
-          title={playTitle}
-          onSave={handleSave}
-          onDownload={downloadAsImage}
-        />
+        <MobileToolbar title={playTitle} onDownload={downloadAsImage} />
       </div>
 
       <div className="hidden md:block w-full">
