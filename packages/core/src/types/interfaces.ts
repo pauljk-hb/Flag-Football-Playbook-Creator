@@ -58,3 +58,5 @@ export interface CoreNotification {
   message: string;
   messageKey?: string;
 }
+
+export type PlaybookMode = "editor" | "viewer";

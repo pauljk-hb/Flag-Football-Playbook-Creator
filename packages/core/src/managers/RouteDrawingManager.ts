@@ -43,6 +43,10 @@ export class RouteDrawingManager {
     this.stateListeners.forEach((listener) => listener(this.isDrawing));
   }
 
+  public get isDrawingActive(): boolean {
+    return this.isDrawing;
+  }
+
   /**
    * Startet den Zeichenmodus für den übergebenen Spieler.
    */
