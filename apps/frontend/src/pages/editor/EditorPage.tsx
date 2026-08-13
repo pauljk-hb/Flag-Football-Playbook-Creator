@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { useDeviceType } from "@/hooks/useDeviceType";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ import { useEngineNotifications } from "./hooks/useEngineNotifications";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
+  const device = useDeviceType();
   const { engine } = usePlaybook();
   useEngineNotifications();
   useEditorHotkeys();
@@ -34,6 +36,16 @@ export function EditorPage() {
     const unsubscribe = engine?.subscribeToDrawingMode(setIsDrawingMode);
     return () => unsubscribe?.();
   }, [engine]);
+
+  useEffect(() => {
+    if (!engine) return;
+
+    if (device === "mobile") {
+      engine.setMode("viewer");
+    } else {
+      engine.setMode("editor");
+    }
+  }, [engine, device]);
 
   if (!playData) {
     return (

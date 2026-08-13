@@ -26,6 +26,7 @@ import { SelectionManager } from "../managers/SelectionManager";
 import {
   SegmentType,
   type CoreNotification,
+  type PlaybookMode,
   type PlayExportData,
   type RouteNode,
   type ThumbnailOptions,
@@ -42,6 +43,7 @@ export class PlaybookEngine {
   private routeDrawingManager: RouteDrawingManager;
   private notificationManager: NotificationManager;
   private currentFieldPresetId: string = "STANDARD";
+  private mode: PlaybookMode = "editor";
 
   constructor() {
     this.historyManager = new HistoryManager();
@@ -93,6 +95,32 @@ export class PlaybookEngine {
    */
   public dispose(): void {
     this.canvasManager.dispose();
+  }
+
+  /**
+   * Wechselt den Modus zwischen Viewer und Editor.
+   * @param {PlaybookMode} [newMode] "editor" | "viewer"
+   */
+  public setMode(newMode: PlaybookMode): void {
+    this.mode = newMode;
+
+    if (this.mode === "viewer") {
+      if (this.routeDrawingManager.isDrawingActive) {
+        this.routeDrawingManager.cancelDrawing();
+      }
+
+      this.selectionManager.setInteractionsEnabled(false);
+      return;
+    }
+
+    if (this.mode === "editor") {
+      this.selectionManager.setInteractionsEnabled(true);
+      return;
+    }
+  }
+
+  public getMode(): PlaybookMode {
+    return this.mode;
   }
 
   /**

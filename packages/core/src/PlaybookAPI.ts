@@ -1,6 +1,10 @@
 import { PlaybookEngine } from "./engine/PlaybookEngine";
 import type { PlayerConfig } from "./entities/PlayerEntity";
-import type { CoreNotification, ThumbnailOptions } from "./types/interfaces";
+import type {
+  CoreNotification,
+  PlaybookMode,
+  ThumbnailOptions,
+} from "./types/interfaces";
 import type { RoutePreset } from "./types/presets";
 
 /**
@@ -31,6 +35,14 @@ export class PlaybookAPI {
    */
   public handleResize(containerWidth: number): void {
     this.engine.handleResize(containerWidth);
+  }
+
+  /**
+   * Wechselt den Modus zwischen Viewer und Editor.
+   * @param {PlaybookMode} [newMode] "editor" | "viewer"
+   */
+  public setMode(newMode: PlaybookMode): void {
+    this.engine.setMode(newMode);
   }
 
   //Entity's on Canvas
