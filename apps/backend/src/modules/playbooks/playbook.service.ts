@@ -46,4 +46,15 @@ export const PlaybookService = {
       where: { id },
     });
   },
+
+  async updateLastOpend(id: string, userId: string) {
+    const existing = await prisma.playbook.findFirst({ where: { id, userId } });
+    if (!existing)
+      throw new Error("Playbook nicht gefunden oder keine Berechtigung.");
+
+    return await prisma.user.update({
+      where: { id: userId },
+      data: { lastPlaybookId: id },
+    });
+  },
 };

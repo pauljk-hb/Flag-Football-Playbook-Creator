@@ -50,12 +50,8 @@ export function EditorPage() {
       <div className="block md:hidden w-full">
         <MobileToolbar
           title={playTitle}
-          isDrawingMode={isDrawingMode}
           onSave={handleSave}
           onDownload={downloadAsImage}
-          drawRoute={(routeMode: string) =>
-            engine?.startDrawingRoute(routeMode)
-          }
         />
       </div>
 

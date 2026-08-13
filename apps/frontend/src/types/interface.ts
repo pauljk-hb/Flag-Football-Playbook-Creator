@@ -1,3 +1,7 @@
+export type ExtendedUser = {
+  lastPlaybookId?: string | null;
+};
+
 export interface Playbook {
   id: string;
   userId: string;

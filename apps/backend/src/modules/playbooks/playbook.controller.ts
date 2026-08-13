@@ -71,4 +71,17 @@ export const PlaybookController = {
       res.status(403).json({ error: error.message || "Fehler beim Löschen." });
     }
   },
+
+  async updateLastOpened(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+      const userId = res.locals.user.id;
+
+      const updatedUser = await PlaybookService.updateLastOpend(id, userId);
+      res.json({ success: true, lastPlaybookId: updatedUser.id });
+    } catch (error: any) {
+      console.error("Fehler beim Setzen des letzten Playbooks:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 };

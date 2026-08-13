@@ -21,11 +21,19 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: false,
   },
+  user: {
+    additionalFields: {
+      lastPlaybookId: {
+        type: "string",
+        required: false,
+      },
+    },
+  },
   databaseHooks: {
     user: {
       create: {
         after: async (user) => {
-          await prisma.playbook.create({
+          const firstPlaybook = await prisma.playbook.create({
             data: {
               userId: user.id,
               name: "Mein erstes Playbook",
@@ -38,6 +46,11 @@ export const auth = betterAuth({
                 ],
               },
             },
+          });
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastPlaybookId: firstPlaybook.id },
           });
         },
       },

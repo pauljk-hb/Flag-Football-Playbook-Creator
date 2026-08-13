@@ -1,5 +1,6 @@
 import { api } from "@/api/client";
-import type { Play, Tag } from "@/types/interface";
+import { useSession } from "@/lib/auth-client";
+import type { ExtendedUser, Play, Tag } from "@/types/interface";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,6 +8,7 @@ export type SortOption = "date-desc" | "date-asc" | "alpha-asc" | "alpha-desc";
 
 export function usePlaybookOverview() {
   const navigate = useNavigate();
+  const { data: session } = useSession();
 
   const [activePlaybookId, setActivePlaybookId] = useState<string | null>(null);
   const [plays, setPlays] = useState<Play[]>([]);
@@ -22,29 +24,28 @@ export function usePlaybookOverview() {
     async function initializeDashboard() {
       setIsLoading(true);
       try {
-        let playbooks = await api.playbooks.getAll();
-        let currentPlaybookId: string | undefined;
+        const playbooks = await api.playbooks.getAll();
 
         if (!playbooks || playbooks.length === 0) {
-          console.log("Kein Playbook gefunden. Erstelle Standard-Playbook...");
-          const newPlaybook = await api.playbooks.create({
-            name: "Mein Playbook",
-            description: "Mein erstes Playbook",
-          });
-          currentPlaybookId = newPlaybook.id;
+          console.log("User hat keine Playbooks mehr.");
+          return;
         }
 
-        if (playbooks && playbooks.length > 0) {
-          currentPlaybookId = playbooks[0].id;
-        }
+        const user = session?.user
+          ? (session.user as typeof session.user & ExtendedUser)
+          : undefined;
 
-        if (!currentPlaybookId) return;
+        const currentPlaybookId = user?.lastPlaybookId || playbooks[0].id;
+
         setActivePlaybookId(currentPlaybookId);
 
-        const playsData = await api.plays.getAllByPlaybook(currentPlaybookId);
+        const [playsData, tagsData] = await Promise.all([
+          api.plays.getAllByPlaybook(currentPlaybookId),
+          api.tags.getAllByPlaybook(currentPlaybookId),
+        ]);
+
         setPlays(playsData);
-        const tags = await api.tags.getAllByPlaybook(currentPlaybookId);
-        setTags(tags);
+        setTags(tagsData);
       } catch (error) {
         console.error("Fehler beim Laden der Plays:", error);
       } finally {

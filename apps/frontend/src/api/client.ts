@@ -69,6 +69,10 @@ export const api = {
       fetchApi<void>(`/api/v1/playbooks/${id}`, {
         method: "DELETE",
       }),
+    updateActive: (id: string) =>
+      fetchApi<void>(`/api/v1/playbooks/${id}/active`, {
+        method: "PUT",
+      }),
   },
 
   plays: {

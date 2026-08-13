@@ -2,12 +2,13 @@
 
 ### Playbooks (`/api/v1/playbooks`)
 
-| Methode    | Endpunkt                | Beschreibung                                        | Request Body (JSON)                         |
-| ---------- | ----------------------- | --------------------------------------------------- | ------------------------------------------- |
-| **GET**    | `/api/v1/playbooks`     | Lädt alle Playbooks des eingeloggten Users.         | -                                           |
-| **POST**   | `/api/v1/playbooks`     | Erstellt ein neues Playbook.                        | `{ "name": "...", "description"?: "..." }`  |
-| **PUT**    | `/api/v1/playbooks/:id` | Aktualisiert Name oder Beschreibung.                | `{ "name"?: "...", "description"?: "..." }` |
-| **DELETE** | `/api/v1/playbooks/:id` | Löscht das Playbook (inklusive aller Plays & Tags). | -                                           |
+| Methode    | Endpunkt                       | Beschreibung                                        | Request Body (JSON)                         |
+| ---------- | ------------------------------ | --------------------------------------------------- | ------------------------------------------- |
+| **GET**    | `/api/v1/playbooks`            | Lädt alle Playbooks des eingeloggten Users.         | -                                           |
+| **POST**   | `/api/v1/playbooks`            | Erstellt ein neues Playbook.                        | `{ "name": "...", "description"?: "..." }`  |
+| **PUT**    | `/api/v1/playbooks/:id`        | Aktualisiert Name oder Beschreibung.                | `{ "name"?: "...", "description"?: "..." }` |
+| **DELETE** | `/api/v1/playbooks/:id`        | Löscht das Playbook (inklusive aller Plays & Tags). | -                                           |
+| **PUT**    | `/api/v1/playbooks/:id/active` | Speichert das letzte vom User geöffneten Playbook.  | -                                           |
 
 ---
 

@@ -10,3 +10,4 @@ playbookRouter.get("/", PlaybookController.getPlaybooks);
 playbookRouter.post("/", PlaybookController.createPlaybook);
 playbookRouter.put("/:id", PlaybookController.updatePlaybook);
 playbookRouter.delete("/:id", PlaybookController.deletePlaybook);
+playbookRouter.put("/:id/active", PlaybookController.updateLastOpened);
