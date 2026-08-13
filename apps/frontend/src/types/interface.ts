@@ -71,3 +71,9 @@ export interface UpdatePlayDTO {
   description?: string;
   sortOrder?: number;
 }
+
+export interface ThumbnailOptions {
+  format?: "png" | "jpeg" | "webp";
+  quality?: number;
+  width?: number;
+}

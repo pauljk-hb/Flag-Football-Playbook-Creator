@@ -1,6 +1,7 @@
+import type { ThumbnailOptions } from "@/types/interface";
+import { ROUTE_PRESETS } from "@playbook/core";
 import { SYSTEM_PLAYERS } from "@playbook/core/dist/data/presets/players";
 import { usePlaybook } from "./usePlaybook";
-import { ROUTE_PRESETS } from "@playbook/core";
 
 export function usePlaybookActions() {
   const { engine } = usePlaybook();
@@ -111,7 +112,7 @@ export function usePlaybookActions() {
       if (!engine) return "";
       return engine.exportPlay();
     },
-    exportThumbnail: (options?: any): string => {
+    exportThumbnail: (options?: ThumbnailOptions): string => {
       if (!engine) return "";
       return engine.generateThumbnail(options);
     },

@@ -83,15 +83,17 @@ export class CanvasManager {
   }
 
   public generateThumbnail(options: ThumbnailOptions): string {
-    const { format = "png", quality = 0.8, multiplier = 0.5 } = options;
+    const { format = "png", quality = 0.8, width = 400 } = options;
 
     this.canvas!.discardActiveObject();
     this.canvas!.requestRenderAll();
 
+    const finalMultiplier = width / this.canvas!.width;
+
     const dataUrl = this.canvas!.toDataURL({
       format,
       quality,
-      multiplier,
+      multiplier: finalMultiplier,
     });
 
     return dataUrl;

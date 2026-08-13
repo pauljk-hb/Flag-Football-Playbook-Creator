@@ -48,7 +48,7 @@ export interface PlayExportData {
 export interface ThumbnailOptions {
   format?: "png" | "jpeg" | "webp";
   quality?: number;
-  multiplier?: number;
+  width?: number;
 }
 
 export type LogLevel = "info" | "success" | "warning" | "error";

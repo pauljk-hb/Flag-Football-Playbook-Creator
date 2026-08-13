@@ -65,8 +65,8 @@ export function useEditor(playId: string | undefined) {
 
     const dataURL = engineActions.exportThumbnail({
       format: "png",
-      quality: 0.8,
-      multiplier: 2,
+      quality: 1,
+      width: 1920,
     });
 
     const link = document.createElement("a");
