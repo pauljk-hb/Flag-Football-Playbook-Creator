@@ -9,9 +9,12 @@ import {
   HitchRoute,
   InRoute,
   OutRoute,
+  OverRoute,
   PostRoute,
   QuickOutRoute,
   SlantRoute,
+  UnderRoute,
+  WeelRoute,
 } from "@/components/ui/icons/custom.icons";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { usePlaybookActions } from "@/hooks/usePlaybookActions";
@@ -212,6 +215,27 @@ export function DesktopToolbar({
           onClick={() => addRoute.go(useEditorStore.getState().routeMode)}
           label="Go"
           shortcut="9"
+        />
+
+        <ToolbarButton
+          icon={UnderRoute}
+          onClick={() => addRoute.under(useEditorStore.getState().routeMode)}
+          label="Under"
+          shortcut="U"
+        />
+
+        <ToolbarButton
+          icon={OverRoute}
+          onClick={() => addRoute.over(useEditorStore.getState().routeMode)}
+          label="Over"
+          shortcut="O"
+        />
+
+        <ToolbarButton
+          icon={WeelRoute}
+          onClick={() => addRoute.weel(useEditorStore.getState().routeMode)}
+          label="Weel"
+          shortcut="W"
         />
 
         <Separator orientation="vertical" className="h-9 mx-2 my-auto" />

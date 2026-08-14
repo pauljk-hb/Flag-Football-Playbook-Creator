@@ -33,6 +33,10 @@ export function useEditorHotkeys() {
   useHotkeys("8", () => addRoute.post(useEditorStore.getState().routeMode));
   useHotkeys("9", () => addRoute.go(useEditorStore.getState().routeMode));
 
+  useHotkeys("u", () => addRoute.under(useEditorStore.getState().routeMode));
+  useHotkeys("o", () => addRoute.over(useEditorStore.getState().routeMode));
+  useHotkeys("w", () => addRoute.weel(useEditorStore.getState().routeMode));
+
   // Löschen
   useHotkeys("delete, backspace", () => {
     engine?.deleteSelectedObject();

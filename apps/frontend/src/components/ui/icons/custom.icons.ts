@@ -45,6 +45,21 @@ export const GoRoute = createLucideIcon("GoRoute", [
   ["path", { d: "M16,7l-3-3-3,3", key: "path-2" }],
 ]);
 
+export const UnderRoute = createLucideIcon("UnderRoute", [
+  ["path", { d: "M11,23s-1-10,10-10", key: "path-1" }],
+  ["path", { d: "M19,16l3-3-3-3", key: "path-2" }],
+]);
+
+export const OverRoute = createLucideIcon("OverRoute", [
+  ["path", { d: "M19,10l3-3-3-3", key: "path-1" }],
+  ["path", { d: "M11,23S5,7,21,7", key: "path-2" }],
+]);
+
+export const WeelRoute = createLucideIcon("WeelRoute", [
+  ["path", { d: "M13,23h3c2.21,0,4-1.79,4-4V6", key: "path-1" }],
+  ["path", { d: "M23,7l-3-3-3,3", key: "path-2" }],
+]);
+
 export const AddQB = createLucideIcon("AddQB", [
   [
     "path",
