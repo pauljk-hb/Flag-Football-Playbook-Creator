@@ -1,15 +1,22 @@
+import type { PlayerEntity } from "../../entities/PlayerEntity";
 import type { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
 
 export class AddRouteCommand implements ICommand {
+  private player: PlayerEntity;
+
   constructor(
     private newRouteEntity: RouteEntity,
     private playManager: PlayManager,
     private canvasManager: CanvasManager,
     private oldRouteEntity: RouteEntity | null = null,
-  ) {}
+  ) {
+    this.player = this.playManager.getEntity(
+      this.newRouteEntity.playerId,
+    ) as PlayerEntity;
+  }
 
   public execute(): void {
     if (this.oldRouteEntity) {
@@ -35,5 +42,7 @@ export class AddRouteCommand implements ICommand {
       this.canvasManager.addEntity(this.oldRouteEntity);
       this.oldRouteEntity.initializeControls(this.canvasManager.getRawCanvas());
     }
+
+    this.canvasManager.bringObjectToFront(this.player);
   }
 }
