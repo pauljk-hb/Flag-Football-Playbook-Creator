@@ -283,21 +283,25 @@ describe("RouteEntity", () => {
       const spiesDestroy = handles.map((h: any) => vi.spyOn(h, "destroy"));
 
       route.showControls();
-      spiesShow.forEach((spy) => expect(spy).toHaveBeenCalled());
+      spiesShow.forEach((spy: any) => expect(spy).toHaveBeenCalled());
 
       route.hideControls();
-      spiesHide.forEach((spy) => expect(spy).toHaveBeenCalled());
+      spiesHide.forEach((spy: any) => expect(spy).toHaveBeenCalled());
 
       route.destroyAllHandles();
-      spiesDestroy.forEach((spy) => expect(spy).toHaveBeenCalled());
+      spiesDestroy.forEach((spy: any) => expect(spy).toHaveBeenCalled());
       expect((route as any).handles).toHaveLength(0);
     });
 
     describe("Handle Drag & Drop Events", () => {
-      let onModifiedSpy: ReturnType<typeof vi.fn>;
+      let onModifiedSpy: ReturnType<
+        typeof vi.fn<(routeId: string, oldNodes: RouteConfig["nodes"], newNodes: RouteConfig["nodes"]) => void>
+      >;
 
       beforeEach(() => {
-        onModifiedSpy = vi.fn();
+        onModifiedSpy = vi.fn<
+          (routeId: string, oldNodes: RouteConfig["nodes"], newNodes: RouteConfig["nodes"]) => void
+        >();
         route.onNodesModified = onModifiedSpy;
       });
 
