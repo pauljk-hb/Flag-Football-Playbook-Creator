@@ -1,15 +1,14 @@
-import type { CanvasManager } from "./CanvasManager.js";
-import type { ICommand } from "../types/history.js";
-import type { HistoryManager } from "../history/HistoryManager.js";
-import type { FieldManager } from "./FieldManager.js";
 import type { BaseEntity } from "../entities/BaseEntity.js";
+import { PlayerEntity } from "../entities/PlayerEntity.js";
 import { RouteEntity } from "../entities/RouteEntity.js";
+import type { HistoryManager } from "../history/HistoryManager.js";
 import type {
   PlayerExportData,
   PlayExportData,
   RouteExportData,
 } from "../types/interfaces.js";
-import { PlayerEntity } from "../entities/PlayerEntity.js";
+import type { CanvasManager } from "./CanvasManager.js";
+import type { FieldManager } from "./FieldManager.js";
 import type { NotificationManager } from "./NotificationManager.js";
 
 export class PlayManager {
@@ -125,7 +124,7 @@ export class PlayManager {
 
   /**
    * Lädt einen Spielzug. Setzt das Feld komplett zurück und baut es anhand der Daten neu auf.
-   */
+
   public loadPlayData(
     savedPlay: any,
     onCommand: (cmd: ICommand) => void,
@@ -136,7 +135,7 @@ export class PlayManager {
     console.log("load PLay with: ", savedPlay.fieldPresetId);
 
     this.fieldManager.drawField(savedPlay.fieldPresetId);
-    /*
+
     for (const savedPlayer of savedPlay.players) {
       const player = this.entityManager.createPlayer(
         {
@@ -177,6 +176,7 @@ export class PlayManager {
     }
 
     this.canvasManager.requestRender();
-    */
+
   }
+        */
 }

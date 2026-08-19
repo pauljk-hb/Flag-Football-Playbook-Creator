@@ -1,3 +1,4 @@
+import type { NotificationManager } from "@/managers/NotificationManager";
 import { FORMATION_PRESETS, PLAYER_PRESETS } from "../data/presets/index";
 import type { PlayerSpawnData } from "../types/presets";
 
@@ -10,10 +11,15 @@ export class FormationBuilder {
     formationId: string,
     originX: number,
     originY: number,
+    notificationManager: NotificationManager,
   ): PlayerSpawnData[] {
     const formation = FORMATION_PRESETS[formationId];
     if (!formation) {
       console.warn(`Formation ${formationId} nicht gefunden!`);
+      notificationManager.sendFeedback(
+        "warning",
+        `Formation ${formationId} nicht gefunden!`,
+      );
       return [];
     }
 
