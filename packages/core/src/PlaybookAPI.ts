@@ -1,8 +1,10 @@
 import { PlaybookEngine } from "./engine/PlaybookEngine";
 import type { PlayerConfig } from "./entities/PlayerEntity";
+import type { PDFExportOptions } from "./types/export";
 import type {
   CoreNotification,
   PlaybookMode,
+  PlayExportData,
   ThumbnailOptions,
 } from "./types/interfaces";
 import type { RoutePreset } from "./types/presets";
@@ -11,13 +13,18 @@ import type { RoutePreset } from "./types/presets";
  * Die PlaybookAPI ist die Fassade für das Frontend.
  * Liefert alle Funktionalität für die Playbook/Core
  * Sie exponiert keine internen Manager oder Entitäten, sondern nur DTOs und primitive Datentypen.
- * @param {HTMLCanvasElement} [canvas] html Canvas in der die Playbook Engine initzialisiert wird.
  */
 export class PlaybookAPI {
   private engine: PlaybookEngine;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor() {
     this.engine = new PlaybookEngine();
+  }
+
+  /** Bindet die Canvas an die Engine
+   * @param {HTMLCanvasElement} [canvas] html Canvas in der die Playbook Engine initzialisiert wird.
+   */
+  public init(canvas: HTMLCanvasElement): void {
     this.engine.init(canvas);
   }
 
@@ -125,6 +132,13 @@ export class PlaybookAPI {
    */
   public generateThumbnail(options: ThumbnailOptions = {}): string {
     return this.engine.generateThumbnail(options);
+  }
+
+  public async exportToPDF(
+    plays: (PlayExportData & { title?: string })[],
+    options: PDFExportOptions,
+  ): Promise<Blob | null> {
+    return this.engine.exportToPDF(plays, options);
   }
 
   /**

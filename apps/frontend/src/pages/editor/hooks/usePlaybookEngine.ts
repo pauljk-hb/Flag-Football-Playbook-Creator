@@ -10,7 +10,8 @@ export function usePlaybookEngine(initialPlayData?: string) {
   useEffect(() => {
     if (!canvasRef.current || !wrapperRef.current) return;
 
-    const engineInstance = new PlaybookAPI(canvasRef.current);
+    const engineInstance = new PlaybookAPI();
+    engineInstance.init(canvasRef.current);
 
     if (initialPlayData) {
       const dataString =

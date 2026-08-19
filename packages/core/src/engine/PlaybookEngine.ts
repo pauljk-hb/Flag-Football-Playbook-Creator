@@ -1,3 +1,4 @@
+import type { PDFExportOptions } from "@/types/export";
 import { Line } from "fabric";
 import {
   FIELD_PRESETS,
@@ -18,6 +19,7 @@ import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
 import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 import { HistoryManager } from "../history/HistoryManager";
 import { CANVAS_SIZE, CanvasManager } from "../managers/CanvasManager";
+import { ExportManager } from "../managers/ExportManager";
 import { FieldManager } from "../managers/FieldManager";
 import { NotificationManager } from "../managers/NotificationManager";
 import { PlayManager } from "../managers/PlayManager";
@@ -38,6 +40,7 @@ export class PlaybookEngine {
   private historyManager: HistoryManager;
   private playManager: PlayManager;
   private canvasManager: CanvasManager;
+  private exportManager: ExportManager;
   private selectionManager: SelectionManager;
   private fieldManager: FieldManager;
   private routeDrawingManager: RouteDrawingManager;
@@ -50,6 +53,7 @@ export class PlaybookEngine {
     this.canvasManager = new CanvasManager();
     this.notificationManager = new NotificationManager();
     this.fieldManager = new FieldManager(this.canvasManager);
+    this.exportManager = new ExportManager();
 
     this.playManager = new PlayManager(
       this.canvasManager,
@@ -327,28 +331,12 @@ export class PlaybookEngine {
   public loadPlay(data: string): void {
     const playData = JSON.parse(data) as PlayExportData;
 
-    this.playManager.getAllEntities().forEach((entity) => {
-      this.canvasManager.removeEntity(entity);
-      if (entity instanceof RouteEntity) {
-        entity.destroyAllHandles();
-      }
-    });
-    this.playManager.clearPlay();
     this.historyManager.clear();
-
     this.currentFieldPresetId = playData.fieldPresetId;
-    this.fieldManager.drawField(this.currentFieldPresetId);
 
-    playData.players.forEach((pData) => {
-      const player = new PlayerEntity({
-        id: pData.id,
-        x: pData.x,
-        y: pData.y,
-        label: pData.label,
-        color: pData.color,
-        shape: pData.shape,
-      });
+    const { players, routes } = this.playManager.loadPlay(playData);
 
+    players.forEach((player) => {
       player.onMoveComplete = (playerId, startX, startY, endX, endY) => {
         const command = new MovePlayerCommand(
           playerId,
@@ -360,23 +348,11 @@ export class PlaybookEngine {
           this.canvasManager,
           this.notificationManager,
         );
-
         this.historyManager.execute(command);
       };
-
-      this.playManager.addEntity(player);
-      this.canvasManager.addEntity(player);
     });
 
-    playData.routes.forEach((rData) => {
-      const route = new RouteEntity({
-        id: rData.id,
-        playerId: rData.playerId,
-        routeType: rData.routeType,
-        color: rData.color,
-        nodes: JSON.parse(JSON.stringify(rData.nodes)),
-      });
-
+    routes.forEach((route) => {
       route.onNodesModified = (routeId, oldNodes, newNodes) => {
         const moveCommand = new MoveRouteCommand(
           routeId,
@@ -388,20 +364,7 @@ export class PlaybookEngine {
         );
         this.historyManager.execute(moveCommand);
       };
-
-      this.playManager.addEntity(route);
-      this.canvasManager.addEntity(route);
-
-      route.initializeControls(this.canvasManager.getRawCanvas());
     });
-
-    this.playManager.getAllEntities().forEach((entity) => {
-      if (entity instanceof PlayerEntity) {
-        this.canvasManager.bringObjectToFront(entity);
-      }
-    });
-
-    this.canvasManager.requestRender();
 
     this.notificationManager.sendFeedback(
       "success",
@@ -441,6 +404,37 @@ export class PlaybookEngine {
   public generateThumbnail(options: ThumbnailOptions = {}): string {
     this.selectionManager.hideAllRouteControls();
     return this.canvasManager.generateThumbnail(options);
+  }
+
+  /**
+   * Generiert ein PDF-Playbook im Hintergrund und gibt es als Download-Blob zurück.
+   */
+  public async exportToPDF(
+    plays: (PlayExportData & { title?: string })[],
+    options: PDFExportOptions,
+  ): Promise<Blob | null> {
+    if (!plays || plays.length === 0) {
+      this.notificationManager.sendFeedback(
+        "error",
+        "No plays provided for export.",
+      );
+      return null;
+    }
+
+    this.notificationManager.sendFeedback("info", "Generating PDF...");
+
+    try {
+      const pdfBlob = await this.exportManager.generatePDF(plays, options);
+      this.notificationManager.sendFeedback(
+        "success",
+        "PDF generated successfully!",
+      );
+      return pdfBlob;
+    } catch (error) {
+      console.error("PDF Export failed:", error);
+      this.notificationManager.sendFeedback("error", "Failed to generate PDF.");
+      return null;
+    }
   }
 
   public exportFormationThumbnail(): string {
