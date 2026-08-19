@@ -279,7 +279,12 @@ export class PlaybookEngine {
       originY = fieldConfig ? fieldConfig.anchor.y : 600;
     }
 
-    const spawnData = FormationBuilder.build(formationId, originX, originY);
+    const spawnData = FormationBuilder.build(
+      formationId,
+      originX,
+      originY,
+      this.notificationManager,
+    );
 
     if (spawnData.length === 0) return;
 
@@ -576,6 +581,7 @@ export class PlaybookEngine {
       playerId,
       this.playManager,
       this.canvasManager,
+      this.notificationManager,
     );
     this.historyManager.execute(command);
   }
@@ -632,6 +638,7 @@ export class PlaybookEngine {
       routeID,
       this.playManager,
       this.canvasManager,
+      this.notificationManager,
     );
     this.historyManager.execute(command);
   }
