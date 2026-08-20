@@ -34,14 +34,29 @@ export const DEFAULT_PRESETS: ExportPreset[] = [
       fontSize: 8,
     },
   },
+  {
+    id: "wristband_Paul",
+    name: "Wristband Coach",
+    options: {
+      pageWidth: 135,
+      pageHeight: 80,
+      columns: 4,
+      rows: 3,
+      margin: { top: 8, right: 12, bottom: 5, left: 12 },
+      gap: 0,
+      playbookTitle: "Redzone Plays",
+      routeStrokeWidth: 1.5,
+      showLabels: false,
+      fontSize: 8,
+    },
+  },
 ];
 
 interface ExportStore {
   selectedPresetId: string;
   options: PDFExportOptions;
-  selectedPlayIds: string[]; // Nur IDs speichern!
+  selectedPlayIds: string[];
 
-  // Actions
   applyPreset: (presetId: string) => void;
   updateOption: <K extends keyof PDFExportOptions>(
     key: K,

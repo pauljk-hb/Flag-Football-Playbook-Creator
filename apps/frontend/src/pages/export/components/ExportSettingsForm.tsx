@@ -1,7 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { DEFAULT_PRESETS } from "../hooks/useExportSettings";
 import type { PDFExportOptions } from "@/types/interface";
 
@@ -25,7 +24,7 @@ export function ExportSettingsForm({
 }: ExportSettingsFormProps) {
   return (
     <div className="space-y-6 flex-1 pr-2">
-      {/* 1. PRESETS */}
+      {/* PRESETS */}
       <div className="space-y-2">
         <Label className="text-sm font-semibold">Preset auswählen</Label>
         <select
@@ -43,7 +42,7 @@ export function ExportSettingsForm({
 
       <Separator />
 
-      {/* 2. DOKUMENT-EINSTELLUNGEN */}
+      {/* DOKUMENT-EINSTELLUNGEN */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Dokument
@@ -68,6 +67,7 @@ export function ExportSettingsForm({
               onChange={(e) =>
                 onUpdateOption("pageWidth", Number(e.target.value))
               }
+              min={0}
               className="h-8 text-xs"
             />
           </div>
@@ -79,6 +79,7 @@ export function ExportSettingsForm({
               onChange={(e) =>
                 onUpdateOption("pageHeight", Number(e.target.value))
               }
+              min={0}
               className="h-8 text-xs"
             />
           </div>
@@ -122,6 +123,7 @@ export function ExportSettingsForm({
               value={options.margin.top}
               onChange={(e) => onUpdateMargin("top", Number(e.target.value))}
               className="h-8 text-xs text-center"
+              min={0}
               title="Oben"
             />
             <Input
@@ -129,6 +131,7 @@ export function ExportSettingsForm({
               value={options.margin.right}
               onChange={(e) => onUpdateMargin("right", Number(e.target.value))}
               className="h-8 text-xs text-center"
+              min={0}
               title="Rechts"
             />
             <Input
@@ -136,6 +139,7 @@ export function ExportSettingsForm({
               value={options.margin.bottom}
               onChange={(e) => onUpdateMargin("bottom", Number(e.target.value))}
               className="h-8 text-xs text-center"
+              min={0}
               title="Unten"
             />
             <Input
@@ -143,6 +147,7 @@ export function ExportSettingsForm({
               value={options.margin.left}
               onChange={(e) => onUpdateMargin("left", Number(e.target.value))}
               className="h-8 text-xs text-center"
+              min={0}
               title="Links"
             />
           </div>
@@ -155,13 +160,15 @@ export function ExportSettingsForm({
             value={options.gap}
             onChange={(e) => onUpdateOption("gap", Number(e.target.value))}
             className="h-8 text-xs"
+            min={0}
           />
         </div>
       </div>
-
+      {/* 
       <Separator />
 
-      {/* 3. STYLE-EINSTELLUNGEN */}
+      STYLE-EINSTELLUNGEN 
+
       <div className="space-y-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Style (Routen & Labels)
@@ -203,6 +210,7 @@ export function ExportSettingsForm({
           />
         </div>
       </div>
+    3. STYLE-EINSTELLUNGEN */}
     </div>
   );
 }

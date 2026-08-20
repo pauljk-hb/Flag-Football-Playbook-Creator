@@ -104,7 +104,7 @@ export function PlaySelectionDialog({
             />
           </div>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto p-1 min-h-[300px]">
+        <div className="flex-1 overflow-y-auto p-1 min-h-75">
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Lade Spielzüge...

@@ -24,7 +24,6 @@ export function ExportPageList({
 
   const playsPerPage = options.columns * options.rows || 1;
 
-  // Plays visuell in Seiten-Pakete aufteilen
   const pages: SelectedPlayItem[][] = [];
   for (let i = 0; i < plays.length; i += playsPerPage) {
     pages.push(plays.slice(i, i + playsPerPage));
@@ -44,13 +43,11 @@ export function ExportPageList({
   return (
     <DragDropProvider
       onDragStart={() => {
-        // Backup machen, bevor das Umsortieren beginnt
         previousPlays.current = plays;
       }}
       onDragOver={(event) => {
         const { source, target } = event.operation;
 
-        // Sobald wir über einer ANDEREN Kachel schweben -> SOFORT im State umsortieren
         if (source && target && source.id !== target.id) {
           onPlaysChange((currentPlays) => {
             const oldIndex = currentPlays.findIndex((p) => p.id === source.id);
@@ -66,7 +63,6 @@ export function ExportPageList({
         }
       }}
       onDragEnd={(event) => {
-        // Falls das Draggen abgebrochen wurde, alten Zustand wiederherstellen
         if (event.canceled) {
           onPlaysChange(previousPlays.current);
         }
@@ -111,14 +107,12 @@ export function ExportPageList({
                         key={`empty-slot-${i}`}
                         className="flex flex-col rounded-lg border border-dashed border-input bg-muted/10 opacity-60"
                       >
-                        {/* Header-Dummy zur Höhen-Angleichung */}
                         <div className="flex items-center justify-between px-3 py-2 border-b border-dashed border-input">
                           <span className="text-[11px] font-medium text-muted-foreground/60 select-none">
                             Freier Slot
                           </span>
                         </div>
 
-                        {/* 4:3 Bildbereich-Dummy */}
                         <div className="w-full aspect-[4/3] flex items-center justify-center">
                           <span className="text-[10px] text-muted-foreground/40 font-mono select-none">
                             Leer

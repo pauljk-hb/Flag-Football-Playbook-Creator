@@ -19,7 +19,6 @@ export function ExportPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [allPlays, setAllPlays] = useState<Play[]>([]);
 
-  // 1. Store Variablen abrufen (Jetzt mit IDs statt ganzen Objekten)
   const options = useExportSettings((state) => state.options);
   const selectedPresetId = useExportSettings((state) => state.selectedPresetId);
   const selectedPlayIds = useExportSettings((state) => state.selectedPlayIds);
@@ -31,7 +30,6 @@ export function ExportPage() {
   );
   const removePlayId = useExportSettings((state) => state.removePlayId);
 
-  // 1. Zentrale Ladefunktion für frische Playbook-Plays
   const loadFreshPlays = useCallback(async () => {
     try {
       const playbooks = await api.playbooks.getAll();
@@ -51,12 +49,10 @@ export function ExportPage() {
     }
   }, [session?.user]);
 
-  // Beim Laden der Seite frische Plays ziehen
   useEffect(() => {
     loadFreshPlays();
   }, [loadFreshPlays]);
 
-  // 2. IDs immer mit dem aktuellen Stand von allPlays verknüpfen
   const selectedPlays: SelectedPlayItem[] = useMemo(() => {
     const playMap = new Map(allPlays.map((p) => [p.id, p]));
 
@@ -72,7 +68,6 @@ export function ExportPage() {
       }));
   }, [selectedPlayIds, allPlays]);
 
-  // Drag & Drop Handler (Synchronisiert State & Store)
   const handlePlaysChange = (
     updaterOrValue:
       | SelectedPlayItem[]
