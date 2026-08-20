@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { PDFExportOptions } from "../../../types/interface"; // Pfad ggf. anpassen
+import type { PDFExportOptions } from "../../../types/interface";
 
 interface PreviewGridCell {
   xPx: number;
@@ -13,7 +13,6 @@ export function usePreview(
   containerHeightPx: number = 250,
 ) {
   return useMemo(() => {
-    // Fallbacks, falls noch nichts eingegeben wurde
     const pageWidth = options.pageWidth || 297;
     const pageHeight = options.pageHeight || 210;
     const columns = options.columns || 1;

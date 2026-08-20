@@ -1,94 +1,53 @@
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { api } from "@/api/client"; // Stelle sicher, dass der Pfad zu deinem API-Client passt
-import type { ExtendedUser, SelectedPlayItem } from "../../../types/interface";
-import { useSession } from "@/lib/auth-client";
+import { useEffect, useState } from "react";
+import type { SelectedPlayItem } from "../../../types/interface";
 
 interface PlaySelectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  allPlays: SelectedPlayItem[];
   selectedPlays: SelectedPlayItem[];
+  isLoading: boolean;
   onConfirm: (plays: SelectedPlayItem[]) => void;
 }
 
 export function PlaySelectionDialog({
   open,
   onOpenChange,
+  allPlays,
   selectedPlays,
+  isLoading,
   onConfirm,
 }: PlaySelectionDialogProps) {
-  const { data: session } = useSession();
-
-  const [allPlays, setAllPlays] = useState<SelectedPlayItem[]>([]);
   const [tempSelected, setTempSelected] = useState<SelectedPlayItem[]>([]);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
       setTempSelected(selectedPlays);
       setSearch("");
-
-      const fetchPlays = async () => {
-        setIsLoading(true);
-        try {
-          const playbooks = await api.playbooks.getAll();
-
-          if (!playbooks || playbooks.length === 0) {
-            console.log("User hat keine Playbooks mehr.");
-            return;
-          }
-
-          const user = session?.user
-            ? (session.user as typeof session.user & ExtendedUser)
-            : undefined;
-
-          const currentPlaybookId = user?.lastPlaybookId || playbooks[0].id;
-          const data = await api.plays.getAllByPlaybook(currentPlaybookId);
-          if (data) {
-            const mappedPlays: SelectedPlayItem[] = data.map((play) => ({
-              id: play.id,
-              title: play.name,
-              description: play.description || undefined,
-              thumbnail: play.thumbnail || "",
-              data: play.canvasData,
-            }));
-
-            setAllPlays(mappedPlays);
-          }
-        } catch (error) {
-          console.error("Fehler beim Laden der Plays:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchPlays();
     }
   }, [open, selectedPlays]);
 
   const toggleSelect = (play: SelectedPlayItem) => {
-    setTempSelected((prev) => {
-      const isAlreadySelected = prev.some((p) => p.id === play.id);
-      if (isAlreadySelected) {
-        return prev.filter((p) => p.id !== play.id);
-      } else {
-        return [...prev, play];
-      }
-    });
+    setTempSelected((prev) =>
+      prev.some((p) => p.id === play.id)
+        ? prev.filter((p) => p.id !== play.id)
+        : [...prev, play],
+    );
   };
 
-  const filteredPlays = allPlays.filter((p) =>
-    p.title.toLowerCase().includes(search.toLowerCase()),
+  const filteredPlays = allPlays.filter((play) =>
+    play.title.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
