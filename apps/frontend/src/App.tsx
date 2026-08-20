@@ -7,6 +7,7 @@ import { useThemeStore } from "./hooks/useAppStore";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import { EditorPage } from "./pages/editor/EditorPage";
+import { ExportPage } from "./pages/export/ExportPage";
 import { Playbook } from "./pages/overview/OverviewPage";
 
 function App() {
@@ -42,7 +43,7 @@ function App() {
               <Route path="/" element={<Playbook />} />
               <Route path="/editor/:id?" element={<EditorPage />} />
 
-              <Route path="/export" element={<div>Export</div>} />
+              <Route path="/export" element={<ExportPage />} />
 
               {/* Fallback für unbekannte Pfade */}
               <Route path="*" element={<Navigate to="/" replace />} />

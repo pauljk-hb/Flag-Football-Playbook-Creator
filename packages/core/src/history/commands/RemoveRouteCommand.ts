@@ -1,7 +1,7 @@
-import type { NotificationManager } from "@/managers/NotificationManager";
 import type { PlayerEntity } from "../../entities/PlayerEntity";
 import type { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
+import type { NotificationManager } from "../../managers/NotificationManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
 
