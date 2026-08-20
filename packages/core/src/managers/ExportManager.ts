@@ -233,7 +233,8 @@ export class ExportManager {
     doc.setLineWidth(0.3);
     doc.rect(xPos, yPos, cellWidth, cellHeight);
 
-    const fontSize = 5;
+    const calculatedFontSize = cellHeight * 0.25;
+    const fontSize = Math.max(3, Math.min(calculatedFontSize, 12));
     const textPaddingX = 1.5;
     const textPaddingY = 1.5;
 
