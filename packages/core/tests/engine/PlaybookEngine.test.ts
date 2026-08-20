@@ -36,6 +36,7 @@ const mocks = vi.hoisted(() => {
       removeEntity: vi.fn(),
       clearPlay: vi.fn(),
       exportPlay: vi.fn().mockReturnValue({ test: "play-data" }),
+      loadPlay: vi.fn(),
     },
     mockSelectionManager: {
       setupSelectionEvents: vi.fn(),
@@ -343,22 +344,44 @@ describe("PlaybookEngine", () => {
       expect(mockHistoryManager.execute).toHaveBeenCalledTimes(1); // LoadFormationCommand
     });
 
-    it("sollte loadPlay() ausführen und die Canvas zurücksetzen", () => {
+    it("sollte loadPlay() ausführen, Callbacks registrieren und Erfolgsmeldung senden", () => {
+      // 1. Dummy-Daten für den JSON-String
       const dummyData = {
         fieldPresetId: "CUSTOM",
         players: [{ id: "p1", x: 0, y: 0 }],
         routes: [{ id: "r1", playerId: "p1", nodes: [] }],
       };
 
+      // 2. Dummy-Entitäten, die der gemockte PlayManager zurückgeben soll
+      const dummyPlayer = { id: "p1", onMoveComplete: undefined as any };
+      const dummyRoute = { id: "r1", onNodesModified: undefined as any };
+
+      // 3. Mock für loadPlay anpassen (destructuring { players, routes } simulieren)
+      // Falls du oben "mocks.mockPlayManager" nutzt, ergänze hier das "mocks."
+      mockPlayManager.loadPlay.mockReturnValue({
+        players: [dummyPlayer],
+        routes: [dummyRoute],
+      });
+
+      // Act
       engine.loadPlay(JSON.stringify(dummyData));
 
-      expect(mockPlayManager.clearPlay).toHaveBeenCalled();
-      expect(mockHistoryManager.clear).toHaveBeenCalled();
-      expect(mockFieldManager.drawField).toHaveBeenCalledWith("CUSTOM");
+      // Assert: Wurden die grundlegenden Manager-Calls getätigt?
+      expect(mockHistoryManager.clear).toHaveBeenCalledTimes(1);
+      expect(mockPlayManager.loadPlay).toHaveBeenCalledWith(dummyData);
 
-      // Entities hinzufügen
-      expect(mockPlayManager.addEntity).toHaveBeenCalledTimes(2); // 1 Player, 1 Route
-      expect(mockCanvasManager.requestRender).toHaveBeenCalled();
+      // Assert: Wurden die Events (Closures) an die Entities gebunden?
+      expect(dummyPlayer.onMoveComplete).toBeDefined();
+      expect(dummyRoute.onNodesModified).toBeDefined();
+
+      // Assert (Deep Dive): Triggern die Callbacks wirklich die Commands im HistoryManager?
+      dummyPlayer.onMoveComplete("p1", 0, 0, 50, 50);
+      expect(mockHistoryManager.execute).toHaveBeenCalledTimes(1); // MovePlayerCommand ausgeführt
+
+      dummyRoute.onNodesModified("r1", [], [{ x: 10, y: 10 } as any]);
+      expect(mockHistoryManager.execute).toHaveBeenCalledTimes(2); // MoveRouteCommand ausgeführt
+
+      // Assert: Erfolgsmeldung gesendet?
       expect(mockNotificationManager.sendFeedback).toHaveBeenCalledWith(
         "success",
         "Spielzug erfolgreich geladen!",

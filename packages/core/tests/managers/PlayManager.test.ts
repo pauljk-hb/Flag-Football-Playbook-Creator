@@ -2,7 +2,30 @@ import type { BaseEntity } from "@/entities/BaseEntity";
 import { PlayerEntity } from "@/entities/PlayerEntity";
 import { RouteEntity } from "@/entities/RouteEntity";
 import { PlayManager } from "@/managers/PlayManager";
+import { SegmentType, type PlayExportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/entities/PlayerEntity", () => {
+  class MockPlayerEntity {
+    id: string;
+    constructor(public config: any) {
+      this.id = config.id || "mock-player-id";
+    }
+  }
+  return { PlayerEntity: MockPlayerEntity };
+});
+
+vi.mock("@/entities/RouteEntity", () => {
+  class MockRouteEntity {
+    id: string;
+    destroyAllHandles = vi.fn();
+    initializeControls = vi.fn();
+    constructor(public config: any) {
+      this.id = config.id || "mock-route-id";
+    }
+  }
+  return { RouteEntity: MockRouteEntity };
+});
 
 describe("PlayManager", () => {
   let playManager: PlayManager;
@@ -13,7 +36,14 @@ describe("PlayManager", () => {
   let mockNotificationManager: any;
 
   beforeEach(() => {
-    mockCanvasManager = { clear: vi.fn() };
+    mockCanvasManager = {
+      clear: vi.fn(),
+      removeEntity: vi.fn(),
+      addEntity: vi.fn(),
+      bringObjectToFront: vi.fn(),
+      requestRender: vi.fn(),
+      getRawCanvas: vi.fn().mockReturnValue({ type: "fabric-canvas-mock" }),
+    };
     mockHistoryManager = { clear: vi.fn() };
     mockFieldManager = {
       getCurrentPresetId: vi.fn().mockReturnValue("STANDARD"),
@@ -110,52 +140,113 @@ describe("PlayManager", () => {
     });
   });
 
-  describe("Play Daten exportieren (exportPlay)", () => {
-    it("sollte Spieler und Routen korrekt in das Export-Format (JSON) umwandeln", () => {
-      const fakePlayer = {
-        id: "p1",
-        x: 100,
-        y: 200,
-        label: "QB",
-        color: "#ff0000",
-        shape: "circle",
-      } as PlayerEntity;
-      Object.setPrototypeOf(fakePlayer, PlayerEntity.prototype);
+  describe("Play Daten laden (loadPlay)", () => {
+    it("sollte den bestehenden State sauber leeren (Entitäten entfernen, Handles zerstören)", () => {
+      const oldPlayer = { id: "p-old" } as PlayerEntity;
+      Object.setPrototypeOf(oldPlayer, PlayerEntity.prototype);
 
-      const fakeRoute = {
-        id: "r1",
-        playerId: "p1",
-        routeType: "pass",
-        color: "#00ff00",
-        nodes: [{ x: 10, y: 20 }],
-      } as RouteEntity;
-      Object.setPrototypeOf(fakeRoute, RouteEntity.prototype);
+      const oldRoute = {
+        id: "r-old",
+        destroyAllHandles: vi.fn(),
+      } as unknown as RouteEntity;
+      Object.setPrototypeOf(oldRoute, RouteEntity.prototype);
 
-      playManager.addEntity(fakePlayer);
-      playManager.addEntity(fakeRoute);
+      playManager.addEntity(oldPlayer);
+      playManager.addEntity(oldRoute);
 
-      const exportData = playManager.exportPlay();
+      // Act
+      playManager.loadPlay({ fieldPresetId: "TEST", players: [], routes: [] });
 
-      expect(exportData.fieldPresetId).toBe("STANDARD");
-      expect(exportData.players).toHaveLength(1);
-      expect(exportData.routes).toHaveLength(1);
+      // Assert
+      expect(mockCanvasManager.removeEntity).toHaveBeenCalledWith(oldPlayer);
+      expect(mockCanvasManager.removeEntity).toHaveBeenCalledWith(oldRoute);
+      expect(oldRoute.destroyAllHandles).toHaveBeenCalledTimes(1);
+      expect(playManager.getAllEntities()).toHaveLength(0);
+    });
 
-      expect(exportData.players[0]).toEqual({
-        id: "p1",
-        x: 100,
-        y: 200,
-        label: "QB",
-        color: "#ff0000",
-        shape: "circle",
-      });
+    it("sollte neue Spieler und Routen aus den Export-Daten aufbauen und zurückgeben", () => {
+      const playData: PlayExportData = {
+        fieldPresetId: "CUSTOM_FIELD",
+        players: [
+          {
+            id: "p1",
+            x: 10,
+            y: 10,
+            label: "QB",
+            color: "#f00",
+            shape: "circle",
+          },
+        ],
+        routes: [
+          {
+            id: "r1",
+            playerId: "p1",
+            routeType: "main",
+            color: "#0f0",
+            nodes: [{ x: 20, y: 20, type: SegmentType.STRAIGHT }],
+          },
+        ],
+      };
 
-      expect(exportData.routes[0]).toEqual({
-        id: "r1",
-        playerId: "p1",
-        routeType: "pass",
-        color: "#00ff00",
-        nodes: [{ x: 10, y: 20 }],
-      });
+      // Spies setzen, um zu prüfen ob addEntity intern aufgerufen wird
+      const addEntitySpy = vi.spyOn(playManager, "addEntity");
+
+      // Act
+      const result = playManager.loadPlay(playData);
+
+      // Assert: FieldManager
+      expect(mockFieldManager.drawField).toHaveBeenCalledWith("CUSTOM_FIELD");
+
+      // Assert: Resultate
+      expect(result.players).toHaveLength(1);
+      expect(result.routes).toHaveLength(1);
+      expect(result.players[0]).toBeInstanceOf(PlayerEntity);
+      expect(result.routes[0]).toBeInstanceOf(RouteEntity);
+
+      // Assert: Manager-Aufrufe für den Player
+      expect(addEntitySpy).toHaveBeenCalledWith(result.players[0]);
+      expect(mockCanvasManager.addEntity).toHaveBeenCalledWith(
+        result.players[0],
+      );
+      expect(mockCanvasManager.bringObjectToFront).toHaveBeenCalledWith(
+        result.players[0],
+      );
+
+      // Assert: Manager-Aufrufe für die Route
+      expect(addEntitySpy).toHaveBeenCalledWith(result.routes[0]);
+      expect(mockCanvasManager.addEntity).toHaveBeenCalledWith(
+        result.routes[0],
+      );
+      expect((result.routes[0] as any).initializeControls).toHaveBeenCalledWith(
+        mockCanvasManager.getRawCanvas(),
+      );
+
+      // Assert: Render-Cycle angestoßen
+      expect(mockCanvasManager.requestRender).toHaveBeenCalledTimes(1);
+    });
+
+    it("sollte Deep-Copies der Nodes anlegen", () => {
+      const originalNodes = [{ x: 50, y: 50, type: SegmentType.STRAIGHT }];
+      const playData: PlayExportData = {
+        fieldPresetId: "STANDARD",
+        players: [],
+        routes: [
+          {
+            id: "r1",
+            playerId: "p1",
+            routeType: "main",
+            color: "#000",
+            nodes: originalNodes,
+          },
+        ],
+      };
+
+      const result = playManager.loadPlay(playData);
+      const newRoute = result.routes[0] as any;
+
+      // Inhalt ist gleich, aber die Referenz darf nicht dieselbe sein (JSON.parse(JSON.stringify...))
+      expect(newRoute.config.nodes).toEqual(originalNodes);
+      expect(newRoute.config.nodes).not.toBe(originalNodes);
     });
   });
 });

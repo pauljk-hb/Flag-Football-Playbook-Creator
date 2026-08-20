@@ -408,6 +408,8 @@ export class PlaybookEngine {
 
   /**
    * Generiert ein PDF-Playbook im Hintergrund und gibt es als Download-Blob zurück.
+   * @param {PlayExportData & { title?: string }} [plays] Play Daten
+   * @param {PDFExportOptions} [options] Export-Optionen
    */
   public async exportToPDF(
     plays: (PlayExportData & { title?: string })[],

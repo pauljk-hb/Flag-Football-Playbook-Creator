@@ -192,12 +192,10 @@ export class ExportManager {
       const cell = cells[i];
       const indexOnPage = i % playsPerPage;
 
-      // Neue Seite, wenn die aktuelle voll ist
       if (i > 0 && indexOnPage === 0) {
         doc.addPage();
       }
 
-      // Koordinaten für die aktuelle Zelle berechnen
       const col = indexOnPage % columns;
       const row = Math.floor(indexOnPage / columns);
 
@@ -207,7 +205,6 @@ export class ExportManager {
         layout.headerHeight +
         row * (layout.cellHeight + layout.gap);
 
-      // Zelle unabhängig vom Grid zeichnen
       this.renderCell(
         doc,
         cell,
