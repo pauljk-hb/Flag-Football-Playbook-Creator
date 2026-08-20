@@ -123,60 +123,59 @@ export class PlayManager {
   }
 
   /**
-   * Lädt einen Spielzug. Setzt das Feld komplett zurück und baut es anhand der Daten neu auf.
-
-  public loadPlayData(
-    savedPlay: any,
-    onCommand: (cmd: ICommand) => void,
-  ): void {
-    this.historyManager.clear();
-    this.canvasManager.clear();
-
-    console.log("load PLay with: ", savedPlay.fieldPresetId);
-
-    this.fieldManager.drawField(savedPlay.fieldPresetId);
-
-    for (const savedPlayer of savedPlay.players) {
-      const player = this.entityManager.createPlayer(
-        {
-          id: savedPlayer.id,
-          x: savedPlayer.x,
-          y: savedPlayer.y,
-          color: savedPlayer.color,
-          label: savedPlayer.label,
-          shape: savedPlayer.shape,
-        },
-        onCommand,
-      );
-
-      if (savedPlayer.route) {
-        const route = new RouteEntity({
-          id: savedPlayer.route.id,
-          color: savedPlayer.route.color,
-          points: savedPlayer.route.points,
-        });
-        route.onCommandGenerated = onCommand;
-
-        // Verknüpfen
-        player.route = route;
+   * Räumt das aktuelle Feld ab und baut alle Entitäten anhand der Daten neu auf.
+   * Gibt die neu erzeugten Instanzen zurück, damit die Engine sie verdrahten kann.
+   */
+  public loadPlay(playData: PlayExportData): {
+    players: PlayerEntity[];
+    routes: RouteEntity[];
+  } {
+    this.getAllEntities().forEach((entity) => {
+      this.canvasManager.removeEntity(entity);
+      if (entity instanceof RouteEntity) {
+        entity.destroyAllHandles();
       }
+    });
+    this.clearPlay();
 
-      this.entityManager.addPlayerToMap(player);
+    this.fieldManager.drawField(playData.fieldPresetId);
 
-      if (player.route) {
-        player.route
-          .getFabricObjects()
-          .forEach((obj) => this.canvasManager.add(obj));
-      }
+    const newPlayers: PlayerEntity[] = [];
+    const newRoutes: RouteEntity[] = [];
 
-      player.getFabricObjects().forEach((obj) => {
-        this.canvasManager.add(obj);
-        this.canvasManager.bringObjectToFront(obj);
+    playData.players.forEach((pData) => {
+      const player = new PlayerEntity({
+        id: pData.id,
+        x: pData.x,
+        y: pData.y,
+        label: pData.label,
+        color: pData.color,
+        shape: pData.shape,
       });
-    }
 
+      this.addEntity(player);
+      this.canvasManager.addEntity(player);
+      newPlayers.push(player);
+    });
+
+    playData.routes.forEach((rData) => {
+      const route = new RouteEntity({
+        id: rData.id,
+        playerId: rData.playerId,
+        routeType: rData.routeType,
+        color: rData.color,
+        nodes: JSON.parse(JSON.stringify(rData.nodes)),
+      });
+
+      this.addEntity(route);
+      this.canvasManager.addEntity(route);
+      route.initializeControls(this.canvasManager.getRawCanvas());
+      newRoutes.push(route);
+    });
+
+    newPlayers.forEach((p) => this.canvasManager.bringObjectToFront(p));
     this.canvasManager.requestRender();
 
+    return { players: newPlayers, routes: newRoutes };
   }
-        */
 }

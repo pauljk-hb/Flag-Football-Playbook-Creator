@@ -77,3 +77,39 @@ export interface ThumbnailOptions {
   quality?: number;
   width?: number;
 }
+
+export interface Margin {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface PDFExportOptions {
+  pageWidth: number;
+  pageHeight: number;
+  columns: number;
+  rows: number;
+  playbookTitle?: string;
+  margin: Margin;
+  gap: number;
+  routeStrokeWidth?: number;
+  showLabels?: boolean;
+  fontSize?: number;
+}
+
+export interface ExportPreset {
+  id: string;
+  name: string;
+  options: PDFExportOptions;
+}
+
+export interface SelectedPlayItem {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnail: string;
+  data: string;
+
+  tags?: Tag[];
+}

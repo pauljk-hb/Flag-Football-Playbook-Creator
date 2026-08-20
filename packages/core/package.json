@@ -13,7 +13,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "fabric": "^7.4.0"
+    "fabric": "^7.4.0",
+    "jspdf": "^4.2.1"
   },
   "devDependencies": {
     "@types/fabric": "^5.3.11",
