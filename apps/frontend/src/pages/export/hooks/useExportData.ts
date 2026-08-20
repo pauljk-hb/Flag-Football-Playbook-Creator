@@ -38,6 +38,7 @@ export function useExportData() {
           description: play.description || undefined,
           thumbnail: play.thumbnail || "",
           data: play.canvasData,
+          tags: play.tags,
         }));
 
         setAllPlays(mappedPlays);

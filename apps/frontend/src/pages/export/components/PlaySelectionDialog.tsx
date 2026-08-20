@@ -8,8 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { TagFilterInput } from "@/pages/overview/components/TagFilterInput";
 import { useEffect, useState } from "react";
 import type { SelectedPlayItem } from "../../../types/interface";
+import { usePlayFilter } from "../hooks/usePlayFilter";
 
 interface PlaySelectionDialogProps {
   open: boolean;
@@ -29,12 +31,21 @@ export function PlaySelectionDialog({
   onConfirm,
 }: PlaySelectionDialogProps) {
   const [tempSelected, setTempSelected] = useState<SelectedPlayItem[]>([]);
-  const [search, setSearch] = useState("");
+
+  const {
+    search,
+    setSearch,
+    selectedTags,
+    setSelectedTags,
+    availableTags,
+    filteredPlays,
+    resetFilters,
+  } = usePlayFilter(allPlays);
 
   useEffect(() => {
     if (open) {
       setTempSelected(selectedPlays);
-      setSearch("");
+      resetFilters();
     }
   }, [open, selectedPlays]);
 
@@ -46,21 +57,26 @@ export function PlaySelectionDialog({
     );
   };
 
-  const filteredPlays = allPlays.filter((play) =>
-    play.title.toLowerCase().includes(search.toLowerCase()),
-  );
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="md:max-w-9/12 h-11/12 bg-muted">
         <DialogHeader>
           <DialogTitle>Plays für den Export auswählen</DialogTitle>
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Spielzüge durchsuchen..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="flex-1"
             />
+            <div className="md:w-80 lg:w-110">
+              <TagFilterInput
+                tags={availableTags}
+                setTags={() => {}}
+                selectedTags={selectedTags}
+                setSelectedTags={setSelectedTags}
+              />
+            </div>
           </div>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto p-1 min-h-75">

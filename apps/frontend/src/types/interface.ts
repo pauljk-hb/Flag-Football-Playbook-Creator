@@ -109,5 +109,7 @@ export interface SelectedPlayItem {
   title: string;
   description?: string;
   thumbnail: string;
-  data: string; // JSON String für die Playbook-Engine
+  data: string;
+
+  tags?: Tag[];
 }
