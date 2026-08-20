@@ -5,6 +5,7 @@ import type {
   HeadlessEnvironment,
   Margin,
   PDFExportOptions,
+  PlayCell,
 } from "../types/export";
 import type { PlayExportData } from "../types/interfaces";
 import { CanvasManager } from "./CanvasManager";
@@ -27,7 +28,6 @@ export class ExportManager {
       gap = 0,
     } = options;
 
-    const playsPerPage = columns * rows;
     const layout = this.calculateGridLayout(
       pageWidth,
       pageHeight,
@@ -38,34 +38,15 @@ export class ExportManager {
     );
     const headless = this.createHeadlessEnvironment(layout);
 
-    console.log("layot, ", layout);
-
     const doc = new jsPDF({
       orientation: "landscape",
       unit: "mm",
       format: [pageWidth, pageHeight],
     });
 
-    for (let i = 0; i < plays.length; i++) {
-      const play = plays[i];
-      const indexOnPage = i % playsPerPage;
+    const cells = this.generateCells(plays, headless);
 
-      console.log("page index", indexOnPage);
-
-      if (i > 0 && indexOnPage === 0) {
-        doc.addPage();
-      }
-
-      /*
-      if (indexOnPage === 0) {
-        const pageNum = Math.floor(i / playsPerPage) + 1;
-        const totalPages = Math.ceil(plays.length / playsPerPage);
-        this.renderHeader(doc, playbookTitle, pageNum, totalPages, layout);
-      }
-        */
-
-      this.renderPlayCell(doc, play, i, indexOnPage, columns, layout, headless);
-    }
+    this.renderTable(doc, cells, columns, rows, layout);
 
     return doc.output("blob");
   }
@@ -166,77 +147,103 @@ export class ExportManager {
     );
   }
 
-  /**
-   * Rendert ein einzelnes Play im Off-Screen Canvas und stempelt Bild, Rahmen
-   * sowie den Titel (oben aufliegend) in die Zelle.
-   */
-  private renderPlayCell(
-    doc: jsPDF,
-    play: PlayExportData & { title?: string },
-    globalIndex: number,
-    indexOnPage: number,
-    columns: number,
-    layout: GridLayout,
+  private generateCells(
+    plays: (PlayExportData & { title?: string })[],
     env: HeadlessEnvironment,
-  ): void {
-    const col = indexOnPage % columns;
-    const row = Math.floor(indexOnPage / columns);
+  ): PlayCell[] {
+    const cells: PlayCell[] = [];
 
-    console.log(col, row, columns);
+    for (let i = 0; i < plays.length; i++) {
+      const play = plays[i];
 
-    const xPos = layout.margin.left + col * (layout.cellWidth + layout.gap);
-    const yPos =
-      layout.margin.top +
-      layout.headerHeight +
-      row * (layout.cellHeight + layout.gap);
+      const rawCanvas = env.canvasManager.getRawCanvas();
+      if (rawCanvas) {
+        rawCanvas.backgroundColor = "#ffffff";
+      }
 
-    // 1. Canvas vorbereiten & Play rendern
-    const rawCanvas = env.canvasManager.getRawCanvas();
-    if (rawCanvas) {
-      rawCanvas.backgroundColor = "#ffffff";
+      env.playManager.loadPlay(play);
+
+      const imgData = env.canvasManager.generateThumbnail({
+        width: env.width,
+        format: "jpeg",
+        quality: 0.85,
+      });
+
+      const title = play.title || `Play ${i + 1}`;
+      cells.push({ title, imgData });
+
+      env.playManager.clearPlay();
+      env.canvasManager.clear();
     }
 
-    env.playManager.loadPlay(play);
+    return cells;
+  }
 
-    const imgData = env.canvasManager.generateThumbnail({
-      width: env.width,
-      format: "jpeg",
-      quality: 0.85,
-    });
+  private renderTable(
+    doc: jsPDF,
+    cells: PlayCell[],
+    columns: number,
+    rows: number,
+    layout: GridLayout,
+  ): void {
+    const playsPerPage = columns * rows;
 
-    // 2. SCHRITT 1: Zuerst das Bild zeichnen (untere Ebene)
-    doc.addImage(
-      imgData,
-      "JPEG",
-      xPos,
-      yPos,
-      layout.cellWidth,
-      layout.cellHeight,
-    );
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      const indexOnPage = i % playsPerPage;
 
-    // 3. SCHRITT 2: Schwarzer Rahmen um die Zelle
+      // Neue Seite, wenn die aktuelle voll ist
+      if (i > 0 && indexOnPage === 0) {
+        doc.addPage();
+      }
+
+      // Koordinaten für die aktuelle Zelle berechnen
+      const col = indexOnPage % columns;
+      const row = Math.floor(indexOnPage / columns);
+
+      const xPos = layout.margin.left + col * (layout.cellWidth + layout.gap);
+      const yPos =
+        layout.margin.top +
+        layout.headerHeight +
+        row * (layout.cellHeight + layout.gap);
+
+      // Zelle unabhängig vom Grid zeichnen
+      this.renderCell(
+        doc,
+        cell,
+        xPos,
+        yPos,
+        layout.cellWidth,
+        layout.cellHeight,
+      );
+    }
+  }
+
+  private renderCell(
+    doc: jsPDF,
+    cell: PlayCell,
+    xPos: number,
+    yPos: number,
+    cellWidth: number,
+    cellHeight: number,
+  ): void {
+    doc.addImage(cell.imgData, "JPEG", xPos, yPos, cellWidth, cellHeight);
+
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.3);
-    doc.rect(xPos, yPos, layout.cellWidth, layout.cellHeight);
+    doc.rect(xPos, yPos, cellWidth, cellHeight);
 
-    // 4. SCHRITT 3: Text ÜBER das Bild zeichnen (obere Ebene)
-    const playTitle = play.title || `Play ${globalIndex + 1}`;
     const fontSize = 5;
-    const textPaddingX = 2.5; // mm Abstand von links
-    const textPaddingY = 2.5; // mm Abstand von unten
+    const textPaddingX = 1.5;
+    const textPaddingY = 1.5;
 
     doc.setFontSize(fontSize);
     doc.setFont("helvetica", "bolditalic");
 
     const textX = xPos + textPaddingX;
-    const textY = yPos + layout.cellHeight - textPaddingY;
+    const textY = yPos + cellHeight - textPaddingY;
 
-    // Text stempeln
     doc.setTextColor(0, 0, 0);
-    doc.text(playTitle, textX, textY);
-
-    // 5. Aufräumen für das nächste Play
-    env.playManager.clearPlay();
-    env.canvasManager.clear();
+    doc.text(cell.title, textX, textY);
   }
 }

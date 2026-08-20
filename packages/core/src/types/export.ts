@@ -37,3 +37,8 @@ export interface HeadlessEnvironment {
   width: number;
   height: number;
 }
+
+export interface PlayCell {
+  title: string;
+  imgData: string;
+}
