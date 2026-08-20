@@ -21,12 +21,13 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  sessions  Session[]
-  accounts  Account[]
+  sessions Session[]
+  accounts Account[]
 
   lastPlaybookId String?
-  lastPlaybook   Playbook? @relation("LastOpenedPlaybook", fields: [lastPlaybookId], references: [id], onDelete: SetNull)
-  playbooks Playbook[]
+  lastPlaybook   Playbook?      @relation("LastOpenedPlaybook", fields: [lastPlaybookId], references: [id], onDelete: SetNull)
+  playbooks      Playbook[]
+  exportPresets  ExportPreset[]
 }
 
 model Session {
@@ -80,10 +81,11 @@ model Playbook {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastOpenedBy User[]   @relation("LastOpenedPlaybook")
-  plays Play[]
-  tags  Tag[]
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastOpenedBy User[]              @relation("LastOpenedPlaybook")
+  plays        Play[]
+  tags         Tag[]
+  playerStyles PlayerStylePreset[]
 }
 
 model Tag {
@@ -93,8 +95,8 @@ model Tag {
   color      String?
   createdAt  DateTime @default(now())
 
-  playbook   Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
-  plays      Play[]
+  playbook Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  plays    Play[]
 }
 
 model Play {
@@ -110,4 +112,40 @@ model Play {
 
   playbook Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
   tags     Tag[]
+}
+
+model PlayerStylePreset {
+  id         String   @id @default(uuid())
+  userId     String
+  playerId   String
+  label      String
+  color      String   @default("#000000")
+  shape      String   @default("circle")
+  showLabels Boolean?
+  createdAt  DateTime @default(now())
+
+  user Playbook @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ExportPreset {
+  id     String @id @default(uuid())
+  userId String
+  name   String
+
+  pageWidth  Float
+  pageHeight Float
+  columns    Int
+  rows       Int
+  gap        Float
+
+  marginTop    Float
+  marginRight  Float
+  marginBottom Float
+  marginLeft   Float
+
+  routeStrokeWidth Float?
+  showLabels       Boolean?
+
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

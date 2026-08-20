@@ -37,4 +37,15 @@
 
 ---
 
+### Export Presets (`/api/v1/presets/export`)
+
+| Methode    | Endpunkt                     | Beschreibung                                              | Request Body (JSON)                                                                                |
+| ---------- | ---------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **GET**    | `/api/v1/presets/export`     | Lädt alle gespeicherten Export-Presets des Users.         | -                                                                                                  |
+| **POST**   | `/api/v1/presets/export`     | Erstellt ein neues Export-Preset für den aktuellen User.  | `{ "name": "...", "pageWidth": 210, "pageHeight": 297, "columns": 2, "rows": 3, "margin": {...} }` |
+| **PUT**    | `/api/v1/presets/export/:id` | Aktualisiert die Einstellungen eines bestehenden Presets. | `{ "name"?: "...", "gap"?: 15, "showLabels"?: false }`                                             |
+| **DELETE** | `/api/v1/presets/export/:id` | Löscht das Export-Preset komplett.                        | -                                                                                                  |
+
+---
+
 Alle Endpunkte setzen voraus, dass der User eingeloggt. Die User Funktionen werden von [Better Auth](https://better-auth.com/) genutzt und die Auth Routen sind generiert.

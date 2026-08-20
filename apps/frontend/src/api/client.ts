@@ -1,10 +1,13 @@
 import type {
+  CreateExportPresetDTO,
   CreatePlaybookDTO,
   CreatePlayDTO,
   CreateTagDTO,
+  ExportPreset,
   Play,
   Playbook,
   Tag,
+  UpdateExportPresetDTO,
   UpdatePlaybookDTO,
   UpdatePlayDTO,
   UpdateTagDTO,
@@ -130,5 +133,28 @@ export const api = {
       fetchApi<void>(`/api/v1/tags/${id}`, {
         method: "DELETE",
       }),
+  },
+
+  presets: {
+    export: {
+      getAll: () => fetchApi<ExportPreset[]>("/api/v1/presets/export"),
+
+      create: (data: CreateExportPresetDTO) =>
+        fetchApi<ExportPreset>("/api/v1/presets/export", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+
+      update: (id: string, data: UpdateExportPresetDTO) =>
+        fetchApi<ExportPreset>(`/api/v1/presets/export/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+
+      delete: (id: string) =>
+        fetchApi<void>(`/api/v1/presets/export/${id}`, {
+          method: "DELETE",
+        }),
+    },
   },
 };
