@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import type { ExportPreset, PDFExportOptions } from "@/types/interface";
+import { SavePresetPopover } from "./SavePresetPopover";
 
 interface ExportSettingsFormProps {
   options: PDFExportOptions;
@@ -164,6 +165,7 @@ export function ExportSettingsForm({
             min={0}
           />
         </div>
+        <SavePresetPopover options={options} />
       </div>
       {/* 
       <Separator />

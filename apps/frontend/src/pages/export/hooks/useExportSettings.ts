@@ -20,7 +20,6 @@ export interface DBPreset {
   playbookTitle?: string;
 }
 
-// Wandelt das flache DB-Objekt in das Frontend-Format um
 function mapDBPresetToFrontend(dbPreset: DBPreset): ExportPreset {
   return {
     id: dbPreset.id,
