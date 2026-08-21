@@ -11,6 +11,7 @@ import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { PlaystyleTab } from "./SettingsTabs/PlaystyleTab";
+import { ProfileTab } from "./SettingsTabs/ProfileTab";
 
 export function SettingsDialog() {
   const theme = useThemeStore((state) => state.theme);
@@ -171,18 +172,7 @@ export function SettingsDialog() {
               </div>
             </TabsContent>
 
-            <TabsContent
-              value="profile"
-              className="space-y-6  px-6 py-4 outline-none"
-            >
-              <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">
-                  Hier folgen Einstellungen zum Nutzerprofil von{" "}
-                  {session?.user.name}...
-                </p>
-                <Button onClick={handleLogout}>Ausloggen</Button>
-              </div>
-            </TabsContent>
+            <ProfileTab />
 
             <PlaystyleTab />
 

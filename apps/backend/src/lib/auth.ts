@@ -1,6 +1,10 @@
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth";
 import "dotenv/config";
+import {
+  ensureUserHasDefaults,
+  setupNewUserWorkspace,
+} from "../modules/userSetup/userSetup.service.js";
 import { prisma } from "./prisma.js";
 
 export const auth = betterAuth({
@@ -28,106 +32,29 @@ export const auth = betterAuth({
         required: false,
       },
     },
+    deleteUser: {
+      enabled: true,
+    },
   },
   databaseHooks: {
     user: {
       create: {
         after: async (user) => {
-          const firstPlaybook = await prisma.playbook.create({
-            data: {
-              userId: user.id,
-              name: "Mein erstes Playbook",
-              description: "Standard-Playbook (automatisch generiert)",
-              tags: {
-                create: [
-                  { name: "Short Yard", color: "#3b82f6" },
-                  { name: "Long Yard", color: "#22c55e" }, // Grün
-                  { name: "Redzone", color: "#ef4444" }, // Rot
-                ],
-              },
-            },
-          });
+          console.log(
+            `Neuer User registriert: ${user.id}. Richte Workspace ein...`,
+          );
+          await setupNewUserWorkspace(user.id);
+        },
+      },
+    },
+    session: {
+      create: {
+        after: async (session) => {
+          console.log(
+            `User ${session.userId} hat sich eingeloggt. Prüfe auf fehlende Updates...`,
+          );
 
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastPlaybookId: firstPlaybook.id },
-          });
-
-          await Promise.all([
-            prisma.exportPreset.createMany({
-              data: [
-                {
-                  userId: user.id,
-                  name: "A4 Hochkant (6 Spielzüge)",
-                  pageWidth: 210,
-                  pageHeight: 297,
-                  columns: 2,
-                  rows: 3,
-                  gap: 10,
-                  marginTop: 15,
-                  marginRight: 15,
-                  marginBottom: 15,
-                  marginLeft: 15,
-                  routeStrokeWidth: 2,
-                  showLabels: true,
-                },
-                {
-                  userId: user.id,
-                  name: "A4 Querformat (Groß)",
-                  pageWidth: 297,
-                  pageHeight: 210,
-                  columns: 2,
-                  rows: 1,
-                  gap: 15,
-                  marginTop: 20,
-                  marginRight: 20,
-                  marginBottom: 20,
-                  marginLeft: 20,
-                  routeStrokeWidth: 3,
-                  showLabels: false,
-                },
-              ],
-            }),
-            prisma.playerStylePreset.createMany({
-              data: [
-                {
-                  playbookId: firstPlaybook.id,
-                  playerId: "QB",
-                  label: "QB",
-                  color: "#1a1b1b",
-                  shape: "circle",
-                },
-                {
-                  playbookId: firstPlaybook.id,
-                  playerId: "CENTER",
-                  label: "C",
-                  color: "#469b54",
-                  shape: "square",
-                },
-                {
-                  playbookId: firstPlaybook.id,
-                  playerId: "WR1",
-                  label: "X",
-                  color: "#326FB5",
-                  shape: "circle",
-                },
-                {
-                  playbookId: firstPlaybook.id,
-                  playerId: "WR2",
-                  label: "Z",
-                  color: "#3399B5",
-                  shape: "circle",
-                },
-                {
-                  playbookId: firstPlaybook.id,
-                  playerId: "RED",
-                  label: "R",
-                  color: "#E63D38",
-                  shape: "circle",
-                },
-              ],
-            }),
-          ]);
+          await ensureUserHasDefaults(session.userId);
         },
       },
     },
