@@ -4,7 +4,8 @@ import { RouteEntity } from "../entities/RouteEntity.js";
 import type { HistoryManager } from "../history/HistoryManager.js";
 import type {
   PlayerExportData,
-  PlayExportData,
+  PlayImportData,
+  PlaySavePayload,
   RouteExportData,
 } from "../types/interfaces.js";
 import type { CanvasManager } from "./CanvasManager.js";
@@ -90,28 +91,15 @@ export class PlayManager {
   /**
    * Nimmt den aktuellen Zustand des Feldes und speichert ihn in einem JSON-kompatiblen Objekt.
    */
-  public exportPlay(): PlayExportData {
+  public exportPlay(): PlaySavePayload {
     const players: PlayerExportData[] = [];
     const routes: RouteExportData[] = [];
 
     this.entities.forEach((entity) => {
       if (entity instanceof PlayerEntity) {
-        players.push({
-          id: entity.id,
-          x: entity.x,
-          y: entity.y,
-          label: entity.label,
-          color: entity.color,
-          shape: entity.shape,
-        });
+        players.push(entity.serialize());
       } else if (entity instanceof RouteEntity) {
-        routes.push({
-          id: entity.id,
-          playerId: entity.playerId,
-          routeType: entity.routeType,
-          color: entity.color,
-          nodes: JSON.parse(JSON.stringify(entity.nodes)),
-        });
+        routes.push(entity.serialize());
       }
     });
 
@@ -126,7 +114,7 @@ export class PlayManager {
    * Räumt das aktuelle Feld ab und baut alle Entitäten anhand der Daten neu auf.
    * Gibt die neu erzeugten Instanzen zurück, damit die Engine sie verdrahten kann.
    */
-  public loadPlay(playData: PlayExportData): {
+  public loadPlay(playData: PlayImportData): {
     players: PlayerEntity[];
     routes: RouteEntity[];
   } {
@@ -144,14 +132,7 @@ export class PlayManager {
     const newRoutes: RouteEntity[] = [];
 
     playData.players.forEach((pData) => {
-      const player = new PlayerEntity({
-        id: pData.id,
-        x: pData.x,
-        y: pData.y,
-        label: pData.label,
-        color: pData.color,
-        shape: pData.shape,
-      });
+      const player = new PlayerEntity(pData);
 
       this.addEntity(player);
       this.canvasManager.addEntity(player);

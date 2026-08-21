@@ -22,6 +22,20 @@ export interface RouteNode {
   cpOutY?: number;
 }
 
+export interface PlayerStyleOverride {
+  color?: string;
+  label?: string;
+  showLabel?: boolean;
+  shape?: "circle" | "square";
+}
+
+export interface PlayerStyle {
+  color: string;
+  label: string;
+  showLabel: boolean;
+  shape: "circle" | "square";
+}
+
 export interface RouteExportData {
   id: string;
   playerId: string;
@@ -30,16 +44,30 @@ export interface RouteExportData {
   nodes: RouteNode[];
 }
 
-export interface PlayerExportData {
-  id: string;
+export interface PlayerImportData {
+  id?: string;
+  role: string;
   x: number;
   y: number;
-  color: string;
-  label: string;
-  shape: "circle" | "square";
+  style: PlayerStyle;
+  styleOverride?: PlayerStyleOverride;
 }
 
-export interface PlayExportData {
+export interface PlayImportData {
+  fieldPresetId: string;
+  players: PlayerImportData[];
+  routes: RouteExportData[];
+}
+
+export interface PlayerExportData {
+  id: string;
+  role: string;
+  x: number;
+  y: number;
+  styleOverride?: PlayerStyleOverride;
+}
+
+export interface PlaySavePayload {
   fieldPresetId: string;
   players: PlayerExportData[];
   routes: RouteExportData[];

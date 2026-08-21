@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { Monitor, Moon, Sun } from "lucide-react";
+import { PlaystyleTab } from "./SettingsTabs/PlaystyleTab";
 
 export function SettingsDialog() {
   const theme = useThemeStore((state) => state.theme);
@@ -183,17 +184,7 @@ export function SettingsDialog() {
               </div>
             </TabsContent>
 
-            <TabsContent
-              value="playstyle"
-              className="space-y-6  px-6 py-4 outline-none"
-            >
-              <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">
-                  Hier folgen Einstellungen zu Objekten in einem Play (z.b.
-                  Farbe von Spielern ändern)...
-                </p>
-              </div>
-            </TabsContent>
+            <PlaystyleTab />
 
             <TabsContent
               value="help"

@@ -133,3 +133,30 @@ export interface SelectedPlayItem {
 
   tags?: Tag[];
 }
+
+export interface PlayerStyle {
+  color: string;
+  label: string;
+  showLabel: boolean;
+  shape: "circle" | "square";
+}
+
+export interface PlayerStylePreset {
+  id: string;
+  playbookId: string;
+  playerId: string;
+  label: string;
+  color: string;
+  shape: "circle" | "square";
+  showLabels?: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertPlayerStylePresetDTO {
+  playerId: string;
+  label?: string;
+  color?: string;
+  shape?: "circle" | "square";
+  showLabels?: boolean;
+}

@@ -1,10 +1,46 @@
-import type { ThumbnailOptions } from "@/types/interface";
+import { api } from "@/api/client";
+import type {
+  PlayerStyle,
+  PlayerStylePreset,
+  ThumbnailOptions,
+} from "@/types/interface";
 import { ROUTE_PRESETS } from "@playbook/core";
-import { SYSTEM_PLAYERS } from "@playbook/core/dist/data/presets/players";
+import { useEffect, useMemo, useState } from "react";
+import { usePlaybookStore } from "./useAppStore";
 import { usePlaybook } from "./usePlaybook";
 
 export function usePlaybookActions() {
   const { engine } = usePlaybook();
+  const playbookId = usePlaybookStore((state) => state.activePlaybookId);
+  const [playerPresets, setPlayerPresets] = useState<PlayerStylePreset[]>([]);
+
+  useEffect(() => {
+    if (!playbookId) return;
+
+    const loadPresets = async () => {
+      try {
+        const data = await api.presets.playerStyles.getByPlaybook(playbookId);
+        setPlayerPresets(data || []);
+      } catch (error) {
+        console.error("Fehler beim Laden der Spieler-Presets:", error);
+      }
+    };
+
+    loadPresets();
+  }, [playbookId]);
+
+  const playerStylesRecord = useMemo(() => {
+    const record: Record<string, any> = {};
+    playerPresets.forEach((preset) => {
+      record[preset.playerId] = {
+        label: preset.label,
+        color: preset.color,
+        shape: preset.shape,
+        showLabel: preset.showLabels ?? true,
+      };
+    });
+    return record;
+  }, [playerPresets]);
 
   const addPlayer = {
     qb: () => {
@@ -122,18 +158,38 @@ export function usePlaybookActions() {
 
   const addPlayerFromPreset = (presetId: string) => {
     try {
-      const preset = SYSTEM_PLAYERS[presetId];
-      if (!preset || !engine) return;
+      if (!engine) return;
+
+      const style = getPresetStyle(presetId);
       engine.addPlayer({
+        role: presetId,
         x: 200,
         y: 300,
-        label: preset.label,
-        color: preset.color,
-        shape: preset.shape,
+        style: style,
       });
     } catch (error) {
       console.error("Fehler beim Hinzufügen des Spielers:", error);
     }
+  };
+
+  const getPresetStyle = (playerId: string): PlayerStyle => {
+    const preset = playerPresets.find((p) => p.playerId === playerId);
+
+    if (preset) {
+      return {
+        label: preset.label,
+        color: preset.color,
+        shape: preset.shape,
+        showLabel: preset.showLabels ?? true,
+      };
+    }
+
+    return {
+      label: playerId.toUpperCase(),
+      color: "#000000",
+      shape: "circle",
+      showLabel: true,
+    };
   };
 
   const handleAssignRoute = (routeId: string, routeType: string) => {
@@ -150,7 +206,7 @@ export function usePlaybookActions() {
 
   const loadFormation = (formationId: string) => {
     if (!engine) return;
-    engine.loadFormation(formationId);
+    engine.loadFormation(formationId, playerStylesRecord);
   };
 
   return {
@@ -160,5 +216,6 @@ export function usePlaybookActions() {
     applyFormation,
     history,
     getAllPLays,
+    loadFormation,
   };
 }

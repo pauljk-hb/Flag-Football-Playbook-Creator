@@ -1,4 +1,5 @@
 import { api } from "@/api/client";
+import { usePlaybookStore } from "@/hooks/useAppStore";
 import { useSession } from "@/lib/auth-client";
 import type { ExtendedUser, Play, Tag } from "@/types/interface";
 import { useEffect, useMemo, useState } from "react";
@@ -10,7 +11,10 @@ export function usePlaybookOverview() {
   const navigate = useNavigate();
   const { data: session } = useSession();
 
-  const [activePlaybookId, setActivePlaybookId] = useState<string | null>(null);
+  const activePlaybookId = usePlaybookStore((state) => state.activePlaybookId);
+  const setActivePlaybookId = usePlaybookStore(
+    (state) => state.setActivePlaybookId,
+  );
   const [plays, setPlays] = useState<Play[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
 

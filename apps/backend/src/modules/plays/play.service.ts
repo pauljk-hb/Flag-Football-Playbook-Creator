@@ -1,3 +1,7 @@
+import {
+  cleanCanvasDataForStorage,
+  hydrateCanvasData,
+} from "../../lib/canvasHydration.js";
 import { prisma } from "../../lib/prisma.js";
 
 export const PlayService = {
@@ -9,11 +13,21 @@ export const PlayService = {
     if (!existingPlaybook)
       throw new Error("Keine Berechtigung für dieses Playbook.");
 
-    return await prisma.play.findMany({
+    const plays = await prisma.play.findMany({
       where: { playbookId },
       orderBy: { sortOrder: "asc" },
       include: { tags: true },
     });
+
+    const presets = await prisma.playerStylePreset.findMany({
+      where: { playbookId },
+    });
+
+    for (const play of plays) {
+      play.canvasData = hydrateCanvasData(play.canvasData, presets);
+    }
+
+    return plays;
   },
 
   async getPlayById(id: string, userId: string) {
@@ -23,6 +37,12 @@ export const PlayService = {
     });
 
     if (!play) throw new Error("Play nicht gefunden oder keine Berechtigung.");
+
+    const presets = await prisma.playerStylePreset.findMany({
+      where: { playbookId: play.playbookId },
+    });
+
+    play.canvasData = hydrateCanvasData(play.canvasData, presets);
 
     return play;
   },
@@ -49,7 +69,7 @@ export const PlayService = {
         playbookId,
         name: data.name,
         description: data.description ?? null,
-        canvasData: data.canvasData ?? null,
+        canvasData: cleanCanvasDataForStorage(data.canvasData) ?? null,
         thumbnail: data.thumbnail ?? null,
         sortOrder: data.sortOrder ?? 0,
       },
@@ -76,15 +96,21 @@ export const PlayService = {
     return await prisma.play.update({
       where: { id },
       data: {
-        ...(data.name && { name: data.name }),
+        ...(data.name !== undefined && {
+          name: data.name,
+        }),
         ...(data.description !== undefined && {
           description: data.description ?? null,
         }),
-        ...(data.canvasData && { canvasData: data.canvasData }),
+        ...(data.canvasData !== undefined && {
+          canvasData: cleanCanvasDataForStorage(data.canvasData) ?? null,
+        }),
         ...(data.thumbnail !== undefined && {
           thumbnail: data.thumbnail ?? null,
         }),
-        ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
+        ...(data.sortOrder !== undefined && {
+          sortOrder: data.sortOrder,
+        }),
       },
     });
   },

@@ -1,6 +1,6 @@
 import type { NotificationManager } from "@/managers/NotificationManager";
-import { FORMATION_PRESETS, PLAYER_PRESETS } from "../data/presets/index";
-import type { PlayerSpawnData } from "../types/presets";
+import type { PlayerImportData, PlayerStyle } from "@/types/interfaces";
+import { FORMATION_PRESETS } from "../data/presets/index";
 
 export class FormationBuilder {
   /**
@@ -9,10 +9,11 @@ export class FormationBuilder {
    */
   public static build(
     formationId: string,
+    playerStyles: Record<string, PlayerStyle>,
     originX: number,
     originY: number,
     notificationManager: NotificationManager,
-  ): PlayerSpawnData[] {
+  ): PlayerImportData[] {
     const formation = FORMATION_PRESETS[formationId];
     if (!formation) {
       console.warn(`Formation ${formationId} nicht gefunden!`);
@@ -23,19 +24,22 @@ export class FormationBuilder {
       return [];
     }
 
-    const spawnData: PlayerSpawnData[] = [];
+    const spawnData: PlayerImportData[] = [];
 
     formation.positions.forEach((pos) => {
-      const playerPreset = PLAYER_PRESETS[pos.playerPresetId];
-      if (!playerPreset) return;
+      const roleKey = pos.playerPresetId;
+      const style: PlayerStyle = playerStyles[roleKey] || {
+        color: "#3b82f6",
+        label: roleKey,
+        shape: "circle",
+        showLabel: true,
+      };
 
       spawnData.push({
-        presetId: playerPreset.id,
+        role: roleKey,
         x: originX + pos.dx,
         y: originY + pos.dy,
-        label: playerPreset.label,
-        color: playerPreset.color,
-        shape: playerPreset.shape,
+        style: { ...style },
       });
     });
 

@@ -1,3 +1,4 @@
+import type { PlayImportData } from "@/types/interfaces";
 import { jsPDF } from "jspdf";
 import { HistoryManager } from "../history/HistoryManager";
 import type {
@@ -7,7 +8,6 @@ import type {
   PDFExportOptions,
   PlayCell,
 } from "../types/export";
-import type { PlayExportData } from "../types/interfaces";
 import { CanvasManager } from "./CanvasManager";
 import { FieldManager } from "./FieldManager";
 import { NotificationManager } from "./NotificationManager";
@@ -15,7 +15,7 @@ import { PlayManager } from "./PlayManager";
 
 export class ExportManager {
   public async generatePDF(
-    plays: (PlayExportData & { title?: string })[],
+    plays: (PlayImportData & { title?: string })[],
     options: PDFExportOptions = {},
   ): Promise<Blob> {
     const {
@@ -148,7 +148,7 @@ export class ExportManager {
   }
 
   private generateCells(
-    plays: (PlayExportData & { title?: string })[],
+    plays: (PlayImportData & { title?: string })[],
     env: HeadlessEnvironment,
   ): PlayCell[] {
     const cells: PlayCell[] = [];

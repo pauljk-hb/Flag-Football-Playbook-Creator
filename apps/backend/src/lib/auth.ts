@@ -88,6 +88,45 @@ export const auth = betterAuth({
                 },
               ],
             }),
+            prisma.playerStylePreset.createMany({
+              data: [
+                {
+                  playbookId: firstPlaybook.id,
+                  playerId: "QB",
+                  label: "QB",
+                  color: "#1a1b1b",
+                  shape: "circle",
+                },
+                {
+                  playbookId: firstPlaybook.id,
+                  playerId: "CENTER",
+                  label: "C",
+                  color: "#469b54",
+                  shape: "square",
+                },
+                {
+                  playbookId: firstPlaybook.id,
+                  playerId: "WR1",
+                  label: "X",
+                  color: "#326FB5",
+                  shape: "circle",
+                },
+                {
+                  playbookId: firstPlaybook.id,
+                  playerId: "WR2",
+                  label: "Z",
+                  color: "#3399B5",
+                  shape: "circle",
+                },
+                {
+                  playbookId: firstPlaybook.id,
+                  playerId: "RED",
+                  label: "R",
+                  color: "#E63D38",
+                  shape: "circle",
+                },
+              ],
+            }),
           ]);
         },
       },

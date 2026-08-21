@@ -1,5 +1,5 @@
 import * as fabric from "fabric";
-import type { RouteNode } from "../types/interfaces";
+import type { RouteExportData, RouteNode } from "../types/interfaces";
 import { SegmentType } from "../types/interfaces";
 import { calculateArrowheadMetrics } from "../utils/geometry";
 import { generateSvgPathString } from "../utils/PathUtils";
@@ -373,5 +373,15 @@ export class RouteEntity extends BaseEntity {
   private updateArrowPosition(): void {
     const { x, y, angle } = calculateArrowheadMetrics(this.nodes);
     this.arrowHead.set({ left: x, top: y, angle: angle });
+  }
+
+  public serialize(): RouteExportData {
+    return {
+      id: this.id,
+      playerId: this.playerId,
+      routeType: this.routeType,
+      color: this.color,
+      nodes: JSON.parse(JSON.stringify(this.nodes)),
+    };
   }
 }
