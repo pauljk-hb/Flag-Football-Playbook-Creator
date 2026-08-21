@@ -48,4 +48,14 @@
 
 ---
 
+### Player Style Presets (`/api/v1/presets/player-styles`)
+
+| Methode    | Endpunkt                        | Beschreibung                                                                                               | Request Body (JSON)                                                                                       |
+| ---------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **GET**    | `/.../playbook/:playbookId`     | Lädt alle globalen Player-Style-Presets, die für dieses Playbook gespeichert wurden.                       | -                                                                                                         |
+| **POST**   | `/.../playbook/:playbookId`     | **Upsert:** Erstellt ein neues Preset ODER überschreibt das bestehende für diesen Spielertyp (`playerId`). | `{ "playerId": "QB", "label": "Quarterback", "color": "#ef4444", "shape": "square", "showLabels": true }` |
+| **DELETE** | `/.../playbook/:playbookId/:id` | Löscht das Preset. _(Achtung: `:id` ist die Datenbank-UUID des Presets, **nicht** die `playerId`)_         | -                                                                                                         |
+
+---
+
 Alle Endpunkte setzen voraus, dass der User eingeloggt. Die User Funktionen werden von [Better Auth](https://better-auth.com/) genutzt und die Auth Routen sind generiert.
