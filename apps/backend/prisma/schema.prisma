@@ -116,7 +116,7 @@ model Play {
 
 model PlayerStylePreset {
   id         String   @id @default(uuid())
-  playbookId     String
+  playbookId String
   playerId   String
   label      String
   color      String   @default("#000000")
@@ -125,7 +125,8 @@ model PlayerStylePreset {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  playbook   Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  playbook Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+
   @@unique([playbookId, playerId])
 }
 
