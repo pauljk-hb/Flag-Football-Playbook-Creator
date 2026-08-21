@@ -39,7 +39,7 @@ export class ExportManager {
     const headless = this.createHeadlessEnvironment(layout);
 
     const doc = new jsPDF({
-      orientation: "landscape",
+      orientation: this.getOrientation(pageWidth, pageHeight),
       unit: "mm",
       format: [pageWidth, pageHeight],
     });
@@ -49,6 +49,13 @@ export class ExportManager {
     this.renderTable(doc, cells, columns, rows, layout);
 
     return doc.output("blob");
+  }
+
+  private getOrientation(
+    pageWidth: number,
+    pageHeight: number,
+  ): "landscape" | "portrait" {
+    return pageWidth > pageHeight ? "landscape" : "portrait";
   }
 
   /**

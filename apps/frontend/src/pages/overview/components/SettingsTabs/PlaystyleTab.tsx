@@ -170,7 +170,7 @@ export function PlaystyleTab() {
                       onClick={() => handleChange(preset.playerId, "color", c)}
                       className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                         preset.color === c
-                          ? "ring-2 ring-offset-2 ring-foreground"
+                          ? " ring-1 ring-offset-1 ring-foreground"
                           : ""
                       }`}
                       style={{ backgroundColor: c }}
@@ -181,14 +181,6 @@ export function PlaystyleTab() {
                       )}
                     </button>
                   ))}
-                  <Input
-                    type="color"
-                    value={preset.color}
-                    onChange={(e) =>
-                      handleChange(preset.playerId, "color", e.target.value)
-                    }
-                    className="w-6 h-5 p-0 border-0 rounded cursor-pointer"
-                  />
                 </div>
               </div>
 
