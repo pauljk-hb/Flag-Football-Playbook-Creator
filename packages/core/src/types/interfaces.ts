@@ -32,7 +32,7 @@ export interface PlayerStyleOverride {
 export interface PlayerStyle {
   color: string;
   label: string;
-  showLabel: boolean;
+  showLabels: boolean;
   shape: "circle" | "square";
 }
 

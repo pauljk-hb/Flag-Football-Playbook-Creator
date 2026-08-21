@@ -32,7 +32,7 @@ export class FormationBuilder {
         color: "#3b82f6",
         label: roleKey,
         shape: "circle",
-        showLabel: true,
+        showLabels: true,
       };
 
       spawnData.push({

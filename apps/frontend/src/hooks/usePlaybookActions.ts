@@ -36,7 +36,7 @@ export function usePlaybookActions() {
         label: preset.label,
         color: preset.color,
         shape: preset.shape,
-        showLabel: preset.showLabels ?? true,
+        showLabels: preset.showLabels ?? true,
       };
     });
     return record;
@@ -180,7 +180,7 @@ export function usePlaybookActions() {
         label: preset.label,
         color: preset.color,
         shape: preset.shape,
-        showLabel: preset.showLabels ?? true,
+        showLabels: preset.showLabels ?? true,
       };
     }
 
@@ -188,7 +188,7 @@ export function usePlaybookActions() {
       label: playerId.toUpperCase(),
       color: "#000000",
       shape: "circle",
-      showLabel: true,
+      showLabels: true,
     };
   };
 

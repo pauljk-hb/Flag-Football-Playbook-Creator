@@ -26,7 +26,6 @@ export function PlaystyleTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  // 1. Presets laden
   const loadPresets = useCallback(async () => {
     if (!playbookId) return;
     setIsLoading(true);
@@ -44,7 +43,6 @@ export function PlaystyleTab() {
     loadPresets();
   }, [loadPresets]);
 
-  // 2. Lokales Ändern eines Wertes im State (vor dem Speichern)
   const handleChange = (
     playerId: string,
     field: keyof PlayerStylePreset,
@@ -55,7 +53,6 @@ export function PlaystyleTab() {
     );
   };
 
-  // 3. Speichern / Upsert in die DB
   const handleSave = async (preset: PlayerStylePreset) => {
     setSavingId(preset.playerId);
     try {

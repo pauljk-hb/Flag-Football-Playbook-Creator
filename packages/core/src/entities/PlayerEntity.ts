@@ -58,7 +58,7 @@ export class PlayerEntity extends BaseEntity {
       });
     }
 
-    const labelText = this.style.showLabel !== false ? this.style.label : "";
+    const labelText = config.style.showLabels !== false ? this.style.label : "";
     const text = new fabric.Text(labelText, {
       fontSize: 14,
       fill: "#ffffff",
