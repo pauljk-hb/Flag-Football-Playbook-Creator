@@ -67,7 +67,7 @@ describe("FormationBuilder", () => {
       expect(result).toHaveLength(2);
 
       expect(result[0]).toEqual({
-        id: "qb",
+        role: "qb",
         x: 100 + 0,
         y: 200 + 10,
         style: {
@@ -79,7 +79,7 @@ describe("FormationBuilder", () => {
       });
 
       expect(result[1]).toEqual({
-        id: "wr",
+        role: "wr",
         x: 100 - 20,
         y: 200 + 0,
         style: {
@@ -128,11 +128,11 @@ describe("FormationBuilder", () => {
 
       expect(result).toHaveLength(2);
 
-      expect(result[0].id).toBe("qb");
+      expect(result[0].role).toBe("qb");
       expect(result[0].style).toEqual(mockPlayerStyles.qb);
 
       expect(result[1]).toEqual({
-        id: "unknown-player",
+        role: "unknown-player",
         x: 150,
         y: 150,
         style: {
