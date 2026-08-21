@@ -63,7 +63,6 @@ export function PlaystyleTab() {
         shape: preset.shape,
         showLabels: preset.showLabels ?? true,
       });
-      // Optional: Feedback geben oder neu laden
     } catch (error) {
       console.error("Fehler beim Speichern des Player-Styles:", error);
     } finally {
@@ -97,45 +96,54 @@ export function PlaystyleTab() {
           {presets.map((preset) => (
             <div
               key={preset.playerId}
-              className="p-3 rounded-lg border border-muted-foreground text-card-foreground space-y-3 shadow-xs"
+              className="group rounded-xl border bg-muted p-3 shadow-sm transition-all hover:shadow-md space-y-3"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  Rolle: {preset.playerId}
-                </span>
+              {/* 1. Header mit Live-Vorschau und Save-Button */}
+              <div className="flex items-center justify-between border-b pb-2">
+                <div className="flex items-center gap-2.5">
+                  {/* Live-Vorschau des Tokens */}
+                  <div
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      preset.shape === "circle" ? "rounded-full" : "rounded-sm"
+                    }`}
+                    style={{ backgroundColor: preset.color }}
+                  />
+                  <span className="text-xs font-bold tracking-wide">
+                    {preset.playerId}
+                  </span>
+                </div>
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="h-7 text-xs px-2.5"
+                  variant="secondary"
+                  className="h-6 text-[11px] px-2.5 bg-background"
                   onClick={() => handleSave(preset)}
                   disabled={savingId === preset.playerId}
                 >
                   {savingId === preset.playerId && (
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
                   )}
                   Speichern
                 </Button>
               </div>
 
+              {/* 2. Grid für Text und Dropdown (kompakter) */}
               <div className="grid grid-cols-2 gap-3">
-                {/* Label / Kürzel */}
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">
-                    Label (Anzeige)
+                  <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Kürzel
                   </Label>
                   <Input
                     value={preset.label}
                     onChange={(e) =>
                       handleChange(preset.playerId, "label", e.target.value)
                     }
-                    className="h-8 text-xs"
+                    className="h-7 text-xs bg-muted/30"
                     maxLength={5}
                   />
                 </div>
 
-                {/* Form (Circle / Square) */}
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">
+                  <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Form
                   </Label>
                   <select
@@ -147,51 +155,56 @@ export function PlaystyleTab() {
                         e.target.value as "circle" | "square",
                       )
                     }
-                    className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs shadow-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full h-7 rounded-md border border-input bg-muted/30 px-2 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                   >
-                    <option value="circle">Kreis (Circle)</option>
-                    <option value="square">Viereck (Square)</option>
+                    <option value="circle">Kreis</option>
+                    <option value="square">Viereck</option>
                   </select>
                 </div>
               </div>
 
-              {/* Farbauswahl */}
-              <div className="space-y-1.5">
-                <Label className="text-[11px] text-muted-foreground">
-                  Farbe
-                </Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {TAG_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => handleChange(preset.playerId, "color", c)}
-                      className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
-                        preset.color === c
-                          ? " ring-1 ring-offset-1 ring-foreground"
-                          : ""
-                      }`}
-                      style={{ backgroundColor: c }}
-                      type="button"
-                    >
-                      {preset.color === c && (
-                        <Check className="text-white w-3 h-3" />
-                      )}
-                    </button>
-                  ))}
+              {/* 3. Footer-Zeile: Farben und Toggle auf einer Höhe */}
+              <div className="flex items-end justify-between pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Farbe
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TAG_COLORS.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() =>
+                          handleChange(preset.playerId, "color", c)
+                        }
+                        className={`w-[18px] h-[18px] rounded-full flex items-center justify-center transition-all hover:scale-110 ${
+                          preset.color === c
+                            ? "ring-2 ring-offset-1 ring-foreground scale-110"
+                            : "opacity-80 hover:opacity-100"
+                        }`}
+                        style={{ backgroundColor: c }}
+                        type="button"
+                      >
+                        {preset.color === c && (
+                          <Check className="text-white w-2.5 h-2.5" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Label anzeigen Toggle */}
-              <div className="flex items-center justify-between pt-1">
-                <Label className="text-[11px] text-muted-foreground cursor-pointer">
-                  Label im Spielzug anzeigen
-                </Label>
-                <Switch
-                  checked={preset.showLabels ?? true}
-                  onCheckedChange={(val) =>
-                    handleChange(preset.playerId, "showLabels", val)
-                  }
-                />
+                {/* Label Toggle */}
+                <div className="flex flex-col items-end gap-1.5">
+                  <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer">
+                    Label zeigen
+                  </Label>
+                  <Switch
+                    checked={preset.showLabels ?? true}
+                    onCheckedChange={(val) =>
+                      handleChange(preset.playerId, "showLabels", val)
+                    }
+                    className="scale-90 data-[state=checked]:bg-primary origin-right"
+                  />
+                </div>
               </div>
             </div>
           ))}
