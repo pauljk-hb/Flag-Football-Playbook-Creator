@@ -1,5 +1,5 @@
 import { ExportManager } from "@/managers/ExportManager";
-import type { PlayExportData } from "@/types/interfaces";
+import type { PlayImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
@@ -89,7 +89,7 @@ describe("ExportManager", () => {
 
   describe("generatePDF()", () => {
     it("sollte ein PDF generieren und einen Blob zurückgeben (Happy Path)", async () => {
-      const plays: (PlayExportData & { title?: string })[] = [
+      const plays: (PlayImportData & { title?: string })[] = [
         { id: "play-1", title: "Test Play 1" } as any,
       ];
 

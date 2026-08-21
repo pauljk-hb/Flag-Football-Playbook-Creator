@@ -1,6 +1,9 @@
+import { api } from "@/api/client";
+import { usePlaybookStore } from "@/hooks/useAppStore";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 interface TabButtonProps {
@@ -31,10 +34,11 @@ export function AppLayout() {
   const navigate = useNavigate();
 
   const { data: session, isPending } = useSession();
+  const { activePlaybookId, setActivePlaybookId } = usePlaybookStore();
+  const [isInitializingPlaybook, setIsInitializingPlaybook] = useState(true);
 
   const isPlaybookActive =
     location.pathname === "/" || location.pathname.startsWith("/editor");
-
   const isExportActive = location.pathname.startsWith("/export");
 
   useEffect(() => {
@@ -43,10 +47,46 @@ export function AppLayout() {
     }
   }, [session, isPending, navigate]);
 
-  if (isPending || !session) {
+  useEffect(() => {
+    async function initializeActivePlaybook() {
+      if (!session?.user) return;
+
+      if (activePlaybookId) {
+        setIsInitializingPlaybook(false);
+        return;
+      }
+
+      try {
+        const userLastPlaybookId = (session.user as any).lastPlaybookId;
+        if (userLastPlaybookId) {
+          setActivePlaybookId(userLastPlaybookId);
+          setIsInitializingPlaybook(false);
+          return;
+        }
+
+        const playbooks = await api.playbooks.getAll();
+        if (playbooks && playbooks.length > 0) {
+          setActivePlaybookId(playbooks[0].id);
+        }
+      } catch (error) {
+        console.error(
+          "Fehler beim Initialisieren des aktiven Playbooks:",
+          error,
+        );
+      } finally {
+        setIsInitializingPlaybook(false);
+      }
+    }
+
+    if (!isPending && session) {
+      initializeActivePlaybook();
+    }
+  }, [session, isPending, activePlaybookId, setActivePlaybookId]);
+
+  if (isPending || !session || isInitializingPlaybook) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background text-muted-foreground text-sm">
-        Lade Anwendung...
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

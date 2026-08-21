@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import { PlaybookAPI } from "@playbook/core";
 import { Download, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExportPageList } from "./components/ExportPageList";
 import { ExportSettingsForm } from "./components/ExportSettingsForm";
 import { PagePreview } from "./components/PagePreview";
@@ -28,6 +28,12 @@ export function ExportPage() {
   const updateOption = useExportSettings((state) => state.updateOption);
   const updateMargin = useExportSettings((state) => state.updateMargin);
   const removePlayId = useExportSettings((state) => state.removePlayId);
+  const presets = useExportSettings((state) => state.presets);
+  const fetchPresets = useExportSettings((state) => state.fetchPresets);
+
+  useEffect(() => {
+    fetchPresets();
+  }, [fetchPresets]);
 
   const handleExport = async () => {
     const engine = new PlaybookAPI();
@@ -103,6 +109,7 @@ export function ExportPage() {
           <div className="p-4 pt-0 pb-16 text-muted-foreground text-sm flex-1">
             <ExportSettingsForm
               options={options}
+              presets={presets}
               selectedPresetId={selectedPresetId}
               onApplyPreset={applyPreset}
               onUpdateOption={updateOption}

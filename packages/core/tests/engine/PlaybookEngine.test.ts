@@ -333,15 +333,62 @@ describe("PlaybookEngine", () => {
   });
 
   describe("Formationen und Plays (Load/Export)", () => {
-    it("sollte loadFormation() ausführen", () => {
+    it("sollte loadFormation() mit Default-Anchor-Werten und PlayerStyles ausführen", () => {
+      // 1. Dummy PlayerStyles
+      const mockPlayerStyles = {
+        qb: { color: "#ff0000", shape: "circle" },
+      } as any;
+
+      // 2. Dummy Spawn Data vom FormationBuilder
       (FormationBuilder.build as any).mockReturnValue([
-        { presetId: "qb", x: 0, y: 0 },
-      ]); // Dummy Spawn Data
+        { presetId: "qb", x: 400, y: 600 },
+      ]);
 
-      engine.loadFormation("some-formation");
+      // Act: Aufruf ohne customX/customY -> Standard-Anchor (400, 600 aus FIELD_PRESETS["STANDARD"])
+      engine.loadFormation("some-formation", mockPlayerStyles);
 
+      // Assert: FormationBuilder.build mit den 5 Parametern aufgerufen
+      expect(FormationBuilder.build).toHaveBeenCalledWith(
+        "some-formation",
+        mockPlayerStyles,
+        400, // originX aus Preset Anchor
+        600, // originY aus Preset Anchor
+        (engine as any).notificationManager,
+      );
+
+      // Assert: Command im HistoryManager ausgeführt
+      expect(mockHistoryManager.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("sollte loadFormation() mit Custom-Koordinaten (customX, customY) ausführen", () => {
+      const mockPlayerStyles = {} as any;
+      (FormationBuilder.build as any).mockReturnValue([
+        { presetId: "wr", x: 150, y: 250 },
+      ]);
+
+      // Act: Mit benutzerdefinierten Koordinaten
+      engine.loadFormation("some-formation", mockPlayerStyles, 150, 250);
+
+      expect(FormationBuilder.build).toHaveBeenCalledWith(
+        "some-formation",
+        mockPlayerStyles,
+        150,
+        250,
+        (engine as any).notificationManager,
+      );
+      expect(mockHistoryManager.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("sollte stumm abbrechen, wenn FormationBuilder keine Spawn-Daten liefert (spawnData leer)", () => {
+      // Setup: Keine Spawn-Daten gefunden / Fehler beim Build
+      (FormationBuilder.build as any).mockReturnValue([]);
+
+      // Act
+      engine.loadFormation("invalid-formation", {});
+
+      // Assert: Kein Command darf ausgeführt werden
       expect(FormationBuilder.build).toHaveBeenCalled();
-      expect(mockHistoryManager.execute).toHaveBeenCalledTimes(1); // LoadFormationCommand
+      expect(mockHistoryManager.execute).not.toHaveBeenCalled();
     });
 
     it("sollte loadPlay() ausführen, Callbacks registrieren und Erfolgsmeldung senden", () => {
