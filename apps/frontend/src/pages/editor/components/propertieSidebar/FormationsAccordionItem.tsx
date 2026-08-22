@@ -11,9 +11,8 @@ import { FORMATION_PRESETS } from "@playbook/core";
 
 export function FormationAccordionItem() {
   const { engine } = usePlaybook();
-  if (!engine) return null;
-
   const { loadFormation } = usePlaybookActions();
+  if (!engine) return null;
 
   const allSystemFormations = engine.getAllSystemFormations();
   return (
