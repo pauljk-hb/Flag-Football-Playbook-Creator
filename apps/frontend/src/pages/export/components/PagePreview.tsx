@@ -44,8 +44,8 @@ export function PagePreview({
                   top: `${cell.yPx}px`,
                   width: `${cell.widthPx}px`,
                   height: `${cell.heightPx}px`,
-                  borderStyle: play ? "solid" : "dashed",
-                  borderColor: play ? "black" : "#d4d4d8",
+                  borderStyle: play ? "solid" : "none",
+                  borderColor: "black",
                   borderWidth: `${0.3 * previewData.scale}px`,
                 }}
               >
@@ -73,14 +73,7 @@ export function PagePreview({
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span
-                      style={{ fontSize: `${previewData.fontSizePx * 1.5}px` }}
-                      className="text-zinc-300"
-                    >
-                      Leer
-                    </span>
-                  </div>
+                  <div className="w-full h-full flex items-center justify-center"></div>
                 )}
               </div>
             );

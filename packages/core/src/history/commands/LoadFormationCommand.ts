@@ -1,10 +1,10 @@
+import type { PlayerImportData } from "@/types/interfaces";
 import { PlayerEntity } from "../../entities/PlayerEntity";
 import { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
 import type { NotificationManager } from "../../managers/NotificationManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
-import type { PlayerSpawnData } from "../../types/presets";
 import type { HistoryManager } from "../HistoryManager";
 import { MovePlayerCommand } from "./MoveCommands";
 
@@ -13,7 +13,7 @@ export class LoadFormationCommand implements ICommand {
   private newPlayers: PlayerEntity[] = [];
 
   constructor(
-    private spawnData: PlayerSpawnData[],
+    private spawnData: PlayerImportData[],
     private playManager: PlayManager,
     private canvasManager: CanvasManager,
     private historyManager: HistoryManager,
@@ -34,13 +34,7 @@ export class LoadFormationCommand implements ICommand {
     this.playManager.clearPlay();
 
     this.spawnData.forEach((data) => {
-      const player = new PlayerEntity({
-        x: data.x,
-        y: data.y,
-        label: data.label,
-        color: data.color,
-        shape: data.shape,
-      });
+      const player = new PlayerEntity(data);
 
       player.onMoveComplete = (playerId, startX, startY, endX, endY) => {
         const command = new MovePlayerCommand(

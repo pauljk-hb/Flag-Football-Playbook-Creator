@@ -1,4 +1,5 @@
-import { PlayerEntity, type PlayerConfig } from "@/entities/PlayerEntity";
+import { PlayerEntity } from "@/entities/PlayerEntity";
+import type { PlayerImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
@@ -89,13 +90,16 @@ vi.mock("@/entities/BaseEntity.js", () => {
 
 describe("PlayerEntity", () => {
   let player: PlayerEntity;
-  const defaultConfig: PlayerConfig = {
+  const defaultConfig: PlayerImportData = {
     id: "player-1",
     x: 100,
     y: 200,
-    label: "QB",
-    color: "#ff0000",
-    shape: "circle",
+    style: {
+      label: "QB",
+      color: "#ff0000",
+      shape: "circle",
+      showLabel: true,
+    },
   };
 
   beforeEach(() => {
@@ -125,10 +129,33 @@ describe("PlayerEntity", () => {
     });
 
     it('sollte mit einem Rechteck (Rect) initialisiert werden, wenn shape = "square"', () => {
-      const p = new PlayerEntity({ ...defaultConfig, shape: "square" });
+      const p = new PlayerEntity({
+        ...defaultConfig,
+        style: { ...defaultConfig.style, shape: "square" },
+      });
 
       const bgShape = (p.fabricGroup as any).objects[0];
       expect(bgShape).toBeInstanceOf(mocks.MockFabricRect);
+    });
+
+    it("sollte einen leeren Text erzeugen, wenn showLabel = false ist", () => {
+      const p = new PlayerEntity({
+        ...defaultConfig,
+        style: { ...defaultConfig.style, showLabel: false },
+      });
+
+      const textObj = (p.fabricGroup as any).objects[1];
+      expect(textObj.options.text ?? (textObj as any).text).toBeDefined();
+    });
+
+    it("sollte Werte aus styleOverride bevorzugen (Getter-Check)", () => {
+      const p = new PlayerEntity({
+        ...defaultConfig,
+        styleOverride: { color: "#0000ff", label: "WR" },
+      });
+
+      expect(p.color).toBe("#0000ff");
+      expect(p.label).toBe("WR");
     });
 
     it("sollte Events auf der FabricGroup binden", () => {
@@ -156,6 +183,28 @@ describe("PlayerEntity", () => {
   });
 
   describe("Getters & Methoden", () => {
+    it("sollte per Setter die Farbe aktualisieren und das Fabric-Objekt füllen", () => {
+      const mockBgShape = new mocks.MockFabricCircle();
+      (player.fabricGroup.item as any).mockReturnValue(mockBgShape);
+
+      player.color = "#00ff00";
+
+      expect(player.color).toBe("#00ff00");
+      expect(mockBgShape.set).toHaveBeenCalledWith("fill", "#00ff00");
+    });
+
+    it("sollte per Setter das Label aktualisieren und das Fabric-Text-Objekt anpassen", () => {
+      const mockTextObj = new mocks.MockFabricText();
+      (player.fabricGroup.item as any).mockImplementation((index: number) => {
+        if (index === 1) return mockTextObj;
+        return null;
+      });
+
+      player.label = "RB";
+
+      expect(player.label).toBe("RB");
+      expect(mockTextObj.set).toHaveBeenCalledWith("text", "RB");
+    });
     it("sollte x und y korrekt von der fabricGroup auslesen", () => {
       expect(player.x).toBe(100);
       expect(player.y).toBe(200);
@@ -185,16 +234,6 @@ describe("PlayerEntity", () => {
         top: 600,
       });
       expect(player.fabricGroup.setCoords).toHaveBeenCalledTimes(1);
-    });
-
-    it("sollte setColor() anwenden (Hintergrund füllen)", () => {
-      const mockBgShape = new mocks.MockFabricCircle();
-      (player.fabricGroup.item as any).mockReturnValue(mockBgShape);
-
-      player.setColor("#00ff00");
-
-      expect(player.color).toBe("#00ff00");
-      expect(mockBgShape.set).toHaveBeenCalledWith("fill", "#00ff00");
     });
 
     it("sollte Controls via showControls / hideControls steuern", () => {

@@ -1,11 +1,12 @@
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { DEFAULT_PRESETS } from "../hooks/useExportSettings";
-import type { PDFExportOptions } from "@/types/interface";
+import type { ExportPreset, PDFExportOptions } from "@/types/interface";
+import { SavePresetPopover } from "./SavePresetPopover";
 
 interface ExportSettingsFormProps {
   options: PDFExportOptions;
+  presets: ExportPreset[];
   selectedPresetId: string;
   onApplyPreset: (id: string) => void;
   onUpdateOption: <K extends keyof PDFExportOptions>(
@@ -17,6 +18,7 @@ interface ExportSettingsFormProps {
 
 export function ExportSettingsForm({
   options,
+  presets,
   selectedPresetId,
   onApplyPreset,
   onUpdateOption,
@@ -32,7 +34,7 @@ export function ExportSettingsForm({
           onChange={(e) => onApplyPreset(e.target.value)}
           className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
         >
-          {DEFAULT_PRESETS.map((p) => (
+          {presets.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -163,6 +165,7 @@ export function ExportSettingsForm({
             min={0}
           />
         </div>
+        <SavePresetPopover options={options} />
       </div>
       {/* 
       <Separator />

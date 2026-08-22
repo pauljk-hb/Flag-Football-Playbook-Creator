@@ -1,15 +1,17 @@
 import {
+  Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  Accordion,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { usePlaybook } from "@/hooks/usePlaybook";
+import { usePlaybookActions } from "@/hooks/usePlaybookActions";
 import { FORMATION_PRESETS } from "@playbook/core";
 
 export function FormationAccordionItem() {
   const { engine } = usePlaybook();
+  const { loadFormation } = usePlaybookActions();
   if (!engine) return null;
 
   const allSystemFormations = engine.getAllSystemFormations();
@@ -34,7 +36,7 @@ export function FormationAccordionItem() {
                       key={index}
                       variant="secondary"
                       className="w-full h-auto flex flex-col items-center justify-center p-2 gap-2 hover:bg-foreground/20"
-                      onClick={() => engine.loadFormation(formation)}
+                      onClick={() => loadFormation(formation)}
                     >
                       {/* 1. Das Base64-Vorschaubild */}
                       <img

@@ -1,12 +1,5 @@
 import type { SegmentType } from "./interfaces";
 
-export interface PlayerPreset {
-  id: string;
-  label: string;
-  color: string;
-  shape: "circle" | "square";
-}
-
 export interface RoutePreset {
   id: string;
   name: string;
@@ -18,15 +11,6 @@ export interface RoutePreset {
     cpInDy?: number;
   }[];
   breakDirection?: "inside" | "outside" | "straight";
-}
-
-export interface PlayerSpawnData {
-  presetId: string;
-  x: number;
-  y: number;
-  label: string;
-  color: string;
-  shape: "circle" | "square";
 }
 
 export interface FormationPreset {

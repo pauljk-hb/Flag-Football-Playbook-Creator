@@ -1,6 +1,6 @@
 import { api } from "@/api/client";
-import { useSession } from "@/lib/auth-client";
-import type { ExtendedUser, Play, Tag } from "@/types/interface";
+import { usePlaybookStore } from "@/hooks/useAppStore";
+import type { Play, Tag } from "@/types/interface";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,9 +8,8 @@ export type SortOption = "date-desc" | "date-asc" | "alpha-asc" | "alpha-desc";
 
 export function usePlaybookOverview() {
   const navigate = useNavigate();
-  const { data: session } = useSession();
+  const { activePlaybookId } = usePlaybookStore();
 
-  const [activePlaybookId, setActivePlaybookId] = useState<string | null>(null);
   const [plays, setPlays] = useState<Play[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
 
@@ -22,30 +21,20 @@ export function usePlaybookOverview() {
 
   useEffect(() => {
     async function initializeDashboard() {
+      if (!activePlaybookId) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const playbooks = await api.playbooks.getAll();
-
-        if (!playbooks || playbooks.length === 0) {
-          console.log("User hat keine Playbooks mehr.");
-          return;
-        }
-
-        const user = session?.user
-          ? (session.user as typeof session.user & ExtendedUser)
-          : undefined;
-
-        const currentPlaybookId = user?.lastPlaybookId || playbooks[0].id;
-
-        setActivePlaybookId(currentPlaybookId);
-
         const [playsData, tagsData] = await Promise.all([
-          api.plays.getAllByPlaybook(currentPlaybookId),
-          api.tags.getAllByPlaybook(currentPlaybookId),
+          api.plays.getAllByPlaybook(activePlaybookId),
+          api.tags.getAllByPlaybook(activePlaybookId),
         ]);
 
-        setPlays(playsData);
-        setTags(tagsData);
+        setPlays(playsData || []);
+        setTags(tagsData || []);
       } catch (error) {
         console.error("Fehler beim Laden der Plays:", error);
       } finally {

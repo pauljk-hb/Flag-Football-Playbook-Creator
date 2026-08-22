@@ -1,10 +1,11 @@
 import { PlaybookEngine } from "./engine/PlaybookEngine";
-import type { PlayerConfig } from "./entities/PlayerEntity";
 import type { PDFExportOptions } from "./types/export";
 import type {
   CoreNotification,
   PlaybookMode,
-  PlayExportData,
+  PlayerImportData,
+  PlayerStyle,
+  PlayImportData,
   ThumbnailOptions,
 } from "./types/interfaces";
 import type { RoutePreset } from "./types/presets";
@@ -57,7 +58,7 @@ export class PlaybookAPI {
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerConfig): void {
+  public addPlayer(config: PlayerImportData): void {
     this.engine.addPlayer(config);
   }
 
@@ -103,10 +104,11 @@ export class PlaybookAPI {
    */
   public loadFormation(
     formationId: string,
+    playerStyles: Record<string, PlayerStyle>,
     customX?: number,
     customY?: number,
   ): void {
-    this.engine.loadFormation(formationId, customX, customY);
+    this.engine.loadFormation(formationId, playerStyles, customX, customY);
   }
 
   /**
@@ -140,7 +142,7 @@ export class PlaybookAPI {
    * @param {PDFExportOptions} [options] Export-Optionen
    */
   public async exportToPDF(
-    plays: (PlayExportData & { title?: string })[],
+    plays: (PlayImportData & { title?: string })[],
     options: PDFExportOptions,
   ): Promise<Blob | null> {
     return this.engine.exportToPDF(plays, options);

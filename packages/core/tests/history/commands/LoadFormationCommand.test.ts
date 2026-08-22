@@ -6,7 +6,7 @@ import type { HistoryManager } from "@/history/HistoryManager";
 import type { CanvasManager } from "@/managers/CanvasManager";
 import type { NotificationManager } from "@/managers/NotificationManager";
 import type { PlayManager } from "@/managers/PlayManager";
-import type { PlayerSpawnData } from "@/types/presets";
+import type { PlayerImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/entities/PlayerEntity", () => {
@@ -15,17 +15,15 @@ vi.mock("@/entities/PlayerEntity", () => {
     onMoveComplete?: Function;
     x: number;
     y: number;
-    label: string;
-    color: string;
-    shape: string;
+    style: any;
+    styleOverride: any;
 
     constructor(config: any) {
-      this.id = `mock-player-${Math.random()}`;
+      this.id = config.id || `mock-player-${Math.random()}`;
       this.x = config.x;
       this.y = config.y;
-      this.label = config.label;
-      this.color = config.color;
-      this.shape = config.shape;
+      this.style = config.style;
+      this.styleOverride = config.styleOverride;
     }
   }
   return { PlayerEntity: MockPlayerEntity };
@@ -54,18 +52,48 @@ describe("LoadFormationCommand", () => {
   let mockCanvasManager: CanvasManager;
   let mockHistoryManager: HistoryManager;
   let mockNotificationManager: NotificationManager;
-  let spawnData: PlayerSpawnData[];
+  let spawnData: PlayerImportData[];
 
   let oldPlayer: PlayerEntity;
   let oldRoute: RouteEntity;
 
   beforeEach(() => {
     spawnData = [
-      { x: 10, y: 10, label: "QB", color: "#ff0000", shape: "circle" } as any,
-      { x: 20, y: 20, label: "WR", color: "#00ff00", shape: "square" } as any,
+      {
+        id: "p1",
+        x: 10,
+        y: 10,
+        style: {
+          label: "QB",
+          color: "#ff0000",
+          shape: "circle",
+          showLabel: true,
+        },
+      },
+      {
+        id: "p2",
+        x: 20,
+        y: 20,
+        style: {
+          label: "WR",
+          color: "#00ff00",
+          shape: "square",
+          showLabel: true,
+        },
+      },
     ];
 
-    oldPlayer = new PlayerEntity({ label: "OLD_QB" } as any);
+    oldPlayer = new PlayerEntity({
+      id: "old-p1",
+      x: 0,
+      y: 0,
+      style: {
+        label: "OLD_QB",
+        color: "#111",
+        shape: "circle",
+        showLabel: true,
+      },
+    });
     oldRoute = new RouteEntity({} as any);
 
     mockPlayManager = {

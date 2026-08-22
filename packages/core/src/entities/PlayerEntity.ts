@@ -1,3 +1,9 @@
+import type {
+  PlayerExportData,
+  PlayerImportData,
+  PlayerStyle,
+  PlayerStyleOverride,
+} from "@/types/interfaces.js";
 import * as fabric from "fabric";
 import { DEFAULT_LOS_Y } from "../data/presets/fields.js";
 import { CANVAS_SIZE } from "../managers/CanvasManager.js";
@@ -7,21 +13,12 @@ import {
 } from "../utils/geometry.js";
 import { BaseEntity } from "./BaseEntity.js";
 
-export interface PlayerConfig {
-  id?: string;
-  x: number;
-  y: number;
-  label: string;
-  color: string;
-  shape: "circle" | "square";
-}
-
 export class PlayerEntity extends BaseEntity {
   public fabricGroup: fabric.Group;
 
-  public label: string;
-  public color: string;
-  public shape: "circle" | "square";
+  private role: string;
+  private style: PlayerStyle;
+  private styleOverride: PlayerStyleOverride;
 
   public onMoveComplete?: (
     playerId: string,
@@ -34,19 +31,19 @@ export class PlayerEntity extends BaseEntity {
   private dragStartX: number = 0;
   private dragStartY: number = 0;
 
-  constructor(config: PlayerConfig) {
+  constructor(config: PlayerImportData) {
     super(config.id);
-    this.label = config.label;
-    this.color = config.color;
-    this.shape = config.shape;
+    this.role = config.role;
+    this.style = config.style;
+    this.styleOverride = config.styleOverride || {};
 
     let backgroundShape: fabric.Object;
 
-    if (config.shape === "square") {
+    if (config.style.shape === "square") {
       backgroundShape = new fabric.Rect({
         width: 32,
         height: 32,
-        fill: config.color,
+        fill: config.style.color,
         originX: "center",
         originY: "center",
         rx: 6,
@@ -55,13 +52,14 @@ export class PlayerEntity extends BaseEntity {
     } else {
       backgroundShape = new fabric.Circle({
         radius: 16,
-        fill: config.color,
+        fill: config.style.color,
         originX: "center",
         originY: "center",
       });
     }
 
-    const text = new fabric.Text(config.label, {
+    const labelText = config.style.showLabels !== false ? this.style.label : "";
+    const text = new fabric.Text(labelText, {
       fontSize: 14,
       fill: "#ffffff",
       fontWeight: "bold",
@@ -81,6 +79,30 @@ export class PlayerEntity extends BaseEntity {
 
     this.fabricGroup.set("id" as any, this.id);
     this.setupEvents();
+  }
+
+  public get color(): string {
+    return this.styleOverride.color ?? this.style.color;
+  }
+
+  public set color(newColor: string) {
+    this.style.color = newColor;
+    this.styleOverride.color = newColor;
+
+    const backgroundShape = this.fabricGroup.item(0);
+    backgroundShape.set("fill", newColor);
+  }
+
+  public get label(): string {
+    return this.styleOverride.label ?? this.style.label;
+  }
+
+  public set label(newLabel: string) {
+    this.style.label = newLabel;
+    this.styleOverride.label = newLabel;
+
+    const textObj = this.fabricGroup.item(1) as fabric.Text;
+    textObj.set("text", newLabel);
   }
 
   public get x(): number {
@@ -175,17 +197,6 @@ export class PlayerEntity extends BaseEntity {
   }
 
   /**
-   * Setzt eine neue Farbe.
-   */
-  public setColor(newColor: string): void {
-    this.color = newColor;
-    const circle = this.fabricGroup.item(0) as fabric.Circle;
-    if (circle) {
-      circle.set("fill", newColor);
-    }
-  }
-
-  /**
    * Wird aufgerufen, wenn das Objekt selektiert wird
    */
   public showControls(): void {
@@ -197,5 +208,25 @@ export class PlayerEntity extends BaseEntity {
   public hideControls(): void {
     const circle = this.fabricGroup.item(0) as fabric.Circle;
     circle.set("strokeWidth", 0);
+  }
+
+  public serialize(): PlayerExportData {
+    const currentX = this.fabricGroup
+      ? this.fabricGroup.left || this.x
+      : this.x;
+    const currentY = this.fabricGroup ? this.fabricGroup.top || this.y : this.y;
+
+    const exportData: PlayerExportData = {
+      id: this.id,
+      role: this.role,
+      x: currentX,
+      y: currentY,
+    };
+
+    if (this.styleOverride && Object.keys(this.styleOverride).length > 0) {
+      exportData.styleOverride = { ...this.styleOverride };
+    }
+
+    return exportData;
   }
 }
