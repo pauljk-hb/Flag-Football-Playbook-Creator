@@ -37,6 +37,7 @@ import {
 } from "../types/interfaces";
 import type { RoutePreset } from "../types/presets";
 import { FormationBuilder } from "../utils/FormationBuilder";
+import { constrainRouteToCanvas } from "../utils/geometry";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
@@ -598,6 +599,12 @@ export class PlaybookEngine {
     const existingRoute = this.playManager.getRouteByPlayerAndType(
       player.id,
       routeType,
+    );
+
+    nodes = constrainRouteToCanvas(
+      nodes,
+      CANVAS_SIZE.width,
+      CANVAS_SIZE.height,
     );
 
     const routeEntity = new RouteEntity({

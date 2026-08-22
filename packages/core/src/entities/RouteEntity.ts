@@ -1,7 +1,12 @@
 import * as fabric from "fabric";
+import { CANVAS_SIZE } from "../managers/CanvasManager";
 import type { RouteExportData, RouteNode } from "../types/interfaces";
 import { SegmentType } from "../types/interfaces";
-import { calculateArrowheadMetrics } from "../utils/geometry";
+import {
+  calculateArrowheadMetrics,
+  clampPoint,
+  constrainRouteToCanvas,
+} from "../utils/geometry";
 import { generateSvgPathString } from "../utils/PathUtils";
 import { BaseEntity } from "./BaseEntity";
 import {
@@ -133,6 +138,7 @@ export class RouteEntity extends BaseEntity {
     this.destroyAllHandles();
 
     const STRETCH_OFFSET_Y = -25;
+    const PADDING = 10;
 
     const controlsMap: { waypoint: WaypointHandle; stretch?: StretchHandle }[] =
       [];
@@ -184,8 +190,15 @@ export class RouteEntity extends BaseEntity {
             this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
           }
 
-          this.nodes[index].cpInX = newX;
-          this.nodes[index].cpInY = newY;
+          const clamped = clampPoint(
+            { x: newX, y: newY },
+            CANVAS_SIZE.width,
+            CANVAS_SIZE.height,
+            PADDING,
+          );
+
+          this.nodes[index].cpInX = clamped.x;
+          this.nodes[index].cpInY = clamped.y;
 
           this.updatePathVisuals();
           this.updateArrowPosition();
@@ -204,8 +217,20 @@ export class RouteEntity extends BaseEntity {
         if (!this.dragStartNodes)
           this.dragStartNodes = JSON.parse(JSON.stringify(this.nodes));
 
-        this.nodes[index].x = waypoint.circle.left ?? 0;
-        this.nodes[index].y = waypoint.circle.top ?? 0;
+        const clamped = clampPoint(
+          { x: waypoint.circle.left ?? 0, y: waypoint.circle.top ?? 0 },
+          CANVAS_SIZE.width,
+          CANVAS_SIZE.height,
+          PADDING,
+        );
+
+        waypoint.circle.set({
+          left: clamped.x,
+          top: clamped.y,
+        });
+
+        this.nodes[index].x = clamped.x;
+        this.nodes[index].y = clamped.y;
 
         if (stretchHandle) {
           stretchHandle.rect.set({
@@ -349,7 +374,12 @@ export class RouteEntity extends BaseEntity {
       if (node.cpOutY !== undefined) node.cpOutY += dy;
     });
 
-    this.updatePathVisuals();
+    ((this.nodes = constrainRouteToCanvas(
+      this.nodes,
+      CANVAS_SIZE.width,
+      CANVAS_SIZE.height,
+    )),
+      this.updatePathVisuals());
 
     if (this.handles.length > 0 && this.fabricPath.canvas) {
       this.initializeControls(this.fabricPath.canvas);
