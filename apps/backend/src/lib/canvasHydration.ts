@@ -20,6 +20,7 @@ export function hydrateCanvasData(canvasData: string | null, presets: any[]) {
       return canvasData;
 
     const presetMap = new Map(presets.map((p) => [p.playerId, p]));
+    const playerColorMap = new Map<string, string>();
 
     parsedData.players = parsedData.players.map((player: any) => {
       const typeId = player.role || "default";
@@ -29,8 +30,11 @@ export function hydrateCanvasData(canvasData: string | null, presets: any[]) {
       const globalStyle = presetMap.get(typeId) || {};
       const overrideStyle = player.styleOverride || {};
 
+      const finalColor =
+        overrideStyle.color ?? globalStyle.color ?? baseStyle.color;
+
       player.style = {
-        color: overrideStyle.color ?? globalStyle.color ?? baseStyle.color,
+        color: finalColor,
         shape: overrideStyle.shape ?? globalStyle.shape ?? baseStyle.shape,
         label:
           overrideStyle.label ?? globalStyle.label ?? baseStyle.label ?? typeId,
@@ -40,8 +44,23 @@ export function hydrateCanvasData(canvasData: string | null, presets: any[]) {
           baseStyle.showLabels,
       };
 
+      playerColorMap.set(player.id, finalColor);
+
       return player;
     });
+
+    if (parsedData.routes && Array.isArray(parsedData.routes)) {
+      parsedData.routes = parsedData.routes.map((route: any) => {
+        if (route.routeType === "default" || route.routeType === "option_1") {
+          const playerColor = playerColorMap.get(route.playerId);
+
+          if (playerColor) {
+            route.color = playerColor;
+          }
+        }
+        return route;
+      });
+    }
 
     return JSON.stringify(parsedData);
   } catch (error) {
