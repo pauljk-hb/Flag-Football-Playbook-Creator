@@ -2,7 +2,7 @@ import type { BaseEntity } from "@/entities/BaseEntity";
 import { PlayerEntity } from "@/entities/PlayerEntity";
 import { RouteEntity } from "@/entities/RouteEntity";
 import { PlayManager } from "@/managers/PlayManager";
-import { SegmentType, type PlayExportData } from "@/types/interfaces";
+import { SegmentType, type PlayImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/entities/PlayerEntity", () => {
@@ -165,16 +165,19 @@ describe("PlayManager", () => {
     });
 
     it("sollte neue Spieler und Routen aus den Export-Daten aufbauen und zurückgeben", () => {
-      const playData: PlayExportData = {
+      const playData: PlayImportData = {
         fieldPresetId: "CUSTOM_FIELD",
         players: [
           {
             id: "p1",
             x: 10,
             y: 10,
-            label: "QB",
-            color: "#f00",
-            shape: "circle",
+            style: {
+              label: "QB",
+              color: "#f00",
+              shape: "circle",
+              showLabel: true,
+            },
           },
         ],
         routes: [
@@ -227,7 +230,7 @@ describe("PlayManager", () => {
 
     it("sollte Deep-Copies der Nodes anlegen", () => {
       const originalNodes = [{ x: 50, y: 50, type: SegmentType.STRAIGHT }];
-      const playData: PlayExportData = {
+      const playData: PlayImportData = {
         fieldPresetId: "STANDARD",
         players: [],
         routes: [

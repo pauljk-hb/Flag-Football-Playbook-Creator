@@ -1,6 +1,10 @@
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth";
 import "dotenv/config";
+import {
+  ensureUserHasDefaults,
+  setupNewUserWorkspace,
+} from "../modules/userSetup/userSetup.service.js";
 import { prisma } from "./prisma.js";
 
 export const auth = betterAuth({
@@ -28,30 +32,29 @@ export const auth = betterAuth({
         required: false,
       },
     },
+    deleteUser: {
+      enabled: true,
+    },
   },
   databaseHooks: {
     user: {
       create: {
         after: async (user) => {
-          const firstPlaybook = await prisma.playbook.create({
-            data: {
-              userId: user.id,
-              name: "Mein erstes Playbook",
-              description: "Standard-Playbook (automatisch generiert)",
-              tags: {
-                create: [
-                  { name: "Short Yard", color: "#3b82f6" },
-                  { name: "Long Yard", color: "#22c55e" }, // Grün
-                  { name: "Redzone", color: "#ef4444" }, // Rot
-                ],
-              },
-            },
-          });
+          console.log(
+            `Neuer User registriert: ${user.id}. Richte Workspace ein...`,
+          );
+          await setupNewUserWorkspace(user.id);
+        },
+      },
+    },
+    session: {
+      create: {
+        after: async (session) => {
+          console.log(
+            `User ${session.userId} hat sich eingeloggt. Prüfe auf fehlende Updates...`,
+          );
 
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastPlaybookId: firstPlaybook.id },
-          });
+          await ensureUserHasDefaults(session.userId);
         },
       },
     },

@@ -6,7 +6,7 @@ import {
   ROUTE_PRESETS,
 } from "../data/presets";
 import { DEFAULT_LOS_Y } from "../data/presets/fields";
-import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
+import { PlayerEntity } from "../entities/PlayerEntity";
 import { RouteEntity } from "../entities/RouteEntity";
 import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
 import { AddRouteCommand } from "../history/commands/AddRouteCommand";
@@ -29,7 +29,9 @@ import {
   SegmentType,
   type CoreNotification,
   type PlaybookMode,
-  type PlayExportData,
+  type PlayerImportData,
+  type PlayerStyle,
+  type PlayImportData,
   type RouteNode,
   type ThumbnailOptions,
 } from "../types/interfaces";
@@ -140,7 +142,7 @@ export class PlaybookEngine {
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerConfig): void {
+  public addPlayer(config: PlayerImportData): void {
     const playerEntity = new PlayerEntity(config);
     const command = new AddPlayerCommand(
       playerEntity,
@@ -266,11 +268,13 @@ export class PlaybookEngine {
   /**
    * Fügt eine neue Route an den ausgewählten Spieler hinzu.
    * @param {string} [formationId] id einer gespeicherten Formation
+   * @param {Record<string, PlayerStyle>} [playerStyles] style der einzelnen spieler (kommt aus DB)
    * @param {number} [customX] ? setzt einen eigenen X-orgin Wert für Formation
    * @param {number} [customY] ? setzt einen eigenen Y-orgin Wert für Formation
    */
   public loadFormation(
     formationId: string,
+    playerStyles: Record<string, PlayerStyle>,
     customX?: number,
     customY?: number,
   ): void {
@@ -286,6 +290,7 @@ export class PlaybookEngine {
 
     const spawnData = FormationBuilder.build(
       formationId,
+      playerStyles,
       originX,
       originY,
       this.notificationManager,
@@ -330,7 +335,7 @@ export class PlaybookEngine {
    * @param {string} [jsonString] `string` eines Play Objektes
    */
   public loadPlay(data: string): void {
-    const playData = JSON.parse(data) as PlayExportData;
+    const playData = JSON.parse(data) as PlayImportData;
 
     this.historyManager.clear();
     this.currentFieldPresetId = playData.fieldPresetId;
@@ -413,7 +418,7 @@ export class PlaybookEngine {
    * @param {PDFExportOptions} [options] Export-Optionen
    */
   public async exportToPDF(
-    plays: (PlayExportData & { title?: string })[],
+    plays: (PlayImportData & { title?: string })[],
     options: PDFExportOptions,
   ): Promise<Blob | null> {
     if (!plays || plays.length === 0) {
