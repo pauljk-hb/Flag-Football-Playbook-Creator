@@ -185,3 +185,87 @@ export function clampPoint(
     y: Math.max(padding, Math.min(p.y, boundsHeight - padding)),
   };
 }
+
+/**
+ * Sammelt alle relevanten Punkte eines Nodes (inkl. Kontrollpunkte) für die Bounding Box.
+ */
+function extractPointsFromNodes(nodes: RouteNode[]): IPoint[] {
+  const points: IPoint[] = [];
+  for (const node of nodes) {
+    points.push({ x: node.x, y: node.y });
+    if (node.cpInX !== undefined && node.cpInY !== undefined) {
+      points.push({ x: node.cpInX, y: node.cpInY });
+    }
+    if (node.cpOutX !== undefined && node.cpOutY !== undefined) {
+      points.push({ x: node.cpOutX, y: node.cpOutY });
+    }
+  }
+  return points;
+}
+
+/**
+ * Prüft eine Route gegen die Canvas-Grenzen und staucht sie winkelgetreu,
+ * falls Punkte oder Bezier-Handles über das Padding hinausragen.
+ */
+export function constrainRouteToCanvas(
+  nodes: RouteNode[],
+  canvasWidth: number,
+  canvasHeight: number,
+  padding: number = 20,
+): RouteNode[] {
+  if (!nodes || nodes.length < 2) return nodes;
+
+  const minX = padding;
+  const maxX = canvasWidth - padding;
+  const minY = padding;
+  const maxY = canvasHeight - padding;
+
+  const box = calculateBoundingBox(extractPointsFromNodes(nodes));
+  const isOutOfBounds =
+    box.minX < minX || box.maxX > maxX || box.minY < minY || box.maxY > maxY;
+
+  if (!isOutOfBounds) return nodes;
+
+  const startX = nodes[0].x;
+  const startY = nodes[0].y;
+
+  let scaleX = 1.0;
+  let scaleY = 1.0;
+
+  if (box.minX < minX && startX !== box.minX) {
+    scaleX = Math.min(scaleX, (minX - startX) / (box.minX - startX));
+  }
+  if (box.maxX > maxX && startX !== box.maxX) {
+    scaleX = Math.min(scaleX, (maxX - startX) / (box.maxX - startX));
+  }
+
+  if (box.minY < minY && startY !== box.minY) {
+    scaleY = Math.min(scaleY, (minY - startY) / (box.minY - startY));
+  }
+  if (box.maxY > maxY && startY !== box.maxY) {
+    scaleY = Math.min(scaleY, (maxY - startY) / (box.maxY - startY));
+  }
+
+  scaleX = Math.max(0, scaleX);
+  scaleY = Math.max(0, scaleY);
+
+  return nodes.map((node) => {
+    const updatedNode: RouteNode = {
+      ...node,
+      x: startX + (node.x - startX) * scaleX,
+      y: startY + (node.y - startY) * scaleY,
+    };
+
+    if (node.cpInX !== undefined && node.cpInY !== undefined) {
+      updatedNode.cpInX = startX + (node.cpInX - startX) * scaleX;
+      updatedNode.cpInY = startY + (node.cpInY - startY) * scaleY;
+    }
+
+    if (node.cpOutX !== undefined && node.cpOutY !== undefined) {
+      updatedNode.cpOutX = startX + (node.cpOutX - startX) * scaleX;
+      updatedNode.cpOutY = startY + (node.cpOutY - startY) * scaleY;
+    }
+
+    return updatedNode;
+  });
+}
