@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ExportPresetService } from "./exportPreset.service";
+import { ExportPresetService } from "./exportPreset.service.js";
 
 export const ExportPresetController = {
   async getExportPresets(req: Request, res: Response) {

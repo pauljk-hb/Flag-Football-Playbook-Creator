@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/requireAuth";
-import { ExportPresetController } from "./exportPreset.controller";
+import { requireAuth } from "../../middleware/requireAuth.js";
+import { ExportPresetController } from "./exportPreset.controller.js";
 
 export const exportPresetRouter = Router();
 

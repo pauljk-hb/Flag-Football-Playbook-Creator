@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PlayerStylePresetService } from "./playerStylePreset.service";
+import { PlayerStylePresetService } from "./playerStylePreset.service.js";
 
 export const PlayerStylePresetController = {
   async getPresets(req: Request, res: Response) {

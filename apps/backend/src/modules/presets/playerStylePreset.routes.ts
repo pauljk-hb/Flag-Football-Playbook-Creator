@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/requireAuth";
-import { PlayerStylePresetController } from "./playerStylePreset.controller";
+import { requireAuth } from "../../middleware/requireAuth.js";
+import { PlayerStylePresetController } from "./playerStylePreset.controller.js";
 
 export const playerStylePresetRouter = Router();
 

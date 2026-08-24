@@ -2,8 +2,8 @@ import {
   DEFAULT_TAGS,
   getDefaultExportPresets,
   getDefaultPlayerStyles,
-} from "../../data/defaults";
-import { prisma } from "../../lib/prisma";
+} from "../../data/defaults.js";
+import { prisma } from "../../lib/prisma.js";
 
 export async function setupNewUserWorkspace(userId: string) {
   const firstPlaybook = await prisma.playbook.create({
