@@ -1,6 +1,7 @@
 import type { PlayerEntity } from "../../entities/PlayerEntity";
 import { RouteEntity } from "../../entities/RouteEntity";
 import type { CanvasManager } from "../../managers/CanvasManager";
+import { NotificationManager } from "../../managers/NotificationManager";
 import type { PlayManager } from "../../managers/PlayManager";
 import type { ICommand } from "../../types/history";
 
@@ -12,13 +13,20 @@ export class RemovePlayerCommand implements ICommand {
     private playerId: string,
     private playMngr: PlayManager,
     private canvasMngr: CanvasManager,
+    private notificationManager: NotificationManager,
   ) {
     this.player = this.playMngr.getEntity(this.playerId) as PlayerEntity;
     this.routes = this.playMngr.getAllRoutesFromPlayer(this.playerId);
   }
 
   execute(): void {
-    if (!this.player) return;
+    if (!this.player) {
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler ausgewählt!",
+      );
+      return;
+    }
 
     this.routes.forEach((route) => {
       route.destroyAllHandles();
@@ -31,7 +39,13 @@ export class RemovePlayerCommand implements ICommand {
   }
 
   undo(): void {
-    if (!this.player) return;
+    if (!this.player) {
+      this.notificationManager.sendFeedback(
+        "warning",
+        "Es ist kein Spieler ausgewählt!",
+      );
+      return;
+    }
 
     this.routes.forEach((route) => {
       route.initializeControls(this.canvasMngr.getRawCanvas());

@@ -80,6 +80,7 @@ export class CanvasManager {
 
   public clear(): void {
     this.canvas?.clear();
+    //this.canvas?.backgroundColor = "#F8FAFC";
   }
 
   public generateThumbnail(options: ThumbnailOptions): string {

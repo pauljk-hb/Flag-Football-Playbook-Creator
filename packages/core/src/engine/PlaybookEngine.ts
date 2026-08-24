@@ -1,3 +1,4 @@
+import type { PDFExportOptions } from "@/types/export";
 import { Line } from "fabric";
 import {
   FIELD_PRESETS,
@@ -5,7 +6,7 @@ import {
   ROUTE_PRESETS,
 } from "../data/presets";
 import { DEFAULT_LOS_Y } from "../data/presets/fields";
-import { PlayerEntity, type PlayerConfig } from "../entities/PlayerEntity";
+import { PlayerEntity } from "../entities/PlayerEntity";
 import { RouteEntity } from "../entities/RouteEntity";
 import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
 import { AddRouteCommand } from "../history/commands/AddRouteCommand";
@@ -18,6 +19,7 @@ import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
 import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
 import { HistoryManager } from "../history/HistoryManager";
 import { CANVAS_SIZE, CanvasManager } from "../managers/CanvasManager";
+import { ExportManager } from "../managers/ExportManager";
 import { FieldManager } from "../managers/FieldManager";
 import { NotificationManager } from "../managers/NotificationManager";
 import { PlayManager } from "../managers/PlayManager";
@@ -27,17 +29,21 @@ import {
   SegmentType,
   type CoreNotification,
   type PlaybookMode,
-  type PlayExportData,
+  type PlayerImportData,
+  type PlayerStyle,
+  type PlayImportData,
   type RouteNode,
   type ThumbnailOptions,
 } from "../types/interfaces";
 import type { RoutePreset } from "../types/presets";
 import { FormationBuilder } from "../utils/FormationBuilder";
+import { constrainRouteToCanvas } from "../utils/geometry";
 
 export class PlaybookEngine {
   private historyManager: HistoryManager;
   private playManager: PlayManager;
   private canvasManager: CanvasManager;
+  private exportManager: ExportManager;
   private selectionManager: SelectionManager;
   private fieldManager: FieldManager;
   private routeDrawingManager: RouteDrawingManager;
@@ -50,6 +56,7 @@ export class PlaybookEngine {
     this.canvasManager = new CanvasManager();
     this.notificationManager = new NotificationManager();
     this.fieldManager = new FieldManager(this.canvasManager);
+    this.exportManager = new ExportManager();
 
     this.playManager = new PlayManager(
       this.canvasManager,
@@ -135,7 +142,7 @@ export class PlaybookEngine {
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerConfig): void {
+  public addPlayer(config: PlayerImportData): void {
     const playerEntity = new PlayerEntity(config);
     const command = new AddPlayerCommand(
       playerEntity,
@@ -261,11 +268,13 @@ export class PlaybookEngine {
   /**
    * Fügt eine neue Route an den ausgewählten Spieler hinzu.
    * @param {string} [formationId] id einer gespeicherten Formation
+   * @param {Record<string, PlayerStyle>} [playerStyles] style der einzelnen spieler (kommt aus DB)
    * @param {number} [customX] ? setzt einen eigenen X-orgin Wert für Formation
    * @param {number} [customY] ? setzt einen eigenen Y-orgin Wert für Formation
    */
   public loadFormation(
     formationId: string,
+    playerStyles: Record<string, PlayerStyle>,
     customX?: number,
     customY?: number,
   ): void {
@@ -279,7 +288,13 @@ export class PlaybookEngine {
       originY = fieldConfig ? fieldConfig.anchor.y : 600;
     }
 
-    const spawnData = FormationBuilder.build(formationId, originX, originY);
+    const spawnData = FormationBuilder.build(
+      formationId,
+      playerStyles,
+      originX,
+      originY,
+      this.notificationManager,
+    );
 
     if (spawnData.length === 0) return;
 
@@ -320,30 +335,14 @@ export class PlaybookEngine {
    * @param {string} [jsonString] `string` eines Play Objektes
    */
   public loadPlay(data: string): void {
-    const playData = JSON.parse(data) as PlayExportData;
+    const playData = JSON.parse(data) as PlayImportData;
 
-    this.playManager.getAllEntities().forEach((entity) => {
-      this.canvasManager.removeEntity(entity);
-      if (entity instanceof RouteEntity) {
-        entity.destroyAllHandles();
-      }
-    });
-    this.playManager.clearPlay();
     this.historyManager.clear();
-
     this.currentFieldPresetId = playData.fieldPresetId;
-    this.fieldManager.drawField(this.currentFieldPresetId);
 
-    playData.players.forEach((pData) => {
-      const player = new PlayerEntity({
-        id: pData.id,
-        x: pData.x,
-        y: pData.y,
-        label: pData.label,
-        color: pData.color,
-        shape: pData.shape,
-      });
+    const { players, routes } = this.playManager.loadPlay(playData);
 
+    players.forEach((player) => {
       player.onMoveComplete = (playerId, startX, startY, endX, endY) => {
         const command = new MovePlayerCommand(
           playerId,
@@ -355,23 +354,11 @@ export class PlaybookEngine {
           this.canvasManager,
           this.notificationManager,
         );
-
         this.historyManager.execute(command);
       };
-
-      this.playManager.addEntity(player);
-      this.canvasManager.addEntity(player);
     });
 
-    playData.routes.forEach((rData) => {
-      const route = new RouteEntity({
-        id: rData.id,
-        playerId: rData.playerId,
-        routeType: rData.routeType,
-        color: rData.color,
-        nodes: JSON.parse(JSON.stringify(rData.nodes)),
-      });
-
+    routes.forEach((route) => {
       route.onNodesModified = (routeId, oldNodes, newNodes) => {
         const moveCommand = new MoveRouteCommand(
           routeId,
@@ -383,20 +370,7 @@ export class PlaybookEngine {
         );
         this.historyManager.execute(moveCommand);
       };
-
-      this.playManager.addEntity(route);
-      this.canvasManager.addEntity(route);
-
-      route.initializeControls(this.canvasManager.getRawCanvas());
     });
-
-    this.playManager.getAllEntities().forEach((entity) => {
-      if (entity instanceof PlayerEntity) {
-        this.canvasManager.bringObjectToFront(entity);
-      }
-    });
-
-    this.canvasManager.requestRender();
 
     this.notificationManager.sendFeedback(
       "success",
@@ -436,6 +410,39 @@ export class PlaybookEngine {
   public generateThumbnail(options: ThumbnailOptions = {}): string {
     this.selectionManager.hideAllRouteControls();
     return this.canvasManager.generateThumbnail(options);
+  }
+
+  /**
+   * Generiert ein PDF-Playbook im Hintergrund und gibt es als Download-Blob zurück.
+   * @param {PlayExportData & { title?: string }} [plays] Play Daten
+   * @param {PDFExportOptions} [options] Export-Optionen
+   */
+  public async exportToPDF(
+    plays: (PlayImportData & { title?: string })[],
+    options: PDFExportOptions,
+  ): Promise<Blob | null> {
+    if (!plays || plays.length === 0) {
+      this.notificationManager.sendFeedback(
+        "error",
+        "No plays provided for export.",
+      );
+      return null;
+    }
+
+    this.notificationManager.sendFeedback("info", "Generating PDF...");
+
+    try {
+      const pdfBlob = await this.exportManager.generatePDF(plays, options);
+      this.notificationManager.sendFeedback(
+        "success",
+        "PDF generated successfully!",
+      );
+      return pdfBlob;
+    } catch (error) {
+      console.error("PDF Export failed:", error);
+      this.notificationManager.sendFeedback("error", "Failed to generate PDF.");
+      return null;
+    }
   }
 
   public exportFormationThumbnail(): string {
@@ -576,6 +583,7 @@ export class PlaybookEngine {
       playerId,
       this.playManager,
       this.canvasManager,
+      this.notificationManager,
     );
     this.historyManager.execute(command);
   }
@@ -591,6 +599,12 @@ export class PlaybookEngine {
     const existingRoute = this.playManager.getRouteByPlayerAndType(
       player.id,
       routeType,
+    );
+
+    nodes = constrainRouteToCanvas(
+      nodes,
+      CANVAS_SIZE.width,
+      CANVAS_SIZE.height,
     );
 
     const routeEntity = new RouteEntity({
@@ -632,6 +646,7 @@ export class PlaybookEngine {
       routeID,
       this.playManager,
       this.canvasManager,
+      this.notificationManager,
     );
     this.historyManager.execute(command);
   }

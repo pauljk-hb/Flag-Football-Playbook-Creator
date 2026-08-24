@@ -36,3 +36,13 @@ export const useAppStore = create<AppState>()(
     },
   ),
 );
+
+interface PlaybookState {
+  activePlaybookId: string | null;
+  setActivePlaybookId: (id: string | null) => void;
+}
+
+export const usePlaybookStore = create<PlaybookState>((set) => ({
+  activePlaybookId: null,
+  setActivePlaybookId: (id) => set({ activePlaybookId: id }),
+}));

@@ -94,6 +94,7 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
         cpInDy: yards(10),
       },
     ],
+    breakDirection: "inside",
   },
   UNDER: {
     id: "UNDER",
@@ -107,6 +108,7 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
         cpInDy: yards(4),
       },
     ],
+    breakDirection: "inside",
   },
   WEEL: {
     id: "WEEL",
@@ -125,5 +127,6 @@ export const SYSTEM_ROUTES: Record<string, RoutePreset> = {
         type: SegmentType.STRAIGHT,
       },
     ],
+    breakDirection: "outside",
   },
 };

@@ -37,4 +37,25 @@
 
 ---
 
+### Export Presets (`/api/v1/presets/export`)
+
+| Methode    | Endpunkt                     | Beschreibung                                              | Request Body (JSON)                                                                                |
+| ---------- | ---------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **GET**    | `/api/v1/presets/export`     | Lädt alle gespeicherten Export-Presets des Users.         | -                                                                                                  |
+| **POST**   | `/api/v1/presets/export`     | Erstellt ein neues Export-Preset für den aktuellen User.  | `{ "name": "...", "pageWidth": 210, "pageHeight": 297, "columns": 2, "rows": 3, "margin": {...} }` |
+| **PUT**    | `/api/v1/presets/export/:id` | Aktualisiert die Einstellungen eines bestehenden Presets. | `{ "name"?: "...", "gap"?: 15, "showLabels"?: false }`                                             |
+| **DELETE** | `/api/v1/presets/export/:id` | Löscht das Export-Preset komplett.                        | -                                                                                                  |
+
+---
+
+### Player Style Presets (`/api/v1/presets/player-styles`)
+
+| Methode    | Endpunkt                        | Beschreibung                                                                                               | Request Body (JSON)                                                                                       |
+| ---------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **GET**    | `/.../playbook/:playbookId`     | Lädt alle globalen Player-Style-Presets, die für dieses Playbook gespeichert wurden.                       | -                                                                                                         |
+| **POST**   | `/.../playbook/:playbookId`     | **Upsert:** Erstellt ein neues Preset ODER überschreibt das bestehende für diesen Spielertyp (`playerId`). | `{ "playerId": "QB", "label": "Quarterback", "color": "#ef4444", "shape": "square", "showLabels": true }` |
+| **DELETE** | `/.../playbook/:playbookId/:id` | Löscht das Preset. _(Achtung: `:id` ist die Datenbank-UUID des Presets, **nicht** die `playerId`)_         | -                                                                                                         |
+
+---
+
 Alle Endpunkte setzen voraus, dass der User eingeloggt. Die User Funktionen werden von [Better Auth](https://better-auth.com/) genutzt und die Auth Routen sind generiert.

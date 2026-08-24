@@ -77,3 +77,86 @@ export interface ThumbnailOptions {
   quality?: number;
   width?: number;
 }
+
+export interface Margin {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface PDFExportOptions {
+  pageWidth: number;
+  pageHeight: number;
+  columns: number;
+  rows: number;
+  playbookTitle?: string;
+  margin: Margin;
+  gap: number;
+  routeStrokeWidth?: number;
+  showLabels?: boolean;
+  fontSize?: number;
+}
+
+export interface ExportPreset {
+  id: string;
+  name: string;
+  options: PDFExportOptions;
+}
+
+export interface CreateExportPresetDTO {
+  name: string;
+  pageWidth: number;
+  pageHeight: number;
+  columns: number;
+  rows: number;
+  margin: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  gap?: number;
+  showLabels?: boolean;
+  routeStrokeWidth?: number;
+  fontSize?: number;
+}
+
+export type UpdateExportPresetDTO = Partial<CreateExportPresetDTO>;
+
+export interface SelectedPlayItem {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnail: string;
+  data: string;
+
+  tags?: Tag[];
+}
+
+export interface PlayerStyle {
+  color: string;
+  label: string;
+  showLabels: boolean;
+  shape: "circle" | "square";
+}
+
+export interface PlayerStylePreset {
+  id: string;
+  playbookId: string;
+  playerId: string;
+  label: string;
+  color: string;
+  shape: "circle" | "square";
+  showLabels?: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertPlayerStylePresetDTO {
+  playerId: string;
+  label?: string;
+  color?: string;
+  shape?: "circle" | "square";
+  showLabels?: boolean;
+}

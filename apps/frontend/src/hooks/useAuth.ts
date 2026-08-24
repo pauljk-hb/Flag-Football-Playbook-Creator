@@ -1,4 +1,4 @@
-import { signIn, signOut, signUp } from "@/lib/auth-client";
+import { authClient, signIn, signOut, signUp } from "@/lib/auth-client";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -81,6 +81,30 @@ export function useAuth() {
     }
   };
 
+  const handleDeleteUser = async (password?: string) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const { error } = await authClient.deleteUser({
+        password: password || undefined,
+      } as any);
+
+      if (error) {
+        setErrorMessage(error.message || "Fehler beim Löschen des Kontos.");
+        return;
+      }
+
+      navigate("/login", { replace: true });
+    } catch (error: any) {
+      console.error("Fehler beim Löschen des Accounts:", error);
+      setErrorMessage(
+        error?.message || "Ein unerwarteter Fehler ist aufgetreten.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     name,
     setName,
@@ -97,5 +121,6 @@ export function useAuth() {
     handleEmailSignup,
     handleGoogleSignup,
     handleLogout,
+    handleDeleteUser,
   };
 }

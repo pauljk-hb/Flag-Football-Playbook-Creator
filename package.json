@@ -10,6 +10,7 @@
     "build": "npm run build -w @playbook/core && npm run build -w frontend && npm run build -w backend"
   },
   "devDependencies": {
-    "concurrently": "^9.2.4"
+    "concurrently": "^9.2.4",
+    "vitest": "^4.1.10"
   }
 }
