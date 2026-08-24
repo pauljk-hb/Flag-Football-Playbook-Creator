@@ -6,8 +6,6 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useThemeStore } from "@/hooks/useAppStore";
-import { useAuth } from "@/hooks/useAuth";
-import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { PlaystyleTab } from "./SettingsTabs/PlaystyleTab";
@@ -16,8 +14,6 @@ import { ProfileTab } from "./SettingsTabs/ProfileTab";
 export function SettingsDialog() {
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
-  const { data: session } = useSession();
-  const { handleLogout } = useAuth();
 
   const Kbd = ({ children }: { children: React.ReactNode }) => (
     <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
