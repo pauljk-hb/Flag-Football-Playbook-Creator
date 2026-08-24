@@ -60,6 +60,9 @@ export function SettingsDialog() {
         { keys: ["7"], description: "Corner" },
         { keys: ["8"], description: "Post" },
         { keys: ["9"], description: "Go" },
+        { keys: ["o"], description: "Over" },
+        { keys: ["u"], description: "Under" },
+        { keys: ["w"], description: "Weel" },
       ],
     },
   ];
