@@ -1,0 +1,1754 @@
+<svg version="1.1" baseProfile="full" width="13880.0" height="1527.0" viewBox="0 0 13880 1527" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events">
+<desc >#.interface: fill=lightblue
+#.enumeration: fill=lightgreen
+#.type: fill=lightgray
+
+[PlaybookAPI|-engine: PlaybookEngine|+init(): void;+dispose(): void;+handleResize(): void;+setMode(): void;+addPlayer(): void;+addRouteFromPreset(): void;+startDrawingRoute(): void;+stopDrawingRoute(): void;+deleteSelectedObject(): void;+loadFormation(): void;+changeFieldPreset(): void;+exportPlay(): string;+generateThumbnail(): string;+exportToPDF(): Promise&lt;Blob \| null&gt;;+loadPlay(): void;+getAllSystemFormations(): string\[\];+getAllSystemRoutes(): string\[\];+getAllSystemFields(): string\[\];+undo(): void;+redo(): void;+canUndo(): boolean;+canRedo(): boolean;+subscribeToHistoryChanges(): () =&gt; void;+subscribeToNotification(): () =&gt; void;+subscribeToDrawingMode(): () =&gt; void]
+[PlaybookEngine|-historyManager: HistoryManager;-playManager: PlayManager;-canvasManager: CanvasManager;-exportManager: ExportManager;-selectionManager: SelectionManager;-fieldManager: FieldManager;-routeDrawingManager: RouteDrawingManager;-notificationManager: NotificationManager;-currentFieldPresetId: string;-mode: PlaybookMode|+init(): void;+dispose(): void;+setMode(): void;+getMode(): PlaybookMode;+handleResize(): void;+addPlayer(): void;+addRouteFromPreset(): void;+startDrawingRoute(): void;+stopDrawingRoute(): void;+deleteSelectedObject(): void;+loadFormation(): void;+changeFieldPreset(): void;+exportPlay(): string;+loadPlay(): void;+getAllSystemRoutes(): string\[\];+getAllSystemFormations(): string\[\];+getAllSystemFields(): string\[\];+generateThumbnail(): string;+exportToPDF(): Promise&lt;Blob \| null&gt;;+exportFormationThumbnail(): string;+undo(): void;+redo(): void;+canUndo(): boolean;+canRedo(): boolean;+subscribeToHistoryChanges(): () =&gt; void;+onNotification(): () =&gt; void;+subscribeToDrawingMode(): () =&gt; void;-removePlayer(): void;-addRoute(): void;-deleteRoute(): void]
+[BaseEntity|+id: string|+abstract getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;\[\];+abstract setSelectable(): void;+abstract showControls(): void;+abstract hideControls(): void]
+[IEntity]&lt;:--[BaseEntity]
+[PlayerEntity|+fabricGroup: Group;-role: string;-style: PlayerStyle;-styleOverride: PlayerStyleOverride;+onMoveComplete?: ((playerId: string, startX: number, startY: number, endX: number, endY: number) =&gt; void);-dragStartX: number;-dragStartY: number|-setupEvents(): void;+getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;\[\];+setSelectable(): void;+setPosition(): void;+showControls(): void;+hideControls(): void;+serialize(): PlayerExportData]
+[BaseEntity]&lt;:-[PlayerEntity]
+[RouteEntity|+playerId: string;+routeType: string;+nodes: RouteNode\[\];+color: string;-fabricPath: Path&lt;Partial&lt;PathProps&gt;, SerializedPathProps, ObjectEvents&gt;;-arrowHead: Triangle&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;;-handles: IControlHandle\[\];+onNodesModified?: ((routeId: string, oldNodes: RouteNode\[\], newNodes: RouteNode\[\]) =&gt; void);-dragStartNodes: RouteNode\[\] \| null|-getPathStyleConfig(): any;+getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;\[\];+setSelectable(): void;+initializeControls(): void;-fireModifiedEvent(): void;+showControls(): void;+hideControls(): void;+destroyAllHandles(): void;-updatePathVisuals(): void;+translate(): void;+applyNodes(): void;-updateArrowPosition(): void;+serialize(): RouteExportData]
+[&lt;interface&gt;RouteConfig|+id?: string;+playerId: string;+routeType: string;+nodes: RouteNode\[\];+color: string|]
+[BaseEntity]&lt;:-[RouteEntity]
+[HistoryManager|-undoStack: ICommand\[\];-redoStack: ICommand\[\];-listeners: HistoryListener\[\]|+subscribe(): () =&gt; void;-notify(): void;+execute(): void;+undo(): void;+redo(): void;+clear(): void;+canUndo(): boolean;+canRedo(): boolean]
+[CanvasManager|-canvas: Canvas \| null;+LOGICAL_WIDTH: number;+LOGICAL_HEIGHT: number|+init(): Canvas;+dispose(): void;+handleResize(): void;+requestRender(): void;+getRawCanvas(): Canvas;+addEntity(): void;+removeEntity(): void;+addFabricObject(): void;+removeFabricObject(): void;+clear(): void;+generateThumbnail(): string;+sendToBack(): void;+bringObjectToFront(): void]
+[ExportManager||+generatePDF(): Promise&lt;Blob&gt;;-getOrientation(): &quot;landscape&quot; \| &quot;portrait&quot;;-calculateGridLayout(): GridLayout;-createHeadlessEnvironment(): HeadlessEnvironment;-renderHeader(): void;-generateCells(): PlayCell\[\];-renderTable(): void;-renderCell(): void]
+[FieldManager|-fieldObjects: FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;\[\];-currentPresetId: string;-canvasManager: CanvasManager|+getCurrentPresetId(): string;+drawField(): void;+clearField(): void]
+[NotificationManager|-listeners: ((notification: CoreNotification) =&gt; void)\[\]|+subscribe(): () =&gt; void;+sendFeedback(): void]
+[PlayManager|-entities: Map&lt;string, BaseEntity&gt;;-canvasManager: CanvasManager;-historyManager: HistoryManager;-fieldManager: FieldManager;-notificationManager: NotificationManager|+addEntity(): void;+removeEntity(): void;+getEntity(): T \| undefined;+getAllEntities(): BaseEntity\[\];+getAllRoutesFromPlayer(): RouteEntity\[\];+getRouteByPlayerAndType(): RouteEntity \| undefined;+clearPlay(): void;+exportPlay(): PlaySavePayload;+loadPlay(): { players: PlayerEntity\[\]; routes: RouteEntity\[\]; }]
+[RouteDrawingManager|-isDrawing: boolean;-activePlayer: PlayerEntity \| null;-routeType: string;-collectedNodes: RouteNode\[\];-previewPath: Path&lt;Partial&lt;PathProps&gt;, SerializedPathProps, ObjectEvents&gt; \| null;+onDrawingComplete?: ((player: PlayerEntity, nodes: RouteNode\[\], routeType: string) =&gt; void);-stateListeners: ((isDrawing: boolean) =&gt; void)\[\];-handleMouseMove: (options: any) =&gt; void;-handleMouseDown: (options: any) =&gt; void;-handleFinish: () =&gt; void;-handleKeyDown: (e: KeyboardEvent) =&gt; void;-canvasManager: CanvasManager;-selectionManager: SelectionManager|+onStateChange(): () =&gt; void;-notifyStateChange(): void;+startDrawing(): void;-bindEvents(): void;-unbindEvents(): void;-getPointer(): { x: number; y: number; } \| null;-updatePreviewPath(): void;+cancelDrawing(): void;-stopDrawing(): void;-toggleCanvasInteractions(): void]
+[SelectionManager|-canvasManager: CanvasManager;-playManager: PlayManager|+setupSelectionEvents(): void;+hideAllRouteControls(): void;+getSelectedObject(): BaseEntity \| null;+clearCurrentSelection(): void;+setInteractionsEnabled(): void]
+[&lt;interface&gt;IEntity|+id: string|+getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;\[\]]
+[&lt;interface&gt;PDFExportOptions|+pageWidth?: number;+pageHeight?: number;+columns?: number;+rows?: number;+playbookTitle?: string;+margin?: Margin;+gap?: number|]
+[&lt;interface&gt;Margin|+top: number;+bottom: number;+left: number;+right: number|]
+[&lt;interface&gt;GridLayout|+cellWidth: number;+cellHeight: number;+imgWidth: number;+imgHeight: number;+titleSpace: number;+headerHeight: number;+margin: Margin;+gap: number;+pageWidth: number;+pageHeight: number|]
+[&lt;interface&gt;HeadlessEnvironment|+canvasManager: CanvasManager;+playManager: PlayManager;+width: number;+height: number|]
+[&lt;interface&gt;PlayCell|+title: string;+imgData: string|]
+[&lt;interface&gt;ICommand||+execute(): void;+undo(): void]
+[&lt;interface&gt;SavedPoint|+x: number;+y: number|]
+[&lt;interface&gt;RouteNode|+x: number;+y: number;+type: SegmentType;+cpInX?: number;+cpInY?: number;+cpOutX?: number;+cpOutY?: number|]
+[&lt;interface&gt;PlayerStyleOverride|+color?: string;+label?: string;+showLabel?: boolean;+shape?: &quot;circle&quot; \| &quot;square&quot;|]
+[&lt;interface&gt;PlayerStyle|+color: string;+label: string;+showLabels: boolean;+shape: &quot;circle&quot; \| &quot;square&quot;|]
+[&lt;interface&gt;RouteExportData|+id: string;+playerId: string;+routeType: string;+color: string;+nodes: RouteNode\[\]|]
+[&lt;interface&gt;PlayerImportData|+id?: string;+role: string;+x: number;+y: number;+style: PlayerStyle;+styleOverride?: PlayerStyleOverride|]
+[&lt;interface&gt;PlayImportData|+fieldPresetId: string;+players: PlayerImportData\[\];+routes: RouteExportData\[\]|]
+[&lt;interface&gt;PlayerExportData|+id: string;+role: string;+x: number;+y: number;+styleOverride?: PlayerStyleOverride|]
+[&lt;interface&gt;PlaySavePayload|+fieldPresetId: string;+players: PlayerExportData\[\];+routes: RouteExportData\[\]|]
+[&lt;interface&gt;ThumbnailOptions|+format?: &quot;png&quot; \| &quot;jpeg&quot; \| &quot;webp&quot;;+quality?: number;+width?: number|]
+[&lt;interface&gt;CoreNotification|+level: LogLevel;+message: string;+messageKey?: string|]
+[&lt;enumeration&gt;SegmentType|STRAIGHT;CURVE]
+[&lt;interface&gt;IPoint|+x: number;+y: number|]
+[&lt;interface&gt;BoundingBox|+minX: number;+maxX: number;+minY: number;+maxY: number;+width: number;+height: number|]
+[&lt;interface&gt;PolylineMetrics|+width: number;+height: number;+pathOffset: IPoint;+dx: number;+dy: number|]
+[&lt;interface&gt;RoutePreset|+id: string;+name: string;+waypoints: { dx: number; dy: number; type: SegmentType; cpInDx?: number \| undefined; cpInDy?: number \| undefined; }\[\];+breakDirection?: &quot;inside&quot; \| &quot;outside&quot; \| &quot;straight&quot;|]
+[&lt;interface&gt;FormationPreset|+id: string;+name: string;+thumbnail?: string;+positions: FormationPosition\[\]|]
+[&lt;interface&gt;FormationPosition|+playerPresetId: string;+dx: number;+dy: number|]
+[&lt;interface&gt;FieldLineConfig|+yardsFromLos: number;+type: &quot;los&quot; \| &quot;yardline&quot; \| &quot;endzone&quot;|]
+[&lt;interface&gt;FieldPreset|+id: string;+name: string;+lines: FieldLineConfig\[\];+anchor: { x: number; y: number; }|]
+[FormationBuilder||+static build(): PlayerImportData\[\]]
+[WaypointHandle|+circle: Circle&lt;Partial&lt;CircleProps&gt;, SerializedCircleProps, ObjectEvents&gt;;+onMoved?: ((x: number, y: number) =&gt; void);+onMoveComplete?: (() =&gt; void);-bezierHandles: BezierHandle\[\];-canvas: Canvas|+attachBezier(): void;-setupEvents(): void;+show(): void;+hide(): void;+destroy(): void]
+[BezierHandle|+controlPoint: Circle&lt;Partial&lt;CircleProps&gt;, SerializedCircleProps, ObjectEvents&gt;;-tetherLine: Line&lt;Partial&lt;FabricObjectProps&gt;, SerializedLineProps, ObjectEvents&gt;;+onMoved?: ((x: number, y: number) =&gt; void);+onMoveComplete?: (() =&gt; void);-canvas: Canvas|-setupEvents(): void;+updateAnchorPosition(): void;+show(): void;+hide(): void;+destroy(): void]
+[StretchHandle|+rect: Triangle&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;;+onMoved?: ((x: number, y: number) =&gt; void);+onMoveComplete?: (() =&gt; void);-canvas: Canvas|-setupEvents(): void;+show(): void;+hide(): void;+destroy(): void]
+[&lt;interface&gt;IControlHandle|+onMoved?: ((newX: number, newY: number) =&gt; void);+onMoveComplete?: (() =&gt; void)|+show(): void;+hide(): void;+destroy(): void]
+[IControlHandle]&lt;:--[WaypointHandle]
+[IControlHandle]&lt;:--[BezierHandle]
+[IControlHandle]&lt;:--[StretchHandle]
+[AddPlayerCommand|-playerEntity: PlayerEntity;-canvasMngr: CanvasManager;-playMngr: PlayManager|+execute(): void;+undo(): void]
+[ICommand]&lt;:--[AddPlayerCommand]
+[AddRouteCommand|-player: PlayerEntity;-newRouteEntity: RouteEntity;-playManager: PlayManager;-canvasManager: CanvasManager;-oldRouteEntity: RouteEntity \| null|+execute(): void;+undo(): void]
+[ICommand]&lt;:--[AddRouteCommand]
+[LoadFormationCommand|-previousPlayers: PlayerEntity\[\];-newPlayers: PlayerEntity\[\];-spawnData: PlayerImportData\[\];-playManager: PlayManager;-canvasManager: CanvasManager;-historyManager: HistoryManager;-notificationManager: NotificationManager|+execute(): void;+undo(): void]
+[ICommand]&lt;:--[LoadFormationCommand]
+[MovePlayerCommand|-dx: number;-dy: number;-playerId: string;-startX: number;-startY: number;-endX: number;-endY: number;-playMngr: PlayManager;-canvasMngr: CanvasManager;-notificationManager: NotificationManager|+execute(): void;+undo(): void]
+[MoveRouteCommand|-oldNodes: RouteNode\[\];-newNodes: RouteNode\[\];-routeId: string;-playMngr: PlayManager;-canvasMngr: CanvasManager;-notificationManager: NotificationManager|+execute(): void;+undo(): void]
+[ICommand]&lt;:--[MovePlayerCommand]
+[ICommand]&lt;:--[MoveRouteCommand]
+[RemovePlayerCommand|-player: PlayerEntity;-routes: RouteEntity\[\];-playerId: string;-playMngr: PlayManager;-canvasMngr: CanvasManager;-notificationManager: NotificationManager|+execute(): void;+undo(): void]
+[ICommand]&lt;:--[RemovePlayerCommand]
+[RemoveRouteCommand|-route: RouteEntity;-player: PlayerEntity;-routeId: string;-playMngr: PlayManager;-canvasMngr: CanvasManager;-notificationManager: NotificationManager|+execute(): void;+undo(): void]
+[ICommand]&lt;:--[RemoveRouteCommand]</desc>
+<g stroke-width="1.0" text-align="left" font="12pt Helvetica, Arial, sans-serif" font-size="12pt" font-family="Helvetica" font-weight="normal" font-style="normal">
+<g font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" stroke-width="3.0" stroke-linejoin="round" stroke-linecap="round" stroke="#33322E">
+<g stroke="transparent" fill="transparent">
+<rect x="0.0" y="0.0" height="1527.0" width="13880.0" stroke="none"></rect>
+</g>
+<g transform="translate(8, 8)" fill="#33322E">
+<g transform="translate(20, 20)" fill="#eee8d5" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal">
+<g stroke-dasharray="6 6">
+<path d="M1228.0 417.3 L1228 732 L1228 808.5 L1228.0 808.5 " fill="none"></path>
+</g>
+<path d="M1233.3 417.3 L1228.0 417.3 L1222.7 417.3 L1228.0 404.0 Z"></path>
+<path d="M997.5 957.7 L780.25 1030 L780.25 1115.5 L780.3 1115.5 " fill="none"></path>
+<path d="M999.2 962.8 L997.5 957.7 L995.8 952.6 L1010.1 953.5 Z"></path>
+<path d="M1458.5 957.7 L1675.75 1030 L1675.75 1050 L1675.8 1050.0 " fill="none"></path>
+<path d="M1460.2 952.6 L1458.5 957.7 L1456.8 962.8 L1445.9 953.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7024.8 385.8 L4301.5 732 L4301.5 768 L4301.5 768.0 " fill="none"></path>
+</g>
+<path d="M7025.4 391.1 L7024.8 385.8 L7024.1 380.5 L7038.0 384.1 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7136.2 435.8 L6680 732 L6680 768 L6680.0 768.0 " fill="none"></path>
+</g>
+<path d="M7139.1 440.2 L7136.2 435.8 L7133.3 431.3 L7147.4 428.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7493.1 397.4 L9385.5 732 L9385.5 784 L9385.5 784.0 " fill="none"></path>
+</g>
+<path d="M7494.1 392.1 L7493.1 397.4 L7492.2 402.6 L7480.0 395.1 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M12986.8 366.1 L9888 732 L9888 808.5 L9888.0 808.5 " fill="none"></path>
+</g>
+<path d="M12987.4 371.4 L12986.8 366.1 L12986.1 360.8 L13000.0 364.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M12986.8 367.2 L10202 732 L10202 792.5 L10202.0 792.5 " fill="none"></path>
+</g>
+<path d="M12987.5 372.5 L12986.8 367.2 L12986.1 361.9 L13000.0 365.4 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M12986.8 368.7 L10559.5 732 L10559.5 776.5 L10559.5 776.5 " fill="none"></path>
+</g>
+<path d="M12987.6 374.0 L12986.8 368.7 L12986.0 363.5 L13000.0 366.8 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M12993.1 407.3 L12493 732 L12493 752 L12493.0 752.0 " fill="none"></path>
+</g>
+<path d="M12996.0 411.7 L12993.1 407.3 L12990.2 402.8 L13004.2 400.0 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M13043.3 411.9 L12879 732 L12879 784.5 L12879.0 784.5 " fill="none"></path>
+</g>
+<path d="M13048.1 414.3 L13043.3 411.9 L13038.6 409.4 L13049.4 400.0 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M13100.7 411.9 L13265 732 L13265 784.5 L13265.0 784.5 " fill="none"></path>
+</g>
+<path d="M13105.4 409.4 L13100.7 411.9 L13095.9 414.3 L13094.6 400.0 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M13150.9 407.3 L13651 732 L13651 784.5 L13651.0 784.5 " fill="none"></path>
+</g>
+<path d="M13153.8 402.8 L13150.9 407.3 L13148.0 411.7 L13139.8 400.0 Z"></path>
+<g data-name="PlaybookAPI">
+<g fill="#eee8d5" stroke="#33322E" data-name="PlaybookAPI">
+<rect x="0.0" y="113.5" height="485.0" width="346.0" data-name="PlaybookAPI"></rect>
+<path d="M0.0 145.5 L346.0 145.5" fill="none" data-name="PlaybookAPI"></path>
+<path d="M0.0 177.5 L346.0 177.5" fill="none" data-name="PlaybookAPI"></path>
+</g>
+<g transform="translate(0, 113.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="PlaybookAPI" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlaybookAPI" data-compartment="0">
+<a id="src\PlaybookAPI.ts.PlaybookAPI" xlink:href="src\PlaybookAPI.ts"><text x="165.0" y="14.1" stroke="none" text-anchor="middle" data-name="PlaybookAPI" data-compartment="0">PlaybookAPI</text></a>
+
+</g>
+</g>
+<g transform="translate(0, 145.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaybookAPI" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlaybookAPI" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlaybookAPI" data-compartment="1">-engine: PlaybookEngine</text>
+
+</g>
+</g>
+<g transform="translate(0, 177.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaybookAPI" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlaybookAPI" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="PlaybookAPI" data-compartment="2">+init(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlaybookAPI" data-compartment="2">+dispose(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlaybookAPI" data-compartment="2">+handleResize(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlaybookAPI" data-compartment="2">+setMode(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlaybookAPI" data-compartment="2">+addPlayer(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlaybookAPI" data-compartment="2">+addRouteFromPreset(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PlaybookAPI" data-compartment="2">+startDrawingRoute(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="PlaybookAPI" data-compartment="2">+stopDrawingRoute(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="PlaybookAPI" data-compartment="2">+deleteSelectedObject(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="PlaybookAPI" data-compartment="2">+loadFormation(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="PlaybookAPI" data-compartment="2">+changeFieldPreset(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="PlaybookAPI" data-compartment="2">+exportPlay(): string</text>
+<text x="0.0" y="208.5" stroke="none" data-name="PlaybookAPI" data-compartment="2">+generateThumbnail(): string</text>
+<text x="0.0" y="224.7" stroke="none" data-name="PlaybookAPI" data-compartment="2">+exportToPDF(): Promise&lt;Blob | null&gt;</text>
+<text x="0.0" y="240.9" stroke="none" data-name="PlaybookAPI" data-compartment="2">+loadPlay(): void</text>
+<text x="0.0" y="257.1" stroke="none" data-name="PlaybookAPI" data-compartment="2">+getAllSystemFormations(): string[]</text>
+<text x="0.0" y="273.3" stroke="none" data-name="PlaybookAPI" data-compartment="2">+getAllSystemRoutes(): string[]</text>
+<text x="0.0" y="289.5" stroke="none" data-name="PlaybookAPI" data-compartment="2">+getAllSystemFields(): string[]</text>
+<text x="0.0" y="305.7" stroke="none" data-name="PlaybookAPI" data-compartment="2">+undo(): void</text>
+<text x="0.0" y="321.9" stroke="none" data-name="PlaybookAPI" data-compartment="2">+redo(): void</text>
+<text x="0.0" y="338.1" stroke="none" data-name="PlaybookAPI" data-compartment="2">+canUndo(): boolean</text>
+<text x="0.0" y="354.3" stroke="none" data-name="PlaybookAPI" data-compartment="2">+canRedo(): boolean</text>
+<text x="0.0" y="370.5" stroke="none" data-name="PlaybookAPI" data-compartment="2">+subscribeToHistoryChanges(): () =&gt; void</text>
+<text x="0.0" y="386.7" stroke="none" data-name="PlaybookAPI" data-compartment="2">+subscribeToNotification(): () =&gt; void</text>
+<text x="0.0" y="402.9" stroke="none" data-name="PlaybookAPI" data-compartment="2">+subscribeToDrawingMode(): () =&gt; void</text>
+
+</g>
+</g>
+</g>
+<g data-name="PlaybookEngine">
+<g fill="#eee8d5" stroke="#33322E" data-name="PlaybookEngine">
+<rect x="386.0" y="0.0" height="712.0" width="388.0" data-name="PlaybookEngine"></rect>
+<path d="M386.0 32.0 L774.0 32.0" fill="none" data-name="PlaybookEngine"></path>
+<path d="M386.0 210.0 L774.0 210.0" fill="none" data-name="PlaybookEngine"></path>
+</g>
+<g transform="translate(386, 0)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="PlaybookEngine" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlaybookEngine" data-compartment="0">
+<a id="src\engine\PlaybookEngine.ts.PlaybookEngine" xlink:href="src\engine\PlaybookEngine.ts"><text x="186.0" y="14.1" stroke="none" text-anchor="middle" data-name="PlaybookEngine" data-compartment="0">PlaybookEngine</text></a>
+
+</g>
+</g>
+<g transform="translate(386, 32)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaybookEngine" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlaybookEngine" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlaybookEngine" data-compartment="1">-historyManager: HistoryManager</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlaybookEngine" data-compartment="1">-playManager: PlayManager</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlaybookEngine" data-compartment="1">-canvasManager: CanvasManager</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlaybookEngine" data-compartment="1">-exportManager: ExportManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlaybookEngine" data-compartment="1">-selectionManager: SelectionManager</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlaybookEngine" data-compartment="1">-fieldManager: FieldManager</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PlaybookEngine" data-compartment="1">-routeDrawingManager: RouteDrawingManager</text>
+<text x="0.0" y="127.5" stroke="none" data-name="PlaybookEngine" data-compartment="1">-notificationManager: NotificationManager</text>
+<text x="0.0" y="143.7" stroke="none" data-name="PlaybookEngine" data-compartment="1">-currentFieldPresetId: string</text>
+<text x="0.0" y="159.9" stroke="none" data-name="PlaybookEngine" data-compartment="1">-mode: PlaybookMode</text>
+
+</g>
+</g>
+<g transform="translate(386, 210)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaybookEngine" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlaybookEngine" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="PlaybookEngine" data-compartment="2">+init(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlaybookEngine" data-compartment="2">+dispose(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlaybookEngine" data-compartment="2">+setMode(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlaybookEngine" data-compartment="2">+getMode(): PlaybookMode</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlaybookEngine" data-compartment="2">+handleResize(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlaybookEngine" data-compartment="2">+addPlayer(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PlaybookEngine" data-compartment="2">+addRouteFromPreset(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="PlaybookEngine" data-compartment="2">+startDrawingRoute(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="PlaybookEngine" data-compartment="2">+stopDrawingRoute(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="PlaybookEngine" data-compartment="2">+deleteSelectedObject(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="PlaybookEngine" data-compartment="2">+loadFormation(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="PlaybookEngine" data-compartment="2">+changeFieldPreset(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="PlaybookEngine" data-compartment="2">+exportPlay(): string</text>
+<text x="0.0" y="224.7" stroke="none" data-name="PlaybookEngine" data-compartment="2">+loadPlay(): void</text>
+<text x="0.0" y="240.9" stroke="none" data-name="PlaybookEngine" data-compartment="2">+getAllSystemRoutes(): string[]</text>
+<text x="0.0" y="257.1" stroke="none" data-name="PlaybookEngine" data-compartment="2">+getAllSystemFormations(): string[]</text>
+<text x="0.0" y="273.3" stroke="none" data-name="PlaybookEngine" data-compartment="2">+getAllSystemFields(): string[]</text>
+<text x="0.0" y="289.5" stroke="none" data-name="PlaybookEngine" data-compartment="2">+generateThumbnail(): string</text>
+<text x="0.0" y="305.7" stroke="none" data-name="PlaybookEngine" data-compartment="2">+exportToPDF(): Promise&lt;Blob | null&gt;</text>
+<text x="0.0" y="321.9" stroke="none" data-name="PlaybookEngine" data-compartment="2">+exportFormationThumbnail(): string</text>
+<text x="0.0" y="338.1" stroke="none" data-name="PlaybookEngine" data-compartment="2">+undo(): void</text>
+<text x="0.0" y="354.3" stroke="none" data-name="PlaybookEngine" data-compartment="2">+redo(): void</text>
+<text x="0.0" y="370.5" stroke="none" data-name="PlaybookEngine" data-compartment="2">+canUndo(): boolean</text>
+<text x="0.0" y="386.7" stroke="none" data-name="PlaybookEngine" data-compartment="2">+canRedo(): boolean</text>
+<text x="0.0" y="402.9" stroke="none" data-name="PlaybookEngine" data-compartment="2">+subscribeToHistoryChanges(): () =&gt; void</text>
+<text x="0.0" y="419.1" stroke="none" data-name="PlaybookEngine" data-compartment="2">+onNotification(): () =&gt; void</text>
+<text x="0.0" y="435.3" stroke="none" data-name="PlaybookEngine" data-compartment="2">+subscribeToDrawingMode(): () =&gt; void</text>
+<text x="0.0" y="451.5" stroke="none" data-name="PlaybookEngine" data-compartment="2">-removePlayer(): void</text>
+<text x="0.0" y="467.7" stroke="none" data-name="PlaybookEngine" data-compartment="2">-addRoute(): void</text>
+<text x="0.0" y="483.9" stroke="none" data-name="PlaybookEngine" data-compartment="2">-deleteRoute(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="BaseEntity">
+<g fill="#eee8d5" stroke="#33322E" data-name="BaseEntity">
+<rect x="779.5" y="808.5" height="145.0" width="897.0" data-name="BaseEntity"></rect>
+<path d="M779.5 840.5 L1676.5 840.5" fill="none" data-name="BaseEntity"></path>
+<path d="M779.5 872.5 L1676.5 872.5" fill="none" data-name="BaseEntity"></path>
+</g>
+<g transform="translate(779.5, 808.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="BaseEntity" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="BaseEntity" data-compartment="0">
+<a id="src\entities\BaseEntity.ts.BaseEntity" xlink:href="src\entities\BaseEntity.ts"><text x="440.5" y="14.1" stroke="none" text-anchor="middle" data-name="BaseEntity" data-compartment="0">BaseEntity</text></a>
+
+</g>
+</g>
+<g transform="translate(779.5, 840.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BaseEntity" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="BaseEntity" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="BaseEntity" data-compartment="1">+id: string</text>
+
+</g>
+</g>
+<g transform="translate(779.5, 872.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BaseEntity" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="BaseEntity" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="BaseEntity" data-compartment="2">+abstract getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;[]</text>
+<text x="0.0" y="30.3" stroke="none" data-name="BaseEntity" data-compartment="2">+abstract setSelectable(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="BaseEntity" data-compartment="2">+abstract showControls(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="BaseEntity" data-compartment="2">+abstract hideControls(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="IEntity">
+<g fill="lightblue" stroke="#33322E" data-name="IEntity">
+<rect x="814.0" y="308.0" height="96.0" width="828.0" data-name="IEntity"></rect>
+<path d="M814.0 340.0 L1642.0 340.0" fill="none" data-name="IEntity"></path>
+<path d="M814.0 372.0 L1642.0 372.0" fill="none" data-name="IEntity"></path>
+</g>
+<g transform="translate(814, 308)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IEntity" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IEntity" data-compartment="0">
+<a id="src\types\entities.ts.IEntity" xlink:href="src\types\entities.ts"><text x="406.0" y="14.1" stroke="none" text-anchor="middle" data-name="IEntity" data-compartment="0">IEntity</text></a>
+
+</g>
+</g>
+<g transform="translate(814, 340)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IEntity" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IEntity" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="IEntity" data-compartment="1">+id: string</text>
+
+</g>
+</g>
+<g transform="translate(814, 372)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IEntity" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IEntity" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="IEntity" data-compartment="2">+getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;[]</text>
+
+</g>
+</g>
+</g>
+<g data-name="PlayerEntity">
+<g fill="#eee8d5" stroke="#33322E" data-name="PlayerEntity">
+<rect x="338.8" y="1115.5" height="290.0" width="883.0" data-name="PlayerEntity"></rect>
+<path d="M338.8 1147.5 L1221.8 1147.5" fill="none" data-name="PlayerEntity"></path>
+<path d="M338.8 1276.5 L1221.8 1276.5" fill="none" data-name="PlayerEntity"></path>
+</g>
+<g transform="translate(338.75, 1115.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="PlayerEntity" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayerEntity" data-compartment="0">
+<a id="src\entities\PlayerEntity.ts.PlayerEntity" xlink:href="src\entities\PlayerEntity.ts"><text x="433.5" y="14.1" stroke="none" text-anchor="middle" data-name="PlayerEntity" data-compartment="0">PlayerEntity</text></a>
+
+</g>
+</g>
+<g transform="translate(338.75, 1147.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerEntity" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayerEntity" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayerEntity" data-compartment="1">+fabricGroup: Group</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayerEntity" data-compartment="1">-role: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayerEntity" data-compartment="1">-style: PlayerStyle</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayerEntity" data-compartment="1">-styleOverride: PlayerStyleOverride</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlayerEntity" data-compartment="1">+onMoveComplete?: ((playerId: string, startX: number, startY: number, endX: number, endY: number) =&gt; void)</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlayerEntity" data-compartment="1">-dragStartX: number</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PlayerEntity" data-compartment="1">-dragStartY: number</text>
+
+</g>
+</g>
+<g transform="translate(338.75, 1276.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerEntity" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayerEntity" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayerEntity" data-compartment="2">-setupEvents(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayerEntity" data-compartment="2">+getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayerEntity" data-compartment="2">+setSelectable(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayerEntity" data-compartment="2">+setPosition(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlayerEntity" data-compartment="2">+showControls(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlayerEntity" data-compartment="2">+hideControls(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PlayerEntity" data-compartment="2">+serialize(): PlayerExportData</text>
+
+</g>
+</g>
+</g>
+<g data-name="RouteEntity">
+<g fill="#eee8d5" stroke="#33322E" data-name="RouteEntity">
+<rect x="1261.8" y="1050.0" height="421.0" width="828.0" data-name="RouteEntity"></rect>
+<path d="M1261.8 1082.0 L2089.8 1082.0" fill="none" data-name="RouteEntity"></path>
+<path d="M1261.8 1244.0 L2089.8 1244.0" fill="none" data-name="RouteEntity"></path>
+</g>
+<g transform="translate(1261.75, 1050)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="RouteEntity" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteEntity" data-compartment="0">
+<a id="src\entities\RouteEntity.ts.RouteEntity" xlink:href="src\entities\RouteEntity.ts"><text x="406.0" y="14.1" stroke="none" text-anchor="middle" data-name="RouteEntity" data-compartment="0">RouteEntity</text></a>
+
+</g>
+</g>
+<g transform="translate(1261.75, 1082)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteEntity" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteEntity" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteEntity" data-compartment="1">+playerId: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteEntity" data-compartment="1">+routeType: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteEntity" data-compartment="1">+nodes: RouteNode[]</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteEntity" data-compartment="1">+color: string</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteEntity" data-compartment="1">-fabricPath: Path&lt;Partial&lt;PathProps&gt;, SerializedPathProps, ObjectEvents&gt;</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteEntity" data-compartment="1">-arrowHead: Triangle&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteEntity" data-compartment="1">-handles: IControlHandle[]</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RouteEntity" data-compartment="1">+onNodesModified?: ((routeId: string, oldNodes: RouteNode[], newNodes: RouteNode[]) =&gt; void)</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RouteEntity" data-compartment="1">-dragStartNodes: RouteNode[] | null</text>
+
+</g>
+</g>
+<g transform="translate(1261.75, 1244)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteEntity" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteEntity" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteEntity" data-compartment="2">-getPathStyleConfig(): any</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteEntity" data-compartment="2">+getFabricObjects(): FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteEntity" data-compartment="2">+setSelectable(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteEntity" data-compartment="2">+initializeControls(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteEntity" data-compartment="2">-fireModifiedEvent(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteEntity" data-compartment="2">+showControls(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteEntity" data-compartment="2">+hideControls(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RouteEntity" data-compartment="2">+destroyAllHandles(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RouteEntity" data-compartment="2">-updatePathVisuals(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="RouteEntity" data-compartment="2">+translate(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="RouteEntity" data-compartment="2">+applyNodes(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="RouteEntity" data-compartment="2">-updateArrowPosition(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="RouteEntity" data-compartment="2">+serialize(): RouteExportData</text>
+
+</g>
+</g>
+</g>
+<g data-name="RouteConfig">
+<g fill="lightblue" stroke="#33322E" data-name="RouteConfig">
+<rect x="1682.0" y="287.5" height="137.0" width="184.0" data-name="RouteConfig"></rect>
+<path d="M1682.0 319.5 L1866.0 319.5" fill="none" data-name="RouteConfig"></path>
+<path d="M1682.0 416.5 L1866.0 416.5" fill="none" data-name="RouteConfig"></path>
+</g>
+<g transform="translate(1682, 287.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteConfig" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteConfig" data-compartment="0">
+<a id="src\entities\RouteEntity.ts.RouteConfig" xlink:href="src\entities\RouteEntity.ts"><text x="84.0" y="14.1" stroke="none" text-anchor="middle" data-name="RouteConfig" data-compartment="0">RouteConfig</text></a>
+
+</g>
+</g>
+<g transform="translate(1682, 319.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteConfig" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteConfig" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteConfig" data-compartment="1">+id?: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteConfig" data-compartment="1">+playerId: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteConfig" data-compartment="1">+routeType: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteConfig" data-compartment="1">+nodes: RouteNode[]</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteConfig" data-compartment="1">+color: string</text>
+
+</g>
+</g>
+<g transform="translate(1682, 416.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteConfig" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="RouteConfig" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="HistoryManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="HistoryManager">
+<rect x="1906.0" y="234.5" height="243.0" width="228.0" data-name="HistoryManager"></rect>
+<path d="M1906.0 266.5 L2134.0 266.5" fill="none" data-name="HistoryManager"></path>
+<path d="M1906.0 331.5 L2134.0 331.5" fill="none" data-name="HistoryManager"></path>
+</g>
+<g transform="translate(1906, 234.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="HistoryManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="HistoryManager" data-compartment="0">
+<a id="src\history\HistoryManager.ts.HistoryManager" xlink:href="src\history\HistoryManager.ts"><text x="106.0" y="14.1" stroke="none" text-anchor="middle" data-name="HistoryManager" data-compartment="0">HistoryManager</text></a>
+
+</g>
+</g>
+<g transform="translate(1906, 266.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="HistoryManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="HistoryManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="HistoryManager" data-compartment="1">-undoStack: ICommand[]</text>
+<text x="0.0" y="30.3" stroke="none" data-name="HistoryManager" data-compartment="1">-redoStack: ICommand[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="HistoryManager" data-compartment="1">-listeners: HistoryListener[]</text>
+
+</g>
+</g>
+<g transform="translate(1906, 331.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="HistoryManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="HistoryManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="HistoryManager" data-compartment="2">+subscribe(): () =&gt; void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="HistoryManager" data-compartment="2">-notify(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="HistoryManager" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="HistoryManager" data-compartment="2">+undo(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="HistoryManager" data-compartment="2">+redo(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="HistoryManager" data-compartment="2">+clear(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="HistoryManager" data-compartment="2">+canUndo(): boolean</text>
+<text x="0.0" y="127.5" stroke="none" data-name="HistoryManager" data-compartment="2">+canRedo(): boolean</text>
+
+</g>
+</g>
+</g>
+<g data-name="CanvasManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="CanvasManager">
+<rect x="2174.0" y="194.0" height="324.0" width="245.0" data-name="CanvasManager"></rect>
+<path d="M2174.0 226.0 L2419.0 226.0" fill="none" data-name="CanvasManager"></path>
+<path d="M2174.0 291.0 L2419.0 291.0" fill="none" data-name="CanvasManager"></path>
+</g>
+<g transform="translate(2174, 194)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="CanvasManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="CanvasManager" data-compartment="0">
+<a id="src\managers\CanvasManager.ts.CanvasManager" xlink:href="src\managers\CanvasManager.ts"><text x="114.5" y="14.1" stroke="none" text-anchor="middle" data-name="CanvasManager" data-compartment="0">CanvasManager</text></a>
+
+</g>
+</g>
+<g transform="translate(2174, 226)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CanvasManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="CanvasManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="CanvasManager" data-compartment="1">-canvas: Canvas | null</text>
+<text x="0.0" y="30.3" stroke="none" data-name="CanvasManager" data-compartment="1">+LOGICAL_WIDTH: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="CanvasManager" data-compartment="1">+LOGICAL_HEIGHT: number</text>
+
+</g>
+</g>
+<g transform="translate(2174, 291)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CanvasManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="CanvasManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="CanvasManager" data-compartment="2">+init(): Canvas</text>
+<text x="0.0" y="30.3" stroke="none" data-name="CanvasManager" data-compartment="2">+dispose(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="CanvasManager" data-compartment="2">+handleResize(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="CanvasManager" data-compartment="2">+requestRender(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="CanvasManager" data-compartment="2">+getRawCanvas(): Canvas</text>
+<text x="0.0" y="95.1" stroke="none" data-name="CanvasManager" data-compartment="2">+addEntity(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="CanvasManager" data-compartment="2">+removeEntity(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="CanvasManager" data-compartment="2">+addFabricObject(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="CanvasManager" data-compartment="2">+removeFabricObject(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="CanvasManager" data-compartment="2">+clear(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="CanvasManager" data-compartment="2">+generateThumbnail(): string</text>
+<text x="0.0" y="192.3" stroke="none" data-name="CanvasManager" data-compartment="2">+sendToBack(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="CanvasManager" data-compartment="2">+bringObjectToFront(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="ExportManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="ExportManager">
+<rect x="2459.0" y="263.0" height="186.0" width="440.0" data-name="ExportManager"></rect>
+<path d="M2459.0 295.0 L2899.0 295.0" fill="none" data-name="ExportManager"></path>
+<path d="M2459.0 303.0 L2899.0 303.0" fill="none" data-name="ExportManager"></path>
+</g>
+<g transform="translate(2459, 263)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ExportManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ExportManager" data-compartment="0">
+<a id="src\managers\ExportManager.ts.ExportManager" xlink:href="src\managers\ExportManager.ts"><text x="212.0" y="14.1" stroke="none" text-anchor="middle" data-name="ExportManager" data-compartment="0">ExportManager</text></a>
+
+</g>
+</g>
+<g transform="translate(2459, 295)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ExportManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ExportManager" data-compartment="1">
+
+</g>
+</g>
+<g transform="translate(2459, 303)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ExportManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ExportManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="ExportManager" data-compartment="2">+generatePDF(): Promise&lt;Blob&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="ExportManager" data-compartment="2">-getOrientation(): &quot;landscape&quot; | &quot;portrait&quot;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="ExportManager" data-compartment="2">-calculateGridLayout(): GridLayout</text>
+<text x="0.0" y="62.7" stroke="none" data-name="ExportManager" data-compartment="2">-createHeadlessEnvironment(): HeadlessEnvironment</text>
+<text x="0.0" y="78.9" stroke="none" data-name="ExportManager" data-compartment="2">-renderHeader(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="ExportManager" data-compartment="2">-generateCells(): PlayCell[]</text>
+<text x="0.0" y="111.3" stroke="none" data-name="ExportManager" data-compartment="2">-renderTable(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="ExportManager" data-compartment="2">-renderCell(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="FieldManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="FieldManager">
+<rect x="2939.0" y="275.0" height="162.0" width="771.0" data-name="FieldManager"></rect>
+<path d="M2939.0 307.0 L3710.0 307.0" fill="none" data-name="FieldManager"></path>
+<path d="M2939.0 372.0 L3710.0 372.0" fill="none" data-name="FieldManager"></path>
+</g>
+<g transform="translate(2939, 275)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="FieldManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="FieldManager" data-compartment="0">
+<a id="src\managers\FieldManager.ts.FieldManager" xlink:href="src\managers\FieldManager.ts"><text x="377.5" y="14.1" stroke="none" text-anchor="middle" data-name="FieldManager" data-compartment="0">FieldManager</text></a>
+
+</g>
+</g>
+<g transform="translate(2939, 307)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FieldManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="FieldManager" data-compartment="1">-fieldObjects: FabricObject&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;[]</text>
+<text x="0.0" y="30.3" stroke="none" data-name="FieldManager" data-compartment="1">-currentPresetId: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="FieldManager" data-compartment="1">-canvasManager: CanvasManager</text>
+
+</g>
+</g>
+<g transform="translate(2939, 372)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FieldManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="FieldManager" data-compartment="2">+getCurrentPresetId(): string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="FieldManager" data-compartment="2">+drawField(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="FieldManager" data-compartment="2">+clearField(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="NotificationManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="NotificationManager">
+<rect x="3750.0" y="300.0" height="112.0" width="418.0" data-name="NotificationManager"></rect>
+<path d="M3750.0 332.0 L4168.0 332.0" fill="none" data-name="NotificationManager"></path>
+<path d="M3750.0 364.0 L4168.0 364.0" fill="none" data-name="NotificationManager"></path>
+</g>
+<g transform="translate(3750, 300)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="NotificationManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="NotificationManager" data-compartment="0">
+<a id="src\managers\NotificationManager.ts.NotificationManager" xlink:href="src\managers\NotificationManager.ts"><text x="201.0" y="14.1" stroke="none" text-anchor="middle" data-name="NotificationManager" data-compartment="0">NotificationManager</text></a>
+
+</g>
+</g>
+<g transform="translate(3750, 332)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="NotificationManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="NotificationManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="NotificationManager" data-compartment="1">-listeners: ((notification: CoreNotification) =&gt; void)[]</text>
+
+</g>
+</g>
+<g transform="translate(3750, 364)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="NotificationManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="NotificationManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="NotificationManager" data-compartment="2">+subscribe(): () =&gt; void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="NotificationManager" data-compartment="2">+sendFeedback(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="PlayManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="PlayManager">
+<rect x="4208.0" y="194.5" height="323.0" width="445.0" data-name="PlayManager"></rect>
+<path d="M4208.0 226.5 L4653.0 226.5" fill="none" data-name="PlayManager"></path>
+<path d="M4208.0 323.5 L4653.0 323.5" fill="none" data-name="PlayManager"></path>
+</g>
+<g transform="translate(4208, 194.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="PlayManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayManager" data-compartment="0">
+<a id="src\managers\PlayManager.ts.PlayManager" xlink:href="src\managers\PlayManager.ts"><text x="214.5" y="14.1" stroke="none" text-anchor="middle" data-name="PlayManager" data-compartment="0">PlayManager</text></a>
+
+</g>
+</g>
+<g transform="translate(4208, 226.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayManager" data-compartment="1">-entities: Map&lt;string, BaseEntity&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayManager" data-compartment="1">-canvasManager: CanvasManager</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayManager" data-compartment="1">-historyManager: HistoryManager</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayManager" data-compartment="1">-fieldManager: FieldManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlayManager" data-compartment="1">-notificationManager: NotificationManager</text>
+
+</g>
+</g>
+<g transform="translate(4208, 323.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayManager" data-compartment="2">+addEntity(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayManager" data-compartment="2">+removeEntity(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayManager" data-compartment="2">+getEntity(): T | undefined</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayManager" data-compartment="2">+getAllEntities(): BaseEntity[]</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlayManager" data-compartment="2">+getAllRoutesFromPlayer(): RouteEntity[]</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlayManager" data-compartment="2">+getRouteByPlayerAndType(): RouteEntity | undefined</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PlayManager" data-compartment="2">+clearPlay(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="PlayManager" data-compartment="2">+exportPlay(): PlaySavePayload</text>
+<text x="0.0" y="143.7" stroke="none" data-name="PlayManager" data-compartment="2">+loadPlay(): { players: PlayerEntity[]</text>
+<text x="0.0" y="159.9" stroke="none" data-name="PlayManager" data-compartment="2">routes: RouteEntity[]</text>
+<text x="0.0" y="176.1" stroke="none" data-name="PlayManager" data-compartment="2">}</text>
+
+</g>
+</g>
+</g>
+<g data-name="RouteDrawingManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="RouteDrawingManager">
+<rect x="4693.0" y="121.5" height="469.0" width="757.0" data-name="RouteDrawingManager"></rect>
+<path d="M4693.0 153.5 L5450.0 153.5" fill="none" data-name="RouteDrawingManager"></path>
+<path d="M4693.0 380.5 L5450.0 380.5" fill="none" data-name="RouteDrawingManager"></path>
+</g>
+<g transform="translate(4693, 121.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="RouteDrawingManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteDrawingManager" data-compartment="0">
+<a id="src\managers\RouteDrawingManager.ts.RouteDrawingManager" xlink:href="src\managers\RouteDrawingManager.ts"><text x="370.5" y="14.1" stroke="none" text-anchor="middle" data-name="RouteDrawingManager" data-compartment="0">RouteDrawingManager</text></a>
+
+</g>
+</g>
+<g transform="translate(4693, 153.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteDrawingManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteDrawingManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-isDrawing: boolean</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-activePlayer: PlayerEntity | null</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-routeType: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-collectedNodes: RouteNode[]</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-previewPath: Path&lt;Partial&lt;PathProps&gt;, SerializedPathProps, ObjectEvents&gt; | null</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteDrawingManager" data-compartment="1">+onDrawingComplete?: ((player: PlayerEntity, nodes: RouteNode[], routeType: string) =&gt; void)</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-stateListeners: ((isDrawing: boolean) =&gt; void)[]</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-handleMouseMove: (options: any) =&gt; void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-handleMouseDown: (options: any) =&gt; void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-handleFinish: () =&gt; void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-handleKeyDown: (e: KeyboardEvent) =&gt; void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-canvasManager: CanvasManager</text>
+<text x="0.0" y="208.5" stroke="none" data-name="RouteDrawingManager" data-compartment="1">-selectionManager: SelectionManager</text>
+
+</g>
+</g>
+<g transform="translate(4693, 380.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteDrawingManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteDrawingManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteDrawingManager" data-compartment="2">+onStateChange(): () =&gt; void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-notifyStateChange(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteDrawingManager" data-compartment="2">+startDrawing(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-bindEvents(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-unbindEvents(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-getPointer(): { x: number</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteDrawingManager" data-compartment="2">y: number</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RouteDrawingManager" data-compartment="2">} | null</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-updatePreviewPath(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="RouteDrawingManager" data-compartment="2">+cancelDrawing(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-stopDrawing(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="RouteDrawingManager" data-compartment="2">-toggleCanvasInteractions(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="SelectionManager">
+<g fill="#eee8d5" stroke="#33322E" data-name="SelectionManager">
+<rect x="5490.0" y="267.5" height="177.0" width="320.0" data-name="SelectionManager"></rect>
+<path d="M5490.0 299.5 L5810.0 299.5" fill="none" data-name="SelectionManager"></path>
+<path d="M5490.0 347.5 L5810.0 347.5" fill="none" data-name="SelectionManager"></path>
+</g>
+<g transform="translate(5490, 267.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="SelectionManager" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="SelectionManager" data-compartment="0">
+<a id="src\managers\SelectionManager.ts.SelectionManager" xlink:href="src\managers\SelectionManager.ts"><text x="152.0" y="14.1" stroke="none" text-anchor="middle" data-name="SelectionManager" data-compartment="0">SelectionManager</text></a>
+
+</g>
+</g>
+<g transform="translate(5490, 299.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SelectionManager" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SelectionManager" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="SelectionManager" data-compartment="1">-canvasManager: CanvasManager</text>
+<text x="0.0" y="30.3" stroke="none" data-name="SelectionManager" data-compartment="1">-playManager: PlayManager</text>
+
+</g>
+</g>
+<g transform="translate(5490, 347.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SelectionManager" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SelectionManager" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="SelectionManager" data-compartment="2">+setupSelectionEvents(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="SelectionManager" data-compartment="2">+hideAllRouteControls(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="SelectionManager" data-compartment="2">+getSelectedObject(): BaseEntity | null</text>
+<text x="0.0" y="62.7" stroke="none" data-name="SelectionManager" data-compartment="2">+clearCurrentSelection(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="SelectionManager" data-compartment="2">+setInteractionsEnabled(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="PDFExportOptions">
+<g fill="lightblue" stroke="#33322E" data-name="PDFExportOptions">
+<rect x="5850.0" y="271.5" height="169.0" width="197.0" data-name="PDFExportOptions"></rect>
+<path d="M5850.0 303.5 L6047.0 303.5" fill="none" data-name="PDFExportOptions"></path>
+<path d="M5850.0 432.5 L6047.0 432.5" fill="none" data-name="PDFExportOptions"></path>
+</g>
+<g transform="translate(5850, 271.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PDFExportOptions" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PDFExportOptions" data-compartment="0">
+<a id="src\types\export.ts.PDFExportOptions" xlink:href="src\types\export.ts"><text x="90.5" y="14.1" stroke="none" text-anchor="middle" data-name="PDFExportOptions" data-compartment="0">PDFExportOptions</text></a>
+
+</g>
+</g>
+<g transform="translate(5850, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PDFExportOptions" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PDFExportOptions" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PDFExportOptions" data-compartment="1">+pageWidth?: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PDFExportOptions" data-compartment="1">+pageHeight?: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PDFExportOptions" data-compartment="1">+columns?: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PDFExportOptions" data-compartment="1">+rows?: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PDFExportOptions" data-compartment="1">+playbookTitle?: string</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PDFExportOptions" data-compartment="1">+margin?: Margin</text>
+<text x="0.0" y="111.3" stroke="none" data-name="PDFExportOptions" data-compartment="1">+gap?: number</text>
+
+</g>
+</g>
+<g transform="translate(5850, 432.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PDFExportOptions" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PDFExportOptions" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="Margin">
+<g fill="lightblue" stroke="#33322E" data-name="Margin">
+<rect x="6087.0" y="295.5" height="121.0" width="150.0" data-name="Margin"></rect>
+<path d="M6087.0 327.5 L6237.0 327.5" fill="none" data-name="Margin"></path>
+<path d="M6087.0 408.5 L6237.0 408.5" fill="none" data-name="Margin"></path>
+</g>
+<g transform="translate(6087, 295.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Margin" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Margin" data-compartment="0">
+<a id="src\types\export.ts.Margin" xlink:href="src\types\export.ts"><text x="67.0" y="14.1" stroke="none" text-anchor="middle" data-name="Margin" data-compartment="0">Margin</text></a>
+
+</g>
+</g>
+<g transform="translate(6087, 327.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Margin" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Margin" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="Margin" data-compartment="1">+top: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="Margin" data-compartment="1">+bottom: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="Margin" data-compartment="1">+left: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="Margin" data-compartment="1">+right: number</text>
+
+</g>
+</g>
+<g transform="translate(6087, 408.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Margin" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="Margin" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="GridLayout">
+<g fill="lightblue" stroke="#33322E" data-name="GridLayout">
+<rect x="6277.0" y="247.0" height="218.0" width="203.0" data-name="GridLayout"></rect>
+<path d="M6277.0 279.0 L6480.0 279.0" fill="none" data-name="GridLayout"></path>
+<path d="M6277.0 457.0 L6480.0 457.0" fill="none" data-name="GridLayout"></path>
+</g>
+<g transform="translate(6277, 247)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="GridLayout" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="GridLayout" data-compartment="0">
+<a id="src\types\export.ts.GridLayout" xlink:href="src\types\export.ts"><text x="93.5" y="14.1" stroke="none" text-anchor="middle" data-name="GridLayout" data-compartment="0">GridLayout</text></a>
+
+</g>
+</g>
+<g transform="translate(6277, 279)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="GridLayout" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="GridLayout" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="GridLayout" data-compartment="1">+cellWidth: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="GridLayout" data-compartment="1">+cellHeight: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="GridLayout" data-compartment="1">+imgWidth: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="GridLayout" data-compartment="1">+imgHeight: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="GridLayout" data-compartment="1">+titleSpace: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="GridLayout" data-compartment="1">+headerHeight: number</text>
+<text x="0.0" y="111.3" stroke="none" data-name="GridLayout" data-compartment="1">+margin: Margin</text>
+<text x="0.0" y="127.5" stroke="none" data-name="GridLayout" data-compartment="1">+gap: number</text>
+<text x="0.0" y="143.7" stroke="none" data-name="GridLayout" data-compartment="1">+pageWidth: number</text>
+<text x="0.0" y="159.9" stroke="none" data-name="GridLayout" data-compartment="1">+pageHeight: number</text>
+
+</g>
+</g>
+<g transform="translate(6277, 457)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="GridLayout" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="GridLayout" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="HeadlessEnvironment">
+<g fill="lightblue" stroke="#33322E" data-name="HeadlessEnvironment">
+<rect x="6520.0" y="295.5" height="121.0" width="293.0" data-name="HeadlessEnvironment"></rect>
+<path d="M6520.0 327.5 L6813.0 327.5" fill="none" data-name="HeadlessEnvironment"></path>
+<path d="M6520.0 408.5 L6813.0 408.5" fill="none" data-name="HeadlessEnvironment"></path>
+</g>
+<g transform="translate(6520, 295.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="HeadlessEnvironment" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="HeadlessEnvironment" data-compartment="0">
+<a id="src\types\export.ts.HeadlessEnvironment" xlink:href="src\types\export.ts"><text x="138.5" y="14.1" stroke="none" text-anchor="middle" data-name="HeadlessEnvironment" data-compartment="0">HeadlessEnvironment</text></a>
+
+</g>
+</g>
+<g transform="translate(6520, 327.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="HeadlessEnvironment" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="HeadlessEnvironment" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="HeadlessEnvironment" data-compartment="1">+canvasManager: CanvasManager</text>
+<text x="0.0" y="30.3" stroke="none" data-name="HeadlessEnvironment" data-compartment="1">+playManager: PlayManager</text>
+<text x="0.0" y="46.5" stroke="none" data-name="HeadlessEnvironment" data-compartment="1">+width: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="HeadlessEnvironment" data-compartment="1">+height: number</text>
+
+</g>
+</g>
+<g transform="translate(6520, 408.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="HeadlessEnvironment" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="HeadlessEnvironment" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlayCell">
+<g fill="lightblue" stroke="#33322E" data-name="PlayCell">
+<rect x="6853.0" y="312.0" height="88.0" width="145.0" data-name="PlayCell"></rect>
+<path d="M6853.0 344.0 L6998.0 344.0" fill="none" data-name="PlayCell"></path>
+<path d="M6853.0 392.0 L6998.0 392.0" fill="none" data-name="PlayCell"></path>
+</g>
+<g transform="translate(6853, 312)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayCell" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayCell" data-compartment="0">
+<a id="src\types\export.ts.PlayCell" xlink:href="src\types\export.ts"><text x="64.5" y="14.1" stroke="none" text-anchor="middle" data-name="PlayCell" data-compartment="0">PlayCell</text></a>
+
+</g>
+</g>
+<g transform="translate(6853, 344)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayCell" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayCell" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayCell" data-compartment="1">+title: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayCell" data-compartment="1">+imgData: string</text>
+
+</g>
+</g>
+<g transform="translate(6853, 392)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayCell" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlayCell" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="ICommand">
+<g fill="lightblue" stroke="#33322E" data-name="ICommand">
+<rect x="13000.0" y="312.0" height="88.0" width="144.0" data-name="ICommand"></rect>
+<path d="M13000.0 344.0 L13144.0 344.0" fill="none" data-name="ICommand"></path>
+<path d="M13000.0 352.0 L13144.0 352.0" fill="none" data-name="ICommand"></path>
+</g>
+<g transform="translate(13000, 312)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ICommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ICommand" data-compartment="0">
+<a id="src\types\history.ts.ICommand" xlink:href="src\types\history.ts"><text x="64.0" y="14.1" stroke="none" text-anchor="middle" data-name="ICommand" data-compartment="0">ICommand</text></a>
+
+</g>
+</g>
+<g transform="translate(13000, 344)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ICommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ICommand" data-compartment="1">
+
+</g>
+</g>
+<g transform="translate(13000, 352)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ICommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ICommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="ICommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="ICommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="SavedPoint">
+<g fill="lightblue" stroke="#33322E" data-name="SavedPoint">
+<rect x="7520.0" y="312.0" height="88.0" width="106.0" data-name="SavedPoint"></rect>
+<path d="M7520.0 344.0 L7626.0 344.0" fill="none" data-name="SavedPoint"></path>
+<path d="M7520.0 392.0 L7626.0 392.0" fill="none" data-name="SavedPoint"></path>
+</g>
+<g transform="translate(7520, 312)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SavedPoint" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="SavedPoint" data-compartment="0">
+<a id="src\types\interfaces.ts.SavedPoint" xlink:href="src\types\interfaces.ts"><text x="45.0" y="14.1" stroke="none" text-anchor="middle" data-name="SavedPoint" data-compartment="0">SavedPoint</text></a>
+
+</g>
+</g>
+<g transform="translate(7520, 344)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SavedPoint" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SavedPoint" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="SavedPoint" data-compartment="1">+x: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="SavedPoint" data-compartment="1">+y: number</text>
+
+</g>
+</g>
+<g transform="translate(7520, 392)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SavedPoint" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="SavedPoint" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="RouteNode">
+<g fill="lightblue" stroke="#33322E" data-name="RouteNode">
+<rect x="7666.0" y="271.5" height="169.0" width="179.0" data-name="RouteNode"></rect>
+<path d="M7666.0 303.5 L7845.0 303.5" fill="none" data-name="RouteNode"></path>
+<path d="M7666.0 432.5 L7845.0 432.5" fill="none" data-name="RouteNode"></path>
+</g>
+<g transform="translate(7666, 271.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteNode" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteNode" data-compartment="0">
+<a id="src\types\interfaces.ts.RouteNode" xlink:href="src\types\interfaces.ts"><text x="81.5" y="14.1" stroke="none" text-anchor="middle" data-name="RouteNode" data-compartment="0">RouteNode</text></a>
+
+</g>
+</g>
+<g transform="translate(7666, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteNode" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteNode" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteNode" data-compartment="1">+x: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteNode" data-compartment="1">+y: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteNode" data-compartment="1">+type: SegmentType</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteNode" data-compartment="1">+cpInX?: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteNode" data-compartment="1">+cpInY?: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteNode" data-compartment="1">+cpOutX?: number</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteNode" data-compartment="1">+cpOutY?: number</text>
+
+</g>
+</g>
+<g transform="translate(7666, 432.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteNode" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="RouteNode" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlayerStyleOverride">
+<g fill="lightblue" stroke="#33322E" data-name="PlayerStyleOverride">
+<rect x="7885.0" y="295.5" height="121.0" width="231.0" data-name="PlayerStyleOverride"></rect>
+<path d="M7885.0 327.5 L8116.0 327.5" fill="none" data-name="PlayerStyleOverride"></path>
+<path d="M7885.0 408.5 L8116.0 408.5" fill="none" data-name="PlayerStyleOverride"></path>
+</g>
+<g transform="translate(7885, 295.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerStyleOverride" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayerStyleOverride" data-compartment="0">
+<a id="src\types\interfaces.ts.PlayerStyleOverride" xlink:href="src\types\interfaces.ts"><text x="107.5" y="14.1" stroke="none" text-anchor="middle" data-name="PlayerStyleOverride" data-compartment="0">PlayerStyleOverride</text></a>
+
+</g>
+</g>
+<g transform="translate(7885, 327.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerStyleOverride" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayerStyleOverride" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayerStyleOverride" data-compartment="1">+color?: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayerStyleOverride" data-compartment="1">+label?: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayerStyleOverride" data-compartment="1">+showLabel?: boolean</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayerStyleOverride" data-compartment="1">+shape?: &quot;circle&quot; | &quot;square&quot;</text>
+
+</g>
+</g>
+<g transform="translate(7885, 408.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerStyleOverride" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlayerStyleOverride" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlayerStyle">
+<g fill="lightblue" stroke="#33322E" data-name="PlayerStyle">
+<rect x="8156.0" y="295.5" height="121.0" width="221.0" data-name="PlayerStyle"></rect>
+<path d="M8156.0 327.5 L8377.0 327.5" fill="none" data-name="PlayerStyle"></path>
+<path d="M8156.0 408.5 L8377.0 408.5" fill="none" data-name="PlayerStyle"></path>
+</g>
+<g transform="translate(8156, 295.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerStyle" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayerStyle" data-compartment="0">
+<a id="src\types\interfaces.ts.PlayerStyle" xlink:href="src\types\interfaces.ts"><text x="102.5" y="14.1" stroke="none" text-anchor="middle" data-name="PlayerStyle" data-compartment="0">PlayerStyle</text></a>
+
+</g>
+</g>
+<g transform="translate(8156, 327.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerStyle" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayerStyle" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayerStyle" data-compartment="1">+color: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayerStyle" data-compartment="1">+label: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayerStyle" data-compartment="1">+showLabels: boolean</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayerStyle" data-compartment="1">+shape: &quot;circle&quot; | &quot;square&quot;</text>
+
+</g>
+</g>
+<g transform="translate(8156, 408.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerStyle" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlayerStyle" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="RouteExportData">
+<g fill="lightblue" stroke="#33322E" data-name="RouteExportData">
+<rect x="8417.0" y="287.5" height="137.0" width="184.0" data-name="RouteExportData"></rect>
+<path d="M8417.0 319.5 L8601.0 319.5" fill="none" data-name="RouteExportData"></path>
+<path d="M8417.0 416.5 L8601.0 416.5" fill="none" data-name="RouteExportData"></path>
+</g>
+<g transform="translate(8417, 287.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteExportData" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteExportData" data-compartment="0">
+<a id="src\types\interfaces.ts.RouteExportData" xlink:href="src\types\interfaces.ts"><text x="84.0" y="14.1" stroke="none" text-anchor="middle" data-name="RouteExportData" data-compartment="0">RouteExportData</text></a>
+
+</g>
+</g>
+<g transform="translate(8417, 319.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteExportData" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteExportData" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteExportData" data-compartment="1">+id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteExportData" data-compartment="1">+playerId: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteExportData" data-compartment="1">+routeType: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteExportData" data-compartment="1">+color: string</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteExportData" data-compartment="1">+nodes: RouteNode[]</text>
+
+</g>
+</g>
+<g transform="translate(8417, 416.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteExportData" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="RouteExportData" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlayerImportData">
+<g fill="lightblue" stroke="#33322E" data-name="PlayerImportData">
+<rect x="8641.0" y="279.5" height="153.0" width="308.0" data-name="PlayerImportData"></rect>
+<path d="M8641.0 311.5 L8949.0 311.5" fill="none" data-name="PlayerImportData"></path>
+<path d="M8641.0 424.5 L8949.0 424.5" fill="none" data-name="PlayerImportData"></path>
+</g>
+<g transform="translate(8641, 279.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerImportData" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayerImportData" data-compartment="0">
+<a id="src\types\interfaces.ts.PlayerImportData" xlink:href="src\types\interfaces.ts"><text x="146.0" y="14.1" stroke="none" text-anchor="middle" data-name="PlayerImportData" data-compartment="0">PlayerImportData</text></a>
+
+</g>
+</g>
+<g transform="translate(8641, 311.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerImportData" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayerImportData" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayerImportData" data-compartment="1">+id?: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayerImportData" data-compartment="1">+role: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayerImportData" data-compartment="1">+x: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayerImportData" data-compartment="1">+y: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlayerImportData" data-compartment="1">+style: PlayerStyle</text>
+<text x="0.0" y="95.1" stroke="none" data-name="PlayerImportData" data-compartment="1">+styleOverride?: PlayerStyleOverride</text>
+
+</g>
+</g>
+<g transform="translate(8641, 424.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerImportData" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlayerImportData" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlayImportData">
+<g fill="lightblue" stroke="#33322E" data-name="PlayImportData">
+<rect x="8989.0" y="303.5" height="105.0" width="241.0" data-name="PlayImportData"></rect>
+<path d="M8989.0 335.5 L9230.0 335.5" fill="none" data-name="PlayImportData"></path>
+<path d="M8989.0 400.5 L9230.0 400.5" fill="none" data-name="PlayImportData"></path>
+</g>
+<g transform="translate(8989, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayImportData" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayImportData" data-compartment="0">
+<a id="src\types\interfaces.ts.PlayImportData" xlink:href="src\types\interfaces.ts"><text x="112.5" y="14.1" stroke="none" text-anchor="middle" data-name="PlayImportData" data-compartment="0">PlayImportData</text></a>
+
+</g>
+</g>
+<g transform="translate(8989, 335.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayImportData" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayImportData" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayImportData" data-compartment="1">+fieldPresetId: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayImportData" data-compartment="1">+players: PlayerImportData[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayImportData" data-compartment="1">+routes: RouteExportData[]</text>
+
+</g>
+</g>
+<g transform="translate(8989, 400.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayImportData" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlayImportData" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlayerExportData">
+<g fill="lightblue" stroke="#33322E" data-name="PlayerExportData">
+<rect x="9270.0" y="287.5" height="137.0" width="308.0" data-name="PlayerExportData"></rect>
+<path d="M9270.0 319.5 L9578.0 319.5" fill="none" data-name="PlayerExportData"></path>
+<path d="M9270.0 416.5 L9578.0 416.5" fill="none" data-name="PlayerExportData"></path>
+</g>
+<g transform="translate(9270, 287.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerExportData" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlayerExportData" data-compartment="0">
+<a id="src\types\interfaces.ts.PlayerExportData" xlink:href="src\types\interfaces.ts"><text x="146.0" y="14.1" stroke="none" text-anchor="middle" data-name="PlayerExportData" data-compartment="0">PlayerExportData</text></a>
+
+</g>
+</g>
+<g transform="translate(9270, 319.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerExportData" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlayerExportData" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlayerExportData" data-compartment="1">+id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlayerExportData" data-compartment="1">+role: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlayerExportData" data-compartment="1">+x: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PlayerExportData" data-compartment="1">+y: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PlayerExportData" data-compartment="1">+styleOverride?: PlayerStyleOverride</text>
+
+</g>
+</g>
+<g transform="translate(9270, 416.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlayerExportData" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlayerExportData" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PlaySavePayload">
+<g fill="lightblue" stroke="#33322E" data-name="PlaySavePayload">
+<rect x="9618.0" y="303.5" height="105.0" width="242.0" data-name="PlaySavePayload"></rect>
+<path d="M9618.0 335.5 L9860.0 335.5" fill="none" data-name="PlaySavePayload"></path>
+<path d="M9618.0 400.5 L9860.0 400.5" fill="none" data-name="PlaySavePayload"></path>
+</g>
+<g transform="translate(9618, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaySavePayload" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PlaySavePayload" data-compartment="0">
+<a id="src\types\interfaces.ts.PlaySavePayload" xlink:href="src\types\interfaces.ts"><text x="113.0" y="14.1" stroke="none" text-anchor="middle" data-name="PlaySavePayload" data-compartment="0">PlaySavePayload</text></a>
+
+</g>
+</g>
+<g transform="translate(9618, 335.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaySavePayload" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PlaySavePayload" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PlaySavePayload" data-compartment="1">+fieldPresetId: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PlaySavePayload" data-compartment="1">+players: PlayerExportData[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PlaySavePayload" data-compartment="1">+routes: RouteExportData[]</text>
+
+</g>
+</g>
+<g transform="translate(9618, 400.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PlaySavePayload" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PlaySavePayload" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="ThumbnailOptions">
+<g fill="lightblue" stroke="#33322E" data-name="ThumbnailOptions">
+<rect x="9900.0" y="303.5" height="105.0" width="268.0" data-name="ThumbnailOptions"></rect>
+<path d="M9900.0 335.5 L10168.0 335.5" fill="none" data-name="ThumbnailOptions"></path>
+<path d="M9900.0 400.5 L10168.0 400.5" fill="none" data-name="ThumbnailOptions"></path>
+</g>
+<g transform="translate(9900, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ThumbnailOptions" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ThumbnailOptions" data-compartment="0">
+<a id="src\types\interfaces.ts.ThumbnailOptions" xlink:href="src\types\interfaces.ts"><text x="126.0" y="14.1" stroke="none" text-anchor="middle" data-name="ThumbnailOptions" data-compartment="0">ThumbnailOptions</text></a>
+
+</g>
+</g>
+<g transform="translate(9900, 335.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ThumbnailOptions" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ThumbnailOptions" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="ThumbnailOptions" data-compartment="1">+format?: &quot;png&quot; | &quot;jpeg&quot; | &quot;webp&quot;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="ThumbnailOptions" data-compartment="1">+quality?: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="ThumbnailOptions" data-compartment="1">+width?: number</text>
+
+</g>
+</g>
+<g transform="translate(9900, 400.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ThumbnailOptions" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ThumbnailOptions" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="CoreNotification">
+<g fill="lightblue" stroke="#33322E" data-name="CoreNotification">
+<rect x="10208.0" y="303.5" height="105.0" width="192.0" data-name="CoreNotification"></rect>
+<path d="M10208.0 335.5 L10400.0 335.5" fill="none" data-name="CoreNotification"></path>
+<path d="M10208.0 400.5 L10400.0 400.5" fill="none" data-name="CoreNotification"></path>
+</g>
+<g transform="translate(10208, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CoreNotification" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="CoreNotification" data-compartment="0">
+<a id="src\types\interfaces.ts.CoreNotification" xlink:href="src\types\interfaces.ts"><text x="88.0" y="14.1" stroke="none" text-anchor="middle" data-name="CoreNotification" data-compartment="0">CoreNotification</text></a>
+
+</g>
+</g>
+<g transform="translate(10208, 335.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CoreNotification" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="CoreNotification" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="CoreNotification" data-compartment="1">+level: LogLevel</text>
+<text x="0.0" y="30.3" stroke="none" data-name="CoreNotification" data-compartment="1">+message: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="CoreNotification" data-compartment="1">+messageKey?: string</text>
+
+</g>
+</g>
+<g transform="translate(10208, 400.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CoreNotification" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="CoreNotification" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="SegmentType">
+<g fill="lightgreen" stroke="#33322E" data-name="SegmentType">
+<rect x="10440.0" y="316.0" height="80.0" width="125.0" data-name="SegmentType"></rect>
+<path d="M10440.0 348.0 L10565.0 348.0" fill="none" data-name="SegmentType"></path>
+</g>
+<g transform="translate(10440, 316)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SegmentType" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="SegmentType" data-compartment="0">
+<a id="src\types\interfaces.ts.SegmentType" xlink:href="src\types\interfaces.ts"><text x="54.5" y="14.1" stroke="none" text-anchor="middle" data-name="SegmentType" data-compartment="0">SegmentType</text></a>
+
+</g>
+</g>
+<g transform="translate(10440, 348)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SegmentType" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SegmentType" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="SegmentType" data-compartment="1">STRAIGHT</text>
+<text x="0.0" y="30.3" stroke="none" data-name="SegmentType" data-compartment="1">CURVE</text>
+
+</g>
+</g>
+</g>
+<g data-name="IPoint">
+<g fill="lightblue" stroke="#33322E" data-name="IPoint">
+<rect x="10605.0" y="312.0" height="88.0" width="105.0" data-name="IPoint"></rect>
+<path d="M10605.0 344.0 L10710.0 344.0" fill="none" data-name="IPoint"></path>
+<path d="M10605.0 392.0 L10710.0 392.0" fill="none" data-name="IPoint"></path>
+</g>
+<g transform="translate(10605, 312)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IPoint" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IPoint" data-compartment="0">
+<a id="src\types\math.ts.IPoint" xlink:href="src\types\math.ts"><text x="44.5" y="14.1" stroke="none" text-anchor="middle" data-name="IPoint" data-compartment="0">IPoint</text></a>
+
+</g>
+</g>
+<g transform="translate(10605, 344)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IPoint" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IPoint" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="IPoint" data-compartment="1">+x: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="IPoint" data-compartment="1">+y: number</text>
+
+</g>
+</g>
+<g transform="translate(10605, 392)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IPoint" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IPoint" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="BoundingBox">
+<g fill="lightblue" stroke="#33322E" data-name="BoundingBox">
+<rect x="10750.0" y="279.5" height="153.0" width="145.0" data-name="BoundingBox"></rect>
+<path d="M10750.0 311.5 L10895.0 311.5" fill="none" data-name="BoundingBox"></path>
+<path d="M10750.0 424.5 L10895.0 424.5" fill="none" data-name="BoundingBox"></path>
+</g>
+<g transform="translate(10750, 279.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BoundingBox" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="BoundingBox" data-compartment="0">
+<a id="src\types\math.ts.BoundingBox" xlink:href="src\types\math.ts"><text x="64.5" y="14.1" stroke="none" text-anchor="middle" data-name="BoundingBox" data-compartment="0">BoundingBox</text></a>
+
+</g>
+</g>
+<g transform="translate(10750, 311.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BoundingBox" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="BoundingBox" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="BoundingBox" data-compartment="1">+minX: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="BoundingBox" data-compartment="1">+maxX: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="BoundingBox" data-compartment="1">+minY: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="BoundingBox" data-compartment="1">+maxY: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="BoundingBox" data-compartment="1">+width: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="BoundingBox" data-compartment="1">+height: number</text>
+
+</g>
+</g>
+<g transform="translate(10750, 424.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BoundingBox" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="BoundingBox" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="PolylineMetrics">
+<g fill="lightblue" stroke="#33322E" data-name="PolylineMetrics">
+<rect x="10935.0" y="287.5" height="137.0" width="163.0" data-name="PolylineMetrics"></rect>
+<path d="M10935.0 319.5 L11098.0 319.5" fill="none" data-name="PolylineMetrics"></path>
+<path d="M10935.0 416.5 L11098.0 416.5" fill="none" data-name="PolylineMetrics"></path>
+</g>
+<g transform="translate(10935, 287.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PolylineMetrics" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PolylineMetrics" data-compartment="0">
+<a id="src\types\math.ts.PolylineMetrics" xlink:href="src\types\math.ts"><text x="73.5" y="14.1" stroke="none" text-anchor="middle" data-name="PolylineMetrics" data-compartment="0">PolylineMetrics</text></a>
+
+</g>
+</g>
+<g transform="translate(10935, 319.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PolylineMetrics" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="PolylineMetrics" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="PolylineMetrics" data-compartment="1">+width: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="PolylineMetrics" data-compartment="1">+height: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="PolylineMetrics" data-compartment="1">+pathOffset: IPoint</text>
+<text x="0.0" y="62.7" stroke="none" data-name="PolylineMetrics" data-compartment="1">+dx: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="PolylineMetrics" data-compartment="1">+dy: number</text>
+
+</g>
+</g>
+<g transform="translate(10935, 416.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PolylineMetrics" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PolylineMetrics" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="RoutePreset">
+<g fill="lightblue" stroke="#33322E" data-name="RoutePreset">
+<rect x="11138.0" y="255.0" height="202.0" width="391.0" data-name="RoutePreset"></rect>
+<path d="M11138.0 287.0 L11529.0 287.0" fill="none" data-name="RoutePreset"></path>
+<path d="M11138.0 449.0 L11529.0 449.0" fill="none" data-name="RoutePreset"></path>
+</g>
+<g transform="translate(11138, 255)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RoutePreset" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RoutePreset" data-compartment="0">
+<a id="src\types\presets.ts.RoutePreset" xlink:href="src\types\presets.ts"><text x="187.5" y="14.1" stroke="none" text-anchor="middle" data-name="RoutePreset" data-compartment="0">RoutePreset</text></a>
+
+</g>
+</g>
+<g transform="translate(11138, 287)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RoutePreset" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RoutePreset" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RoutePreset" data-compartment="1">+id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RoutePreset" data-compartment="1">+name: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RoutePreset" data-compartment="1">+waypoints: { dx: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RoutePreset" data-compartment="1">dy: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RoutePreset" data-compartment="1">type: SegmentType</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RoutePreset" data-compartment="1">cpInDx?: number | undefined</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RoutePreset" data-compartment="1">cpInDy?: number | undefined</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RoutePreset" data-compartment="1">}[]</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RoutePreset" data-compartment="1">+breakDirection?: &quot;inside&quot; | &quot;outside&quot; | &quot;straight&quot;</text>
+
+</g>
+</g>
+<g transform="translate(11138, 449)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RoutePreset" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="RoutePreset" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="FormationPreset">
+<g fill="lightblue" stroke="#33322E" data-name="FormationPreset">
+<rect x="11569.0" y="295.5" height="121.0" width="259.0" data-name="FormationPreset"></rect>
+<path d="M11569.0 327.5 L11828.0 327.5" fill="none" data-name="FormationPreset"></path>
+<path d="M11569.0 408.5 L11828.0 408.5" fill="none" data-name="FormationPreset"></path>
+</g>
+<g transform="translate(11569, 295.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationPreset" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="FormationPreset" data-compartment="0">
+<a id="src\types\presets.ts.FormationPreset" xlink:href="src\types\presets.ts"><text x="121.5" y="14.1" stroke="none" text-anchor="middle" data-name="FormationPreset" data-compartment="0">FormationPreset</text></a>
+
+</g>
+</g>
+<g transform="translate(11569, 327.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationPreset" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FormationPreset" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="FormationPreset" data-compartment="1">+id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="FormationPreset" data-compartment="1">+name: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="FormationPreset" data-compartment="1">+thumbnail?: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="FormationPreset" data-compartment="1">+positions: FormationPosition[]</text>
+
+</g>
+</g>
+<g transform="translate(11569, 408.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationPreset" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="FormationPreset" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="FormationPosition">
+<g fill="lightblue" stroke="#33322E" data-name="FormationPosition">
+<rect x="11868.0" y="303.5" height="105.0" width="195.0" data-name="FormationPosition"></rect>
+<path d="M11868.0 335.5 L12063.0 335.5" fill="none" data-name="FormationPosition"></path>
+<path d="M11868.0 400.5 L12063.0 400.5" fill="none" data-name="FormationPosition"></path>
+</g>
+<g transform="translate(11868, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationPosition" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="FormationPosition" data-compartment="0">
+<a id="src\types\presets.ts.FormationPosition" xlink:href="src\types\presets.ts"><text x="89.5" y="14.1" stroke="none" text-anchor="middle" data-name="FormationPosition" data-compartment="0">FormationPosition</text></a>
+
+</g>
+</g>
+<g transform="translate(11868, 335.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationPosition" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FormationPosition" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="FormationPosition" data-compartment="1">+playerPresetId: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="FormationPosition" data-compartment="1">+dx: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="FormationPosition" data-compartment="1">+dy: number</text>
+
+</g>
+</g>
+<g transform="translate(11868, 400.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationPosition" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="FormationPosition" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="FieldLineConfig">
+<g fill="lightblue" stroke="#33322E" data-name="FieldLineConfig">
+<rect x="12103.0" y="312.0" height="88.0" width="291.0" data-name="FieldLineConfig"></rect>
+<path d="M12103.0 344.0 L12394.0 344.0" fill="none" data-name="FieldLineConfig"></path>
+<path d="M12103.0 392.0 L12394.0 392.0" fill="none" data-name="FieldLineConfig"></path>
+</g>
+<g transform="translate(12103, 312)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldLineConfig" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="FieldLineConfig" data-compartment="0">
+<a id="src\types\presets.ts.FieldLineConfig" xlink:href="src\types\presets.ts"><text x="137.5" y="14.1" stroke="none" text-anchor="middle" data-name="FieldLineConfig" data-compartment="0">FieldLineConfig</text></a>
+
+</g>
+</g>
+<g transform="translate(12103, 344)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldLineConfig" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FieldLineConfig" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="FieldLineConfig" data-compartment="1">+yardsFromLos: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="FieldLineConfig" data-compartment="1">+type: &quot;los&quot; | &quot;yardline&quot; | &quot;endzone&quot;</text>
+
+</g>
+</g>
+<g transform="translate(12103, 392)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldLineConfig" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="FieldLineConfig" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="FieldPreset">
+<g fill="lightblue" stroke="#33322E" data-name="FieldPreset">
+<rect x="12434.0" y="279.5" height="153.0" width="206.0" data-name="FieldPreset"></rect>
+<path d="M12434.0 311.5 L12640.0 311.5" fill="none" data-name="FieldPreset"></path>
+<path d="M12434.0 424.5 L12640.0 424.5" fill="none" data-name="FieldPreset"></path>
+</g>
+<g transform="translate(12434, 279.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldPreset" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="FieldPreset" data-compartment="0">
+<a id="src\types\presets.ts.FieldPreset" xlink:href="src\types\presets.ts"><text x="95.0" y="14.1" stroke="none" text-anchor="middle" data-name="FieldPreset" data-compartment="0">FieldPreset</text></a>
+
+</g>
+</g>
+<g transform="translate(12434, 311.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldPreset" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FieldPreset" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="FieldPreset" data-compartment="1">+id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="FieldPreset" data-compartment="1">+name: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="FieldPreset" data-compartment="1">+lines: FieldLineConfig[]</text>
+<text x="0.0" y="62.7" stroke="none" data-name="FieldPreset" data-compartment="1">+anchor: { x: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="FieldPreset" data-compartment="1">y: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="FieldPreset" data-compartment="1">}</text>
+
+</g>
+</g>
+<g transform="translate(12434, 424.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FieldPreset" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="FieldPreset" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="FormationBuilder">
+<g fill="#eee8d5" stroke="#33322E" data-name="FormationBuilder">
+<rect x="12680.0" y="320.0" height="72.0" width="280.0" data-name="FormationBuilder"></rect>
+<path d="M12680.0 352.0 L12960.0 352.0" fill="none" data-name="FormationBuilder"></path>
+<path d="M12680.0 360.0 L12960.0 360.0" fill="none" data-name="FormationBuilder"></path>
+</g>
+<g transform="translate(12680, 320)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="FormationBuilder" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="FormationBuilder" data-compartment="0">
+<a id="src\utils\FormationBuilder.ts.FormationBuilder" xlink:href="src\utils\FormationBuilder.ts"><text x="132.0" y="14.1" stroke="none" text-anchor="middle" data-name="FormationBuilder" data-compartment="0">FormationBuilder</text></a>
+
+</g>
+</g>
+<g transform="translate(12680, 352)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationBuilder" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" data-name="FormationBuilder" data-compartment="1">
+
+</g>
+</g>
+<g transform="translate(12680, 360)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="FormationBuilder" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="FormationBuilder" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="FormationBuilder" data-compartment="2">+static build(): PlayerImportData[]</text>
+
+</g>
+</g>
+</g>
+<g data-name="WaypointHandle">
+<g fill="#eee8d5" stroke="#33322E" data-name="WaypointHandle">
+<rect x="4002.5" y="768.0" height="226.0" width="598.0" data-name="WaypointHandle"></rect>
+<path d="M4002.5 800.0 L4600.5 800.0" fill="none" data-name="WaypointHandle"></path>
+<path d="M4002.5 897.0 L4600.5 897.0" fill="none" data-name="WaypointHandle"></path>
+</g>
+<g transform="translate(4002.5, 768)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="WaypointHandle" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="WaypointHandle" data-compartment="0">
+<a id="src\entities\controls\ControlHandle.ts.WaypointHandle" xlink:href="src\entities\controls\ControlHandle.ts"><text x="291.0" y="14.1" stroke="none" text-anchor="middle" data-name="WaypointHandle" data-compartment="0">WaypointHandle</text></a>
+
+</g>
+</g>
+<g transform="translate(4002.5, 800)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="WaypointHandle" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="WaypointHandle" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="WaypointHandle" data-compartment="1">+circle: Circle&lt;Partial&lt;CircleProps&gt;, SerializedCircleProps, ObjectEvents&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="WaypointHandle" data-compartment="1">+onMoved?: ((x: number, y: number) =&gt; void)</text>
+<text x="0.0" y="46.5" stroke="none" data-name="WaypointHandle" data-compartment="1">+onMoveComplete?: (() =&gt; void)</text>
+<text x="0.0" y="62.7" stroke="none" data-name="WaypointHandle" data-compartment="1">-bezierHandles: BezierHandle[]</text>
+<text x="0.0" y="78.9" stroke="none" data-name="WaypointHandle" data-compartment="1">-canvas: Canvas</text>
+
+</g>
+</g>
+<g transform="translate(4002.5, 897)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="WaypointHandle" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="WaypointHandle" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="WaypointHandle" data-compartment="2">+attachBezier(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="WaypointHandle" data-compartment="2">-setupEvents(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="WaypointHandle" data-compartment="2">+show(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="WaypointHandle" data-compartment="2">+hide(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="WaypointHandle" data-compartment="2">+destroy(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="BezierHandle">
+<g fill="#eee8d5" stroke="#33322E" data-name="BezierHandle">
+<rect x="6347.5" y="768.0" height="226.0" width="665.0" data-name="BezierHandle"></rect>
+<path d="M6347.5 800.0 L7012.5 800.0" fill="none" data-name="BezierHandle"></path>
+<path d="M6347.5 897.0 L7012.5 897.0" fill="none" data-name="BezierHandle"></path>
+</g>
+<g transform="translate(6347.5, 768)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="BezierHandle" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="BezierHandle" data-compartment="0">
+<a id="src\entities\controls\ControlHandle.ts.BezierHandle" xlink:href="src\entities\controls\ControlHandle.ts"><text x="324.5" y="14.1" stroke="none" text-anchor="middle" data-name="BezierHandle" data-compartment="0">BezierHandle</text></a>
+
+</g>
+</g>
+<g transform="translate(6347.5, 800)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BezierHandle" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="BezierHandle" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="BezierHandle" data-compartment="1">+controlPoint: Circle&lt;Partial&lt;CircleProps&gt;, SerializedCircleProps, ObjectEvents&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="BezierHandle" data-compartment="1">-tetherLine: Line&lt;Partial&lt;FabricObjectProps&gt;, SerializedLineProps, ObjectEvents&gt;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="BezierHandle" data-compartment="1">+onMoved?: ((x: number, y: number) =&gt; void)</text>
+<text x="0.0" y="62.7" stroke="none" data-name="BezierHandle" data-compartment="1">+onMoveComplete?: (() =&gt; void)</text>
+<text x="0.0" y="78.9" stroke="none" data-name="BezierHandle" data-compartment="1">-canvas: Canvas</text>
+
+</g>
+</g>
+<g transform="translate(6347.5, 897)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="BezierHandle" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="BezierHandle" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="BezierHandle" data-compartment="2">-setupEvents(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="BezierHandle" data-compartment="2">+updateAnchorPosition(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="BezierHandle" data-compartment="2">+show(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="BezierHandle" data-compartment="2">+hide(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="BezierHandle" data-compartment="2">+destroy(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="StretchHandle">
+<g fill="#eee8d5" stroke="#33322E" data-name="StretchHandle">
+<rect x="9052.5" y="784.0" height="194.0" width="666.0" data-name="StretchHandle"></rect>
+<path d="M9052.5 816.0 L9718.5 816.0" fill="none" data-name="StretchHandle"></path>
+<path d="M9052.5 897.0 L9718.5 897.0" fill="none" data-name="StretchHandle"></path>
+</g>
+<g transform="translate(9052.5, 784)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="StretchHandle" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="StretchHandle" data-compartment="0">
+<a id="src\entities\controls\ControlHandle.ts.StretchHandle" xlink:href="src\entities\controls\ControlHandle.ts"><text x="325.0" y="14.1" stroke="none" text-anchor="middle" data-name="StretchHandle" data-compartment="0">StretchHandle</text></a>
+
+</g>
+</g>
+<g transform="translate(9052.5, 816)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="StretchHandle" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="StretchHandle" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="StretchHandle" data-compartment="1">+rect: Triangle&lt;Partial&lt;FabricObjectProps&gt;, SerializedObjectProps, ObjectEvents&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="StretchHandle" data-compartment="1">+onMoved?: ((x: number, y: number) =&gt; void)</text>
+<text x="0.0" y="46.5" stroke="none" data-name="StretchHandle" data-compartment="1">+onMoveComplete?: (() =&gt; void)</text>
+<text x="0.0" y="62.7" stroke="none" data-name="StretchHandle" data-compartment="1">-canvas: Canvas</text>
+
+</g>
+</g>
+<g transform="translate(9052.5, 897)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="StretchHandle" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="StretchHandle" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="StretchHandle" data-compartment="2">-setupEvents(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="StretchHandle" data-compartment="2">+show(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="StretchHandle" data-compartment="2">+hide(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="StretchHandle" data-compartment="2">+destroy(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="IControlHandle">
+<g fill="lightblue" stroke="#33322E" data-name="IControlHandle">
+<rect x="7038.0" y="283.5" height="145.0" width="442.0" data-name="IControlHandle"></rect>
+<path d="M7038.0 315.5 L7480.0 315.5" fill="none" data-name="IControlHandle"></path>
+<path d="M7038.0 363.5 L7480.0 363.5" fill="none" data-name="IControlHandle"></path>
+</g>
+<g transform="translate(7038, 283.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IControlHandle" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IControlHandle" data-compartment="0">
+<a id="src\entities\controls\ControlHandle.ts.IControlHandle" xlink:href="src\entities\controls\ControlHandle.ts"><text x="213.0" y="14.1" stroke="none" text-anchor="middle" data-name="IControlHandle" data-compartment="0">IControlHandle</text></a>
+
+</g>
+</g>
+<g transform="translate(7038, 315.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IControlHandle" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IControlHandle" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="IControlHandle" data-compartment="1">+onMoved?: ((newX: number, newY: number) =&gt; void)</text>
+<text x="0.0" y="30.3" stroke="none" data-name="IControlHandle" data-compartment="1">+onMoveComplete?: (() =&gt; void)</text>
+
+</g>
+</g>
+<g transform="translate(7038, 363.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IControlHandle" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IControlHandle" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="IControlHandle" data-compartment="2">+show(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="IControlHandle" data-compartment="2">+hide(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="IControlHandle" data-compartment="2">+destroy(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="AddPlayerCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="AddPlayerCommand">
+<rect x="9758.5" y="808.5" height="145.0" width="259.0" data-name="AddPlayerCommand"></rect>
+<path d="M9758.5 840.5 L10017.5 840.5" fill="none" data-name="AddPlayerCommand"></path>
+<path d="M9758.5 905.5 L10017.5 905.5" fill="none" data-name="AddPlayerCommand"></path>
+</g>
+<g transform="translate(9758.5, 808.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="AddPlayerCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="AddPlayerCommand" data-compartment="0">
+<a id="src\history\commands\AddPlayerCommand.ts.AddPlayerCommand" xlink:href="src\history\commands\AddPlayerCommand.ts"><text x="121.5" y="14.1" stroke="none" text-anchor="middle" data-name="AddPlayerCommand" data-compartment="0">AddPlayerCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(9758.5, 840.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AddPlayerCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AddPlayerCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="AddPlayerCommand" data-compartment="1">-playerEntity: PlayerEntity</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AddPlayerCommand" data-compartment="1">-canvasMngr: CanvasManager</text>
+<text x="0.0" y="46.5" stroke="none" data-name="AddPlayerCommand" data-compartment="1">-playMngr: PlayManager</text>
+
+</g>
+</g>
+<g transform="translate(9758.5, 905.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AddPlayerCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AddPlayerCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="AddPlayerCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AddPlayerCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="AddRouteCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="AddRouteCommand">
+<rect x="10057.5" y="792.5" height="177.0" width="289.0" data-name="AddRouteCommand"></rect>
+<path d="M10057.5 824.5 L10346.5 824.5" fill="none" data-name="AddRouteCommand"></path>
+<path d="M10057.5 921.5 L10346.5 921.5" fill="none" data-name="AddRouteCommand"></path>
+</g>
+<g transform="translate(10057.5, 792.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="AddRouteCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="AddRouteCommand" data-compartment="0">
+<a id="src\history\commands\AddRouteCommand.ts.AddRouteCommand" xlink:href="src\history\commands\AddRouteCommand.ts"><text x="136.5" y="14.1" stroke="none" text-anchor="middle" data-name="AddRouteCommand" data-compartment="0">AddRouteCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(10057.5, 824.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AddRouteCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AddRouteCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="AddRouteCommand" data-compartment="1">-player: PlayerEntity</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AddRouteCommand" data-compartment="1">-newRouteEntity: RouteEntity</text>
+<text x="0.0" y="46.5" stroke="none" data-name="AddRouteCommand" data-compartment="1">-playManager: PlayManager</text>
+<text x="0.0" y="62.7" stroke="none" data-name="AddRouteCommand" data-compartment="1">-canvasManager: CanvasManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="AddRouteCommand" data-compartment="1">-oldRouteEntity: RouteEntity | null</text>
+
+</g>
+</g>
+<g transform="translate(10057.5, 921.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AddRouteCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AddRouteCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="AddRouteCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AddRouteCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="LoadFormationCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="LoadFormationCommand">
+<rect x="10386.5" y="776.5" height="209.0" width="346.0" data-name="LoadFormationCommand"></rect>
+<path d="M10386.5 808.5 L10732.5 808.5" fill="none" data-name="LoadFormationCommand"></path>
+<path d="M10386.5 937.5 L10732.5 937.5" fill="none" data-name="LoadFormationCommand"></path>
+</g>
+<g transform="translate(10386.5, 776.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="LoadFormationCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="LoadFormationCommand" data-compartment="0">
+<a id="src\history\commands\LoadFormationCommand.ts.LoadFormationCommand" xlink:href="src\history\commands\LoadFormationCommand.ts"><text x="165.0" y="14.1" stroke="none" text-anchor="middle" data-name="LoadFormationCommand" data-compartment="0">LoadFormationCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(10386.5, 808.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="LoadFormationCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="LoadFormationCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-previousPlayers: PlayerEntity[]</text>
+<text x="0.0" y="30.3" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-newPlayers: PlayerEntity[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-spawnData: PlayerImportData[]</text>
+<text x="0.0" y="62.7" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-playManager: PlayManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-canvasManager: CanvasManager</text>
+<text x="0.0" y="95.1" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-historyManager: HistoryManager</text>
+<text x="0.0" y="111.3" stroke="none" data-name="LoadFormationCommand" data-compartment="1">-notificationManager: NotificationManager</text>
+
+</g>
+</g>
+<g transform="translate(10386.5, 937.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="LoadFormationCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="LoadFormationCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="LoadFormationCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="LoadFormationCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="MovePlayerCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="MovePlayerCommand">
+<rect x="12320.0" y="752.0" height="258.0" width="346.0" data-name="MovePlayerCommand"></rect>
+<path d="M12320.0 784.0 L12666.0 784.0" fill="none" data-name="MovePlayerCommand"></path>
+<path d="M12320.0 962.0 L12666.0 962.0" fill="none" data-name="MovePlayerCommand"></path>
+</g>
+<g transform="translate(12320, 752)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="MovePlayerCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="MovePlayerCommand" data-compartment="0">
+<a id="src\history\commands\MoveCommands.ts.MovePlayerCommand" xlink:href="src\history\commands\MoveCommands.ts"><text x="165.0" y="14.1" stroke="none" text-anchor="middle" data-name="MovePlayerCommand" data-compartment="0">MovePlayerCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(12320, 784)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MovePlayerCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MovePlayerCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-dx: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-dy: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-playerId: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-startX: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-startY: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-endX: number</text>
+<text x="0.0" y="111.3" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-endY: number</text>
+<text x="0.0" y="127.5" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-playMngr: PlayManager</text>
+<text x="0.0" y="143.7" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-canvasMngr: CanvasManager</text>
+<text x="0.0" y="159.9" stroke="none" data-name="MovePlayerCommand" data-compartment="1">-notificationManager: NotificationManager</text>
+
+</g>
+</g>
+<g transform="translate(12320, 962)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MovePlayerCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MovePlayerCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="MovePlayerCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MovePlayerCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="MoveRouteCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="MoveRouteCommand">
+<rect x="12706.0" y="784.5" height="193.0" width="346.0" data-name="MoveRouteCommand"></rect>
+<path d="M12706.0 816.5 L13052.0 816.5" fill="none" data-name="MoveRouteCommand"></path>
+<path d="M12706.0 929.5 L13052.0 929.5" fill="none" data-name="MoveRouteCommand"></path>
+</g>
+<g transform="translate(12706, 784.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="MoveRouteCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="MoveRouteCommand" data-compartment="0">
+<a id="src\history\commands\MoveCommands.ts.MoveRouteCommand" xlink:href="src\history\commands\MoveCommands.ts"><text x="165.0" y="14.1" stroke="none" text-anchor="middle" data-name="MoveRouteCommand" data-compartment="0">MoveRouteCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(12706, 816.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MoveRouteCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MoveRouteCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="MoveRouteCommand" data-compartment="1">-oldNodes: RouteNode[]</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MoveRouteCommand" data-compartment="1">-newNodes: RouteNode[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="MoveRouteCommand" data-compartment="1">-routeId: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="MoveRouteCommand" data-compartment="1">-playMngr: PlayManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="MoveRouteCommand" data-compartment="1">-canvasMngr: CanvasManager</text>
+<text x="0.0" y="95.1" stroke="none" data-name="MoveRouteCommand" data-compartment="1">-notificationManager: NotificationManager</text>
+
+</g>
+</g>
+<g transform="translate(12706, 929.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MoveRouteCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MoveRouteCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="MoveRouteCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MoveRouteCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="RemovePlayerCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="RemovePlayerCommand">
+<rect x="13092.0" y="784.5" height="193.0" width="346.0" data-name="RemovePlayerCommand"></rect>
+<path d="M13092.0 816.5 L13438.0 816.5" fill="none" data-name="RemovePlayerCommand"></path>
+<path d="M13092.0 929.5 L13438.0 929.5" fill="none" data-name="RemovePlayerCommand"></path>
+</g>
+<g transform="translate(13092, 784.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="RemovePlayerCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RemovePlayerCommand" data-compartment="0">
+<a id="src\history\commands\RemovePlayerCommand.ts.RemovePlayerCommand" xlink:href="src\history\commands\RemovePlayerCommand.ts"><text x="165.0" y="14.1" stroke="none" text-anchor="middle" data-name="RemovePlayerCommand" data-compartment="0">RemovePlayerCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(13092, 816.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RemovePlayerCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RemovePlayerCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RemovePlayerCommand" data-compartment="1">-player: PlayerEntity</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RemovePlayerCommand" data-compartment="1">-routes: RouteEntity[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RemovePlayerCommand" data-compartment="1">-playerId: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RemovePlayerCommand" data-compartment="1">-playMngr: PlayManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RemovePlayerCommand" data-compartment="1">-canvasMngr: CanvasManager</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RemovePlayerCommand" data-compartment="1">-notificationManager: NotificationManager</text>
+
+</g>
+</g>
+<g transform="translate(13092, 929.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RemovePlayerCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RemovePlayerCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="RemovePlayerCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RemovePlayerCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="RemoveRouteCommand">
+<g fill="#eee8d5" stroke="#33322E" data-name="RemoveRouteCommand">
+<rect x="13478.0" y="784.5" height="193.0" width="346.0" data-name="RemoveRouteCommand"></rect>
+<path d="M13478.0 816.5 L13824.0 816.5" fill="none" data-name="RemoveRouteCommand"></path>
+<path d="M13478.0 929.5 L13824.0 929.5" fill="none" data-name="RemoveRouteCommand"></path>
+</g>
+<g transform="translate(13478, 784.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="RemoveRouteCommand" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RemoveRouteCommand" data-compartment="0">
+<a id="src\history\commands\RemoveRouteCommand.ts.RemoveRouteCommand" xlink:href="src\history\commands\RemoveRouteCommand.ts"><text x="165.0" y="14.1" stroke="none" text-anchor="middle" data-name="RemoveRouteCommand" data-compartment="0">RemoveRouteCommand</text></a>
+
+</g>
+</g>
+<g transform="translate(13478, 816.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RemoveRouteCommand" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RemoveRouteCommand" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RemoveRouteCommand" data-compartment="1">-route: RouteEntity</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RemoveRouteCommand" data-compartment="1">-player: PlayerEntity</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RemoveRouteCommand" data-compartment="1">-routeId: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RemoveRouteCommand" data-compartment="1">-playMngr: PlayManager</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RemoveRouteCommand" data-compartment="1">-canvasMngr: CanvasManager</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RemoveRouteCommand" data-compartment="1">-notificationManager: NotificationManager</text>
+
+</g>
+</g>
+<g transform="translate(13478, 929.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RemoveRouteCommand" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RemoveRouteCommand" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="RemoveRouteCommand" data-compartment="2">+execute(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RemoveRouteCommand" data-compartment="2">+undo(): void</text>
+
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>

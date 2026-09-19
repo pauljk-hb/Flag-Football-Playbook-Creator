@@ -93,9 +93,13 @@ export function AppLayout() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden">
-      <header className="h-12 border-b border-border bg-muted flex">
-        <TabButton to="/" isActive={isPlaybookActive} label="Playbook" />
-        <TabButton to="/export" isActive={isExportActive} label="Export" />
+      <header className="h-12 border-b border-border bg-muted flex [app-region:drag]">
+        <div className="flex h-full [app-region:no-drag]">
+          <TabButton to="/" isActive={isPlaybookActive} label="Playbook" />
+          <TabButton to="/export" isActive={isExportActive} label="Export" />
+        </div>
+
+        <div className="flex-1 h-full" />
       </header>
 
       <main className="flex-1 overflow-hidden">

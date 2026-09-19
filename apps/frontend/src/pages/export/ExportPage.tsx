@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import { PlaybookAPI } from "@playbook/core";
 import { Download, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -64,7 +63,7 @@ export function ExportPage() {
       {/* Top Header */}
       <header className="flex items-center justify-between px-4 h-12 border-b bg-muted flex-none">
         <div className="flex items-center gap-2">
-          <RouteTreeIcon className="h-4 w-4 text-primary" />
+          <img src="app-icon.svg" alt="Route Tree" className="h-5 w-5" />
           <span className="text-sm font-semibold tracking-tight text-muted-foreground">
             Playbook Designer
           </span>

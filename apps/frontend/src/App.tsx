@@ -13,20 +13,43 @@ import { Playbook } from "./pages/overview/OverviewPage";
 function App() {
   const theme = useThemeStore((state) => state.theme);
 
+  const THEME_COLORS = {
+    dark: "#2D2D31",
+    light: "#F4F4F5",
+  };
+
+  function updateThemeColor(isDark: boolean) {
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute(
+      "content",
+      isDark ? THEME_COLORS.dark : THEME_COLORS.light,
+    );
+  }
+
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = (isDark: boolean) => {
+      root.classList.remove("light", "dark");
+      root.classList.add(isDark ? "dark" : "light");
+      updateThemeColor(isDark);
+    };
 
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      root.classList.add(systemTheme);
-      return;
+      applyTheme(mediaQuery.matches);
+
+      const listener = (e: MediaQueryListEvent) => applyTheme(e.matches);
+      mediaQuery.addEventListener("change", listener);
+      return () => mediaQuery.removeEventListener("change", listener);
     }
 
-    root.classList.add(theme);
+    applyTheme(theme === "dark");
   }, [theme]);
 
   return (

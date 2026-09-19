@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import {
   InputGroup,
   InputGroupAddon,
@@ -47,7 +46,7 @@ export function Playbook() {
     <div className="flex flex-col h-full w-full bg-background">
       <header className="flex items-center justify-between px-4 h-12 border-b bg-muted flex-none">
         <div className="flex items-center gap-2">
-          <RouteTreeIcon className="h-4 w-4 text-primary" />
+          <img src="app-icon.svg" alt="Route Tree" className="h-5 w-5" />
           <span className="text-sm font-semibold tracking-tight text-muted-foreground">
             Playbook Designer
           </span>
