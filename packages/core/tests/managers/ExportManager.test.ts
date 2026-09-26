@@ -1,4 +1,4 @@
-import { ExportManager } from "@/managers/ExportManager";
+import { ExportManager } from "@/services/export/ExportService";
 import type { PlayImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

@@ -1,6 +1,6 @@
 import { PlaybookEngine } from "@/engine/PlaybookEngine";
-import { PlayerEntity } from "@/entities/PlayerEntity";
-import { RouteEntity } from "@/entities/RouteEntity";
+import { PlayerEntity } from "@/entities/player/PlayerModel";
+import { RouteEntity } from "@/entities/route/RouteModel";
 import { SegmentType } from "@/types/interfaces";
 import { FormationBuilder } from "@/utils/FormationBuilder";
 import { beforeEach, describe, expect, it, vi } from "vitest";

@@ -1,7 +1,7 @@
 import { PlaybookEngine } from "./engine/PlaybookEngine";
+import type { PublicPlaybookEventMap } from "./services/events/types/EventTypes";
 import type { PDFExportOptions } from "./types/export";
 import type {
-  CoreNotification,
   PlaybookMode,
   PlayerImportData,
   PlayerStyle,
@@ -215,37 +215,13 @@ export class PlaybookAPI {
   }
 
   /**
-   * Aboniert über Änderungen im History Stack (undo/redo)
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   * Abonniert ein öffentliches System-Event.
+   * @returns Cleanup-Funktion für Reacts useEffect
    */
-  public subscribeToHistoryChanges(callback: () => void): () => void {
-    const unsubscribe = this.engine.subscribeToHistoryChanges(callback);
-    return unsubscribe;
-  }
-
-  /**
-   * Erlaubt dem Frontend, sich für Benachrichtigungen aus dem Core anzumelden.
-   *
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
-   */
-  public subscribeToNotification(
-    callback: (notification: CoreNotification) => void,
+  public on<T extends keyof PublicPlaybookEventMap>(
+    event: T,
+    callback: (payload: PublicPlaybookEventMap[T]) => void,
   ): () => void {
-    const unsubscribe = this.engine.onNotification(callback);
-    return unsubscribe;
-  }
-
-  /**
-   * Aboniert über Änderungen für den Drawing Mode
-   *
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
-   */
-  public subscribeToDrawingMode(
-    callback: (isDrawing: boolean) => void,
-  ): () => void {
-    return this.engine.subscribeToDrawingMode(callback);
+    return this.engine.on(event, callback);
   }
 }

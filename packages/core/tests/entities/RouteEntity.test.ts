@@ -1,4 +1,4 @@
-import { RouteEntity, type RouteConfig } from "@/entities/RouteEntity";
+import { RouteEntity, type RouteConfig } from "@/entities/route/RouteModel";
 import { SegmentType } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -295,13 +295,24 @@ describe("RouteEntity", () => {
 
     describe("Handle Drag & Drop Events", () => {
       let onModifiedSpy: ReturnType<
-        typeof vi.fn<(routeId: string, oldNodes: RouteConfig["nodes"], newNodes: RouteConfig["nodes"]) => void>
+        typeof vi.fn<
+          (
+            routeId: string,
+            oldNodes: RouteConfig["nodes"],
+            newNodes: RouteConfig["nodes"],
+          ) => void
+        >
       >;
 
       beforeEach(() => {
-        onModifiedSpy = vi.fn<
-          (routeId: string, oldNodes: RouteConfig["nodes"], newNodes: RouteConfig["nodes"]) => void
-        >();
+        onModifiedSpy =
+          vi.fn<
+            (
+              routeId: string,
+              oldNodes: RouteConfig["nodes"],
+              newNodes: RouteConfig["nodes"],
+            ) => void
+          >();
         route.onNodesModified = onModifiedSpy;
       });
 

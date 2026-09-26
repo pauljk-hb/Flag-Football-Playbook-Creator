@@ -1,16 +1,16 @@
-import { PlayerEntity } from "@/entities/PlayerEntity";
-import { RouteEntity } from "@/entities/RouteEntity";
+import { PlayerEntity } from "@/entities/player/PlayerModel";
+import { RouteEntity } from "@/entities/route/RouteModel";
 import { RemoveRouteCommand } from "@/history/commands/RemoveRouteCommand";
 import type { CanvasManager } from "@/managers/CanvasManager";
-import type { NotificationManager } from "@/managers/NotificationManager";
 import type { PlayManager } from "@/managers/PlayManager";
+import type { NotificationService } from "@/services/notification/NotificationService";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("RemoveRouteCommand", () => {
   let command: RemoveRouteCommand;
   let mockPlayManager: PlayManager;
   let mockCanvasManager: CanvasManager;
-  let mockNotificationManager: NotificationManager;
+  let mockNotificationManager: NotificationService;
 
   let mockRoute: RouteEntity;
   let mockPlayer: PlayerEntity;

@@ -87,4 +87,12 @@ export interface CoreNotification {
   messageKey?: string;
 }
 
-export type PlaybookMode = "editor" | "viewer";
+export type PlaybookMode = "EDITOR" | "DRAW" | "READ_ONLY";
+
+export type EntityType = "PLAYER" | "ROUTE" | "NODE";
+
+export interface SelectionItem {
+  id: string;
+  type: EntityType;
+  parentId?: string;
+}

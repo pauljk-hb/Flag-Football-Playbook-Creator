@@ -1,6 +1,6 @@
-import type { BaseEntity } from "@/entities/BaseEntity";
-import { PlayerEntity } from "@/entities/PlayerEntity";
-import { RouteEntity } from "@/entities/RouteEntity";
+import type { BaseEntity } from "@/entities/base/BaseModel";
+import { PlayerEntity } from "@/entities/player/PlayerModel";
+import { RouteEntity } from "@/entities/route/RouteModel";
 import { PlayManager } from "@/managers/PlayManager";
 import { SegmentType, type PlayImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";

@@ -1,4 +1,4 @@
-import { RouteEntity } from "@/entities/RouteEntity";
+import { RouteEntity } from "@/entities/route/RouteModel";
 import { AddRouteCommand } from "@/history/commands/AddRouteCommand";
 import type { CanvasManager } from "@/managers/CanvasManager";
 import type { PlayManager } from "@/managers/PlayManager";

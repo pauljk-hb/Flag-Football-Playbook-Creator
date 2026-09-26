@@ -1,11 +1,11 @@
-import { PlayerEntity } from "@/entities/PlayerEntity";
-import { RouteEntity } from "@/entities/RouteEntity";
+import { PlayerEntity } from "@/entities/player/PlayerModel";
+import { RouteEntity } from "@/entities/route/RouteModel";
 import { LoadFormationCommand } from "@/history/commands/LoadFormationCommand";
 import { MovePlayerCommand } from "@/history/commands/MoveCommands";
 import type { HistoryManager } from "@/history/HistoryManager";
 import type { CanvasManager } from "@/managers/CanvasManager";
-import type { NotificationManager } from "@/managers/NotificationManager";
 import type { PlayManager } from "@/managers/PlayManager";
+import type { NotificationService } from "@/services/notification/NotificationService";
 import type { PlayerImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -51,7 +51,7 @@ describe("LoadFormationCommand", () => {
   let mockPlayManager: PlayManager;
   let mockCanvasManager: CanvasManager;
   let mockHistoryManager: HistoryManager;
-  let mockNotificationManager: NotificationManager;
+  let mockNotificationManager: NotificationService;
   let spawnData: PlayerImportData[];
 
   let oldPlayer: PlayerEntity;

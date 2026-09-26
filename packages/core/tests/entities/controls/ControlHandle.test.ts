@@ -2,7 +2,7 @@ import {
   BezierHandle,
   StretchHandle,
   WaypointHandle,
-} from "@/entities/controls/ControlHandle";
+} from "@/entities/route/controls/ControlHandle";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {

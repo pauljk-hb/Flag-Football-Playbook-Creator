@@ -1,4 +1,4 @@
-import { PlayerEntity } from "@/entities/PlayerEntity";
+import { PlayerEntity } from "@/entities/player/PlayerModel";
 import type { PlayerImportData } from "@/types/interfaces";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
