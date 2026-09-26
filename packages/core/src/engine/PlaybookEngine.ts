@@ -110,10 +110,6 @@ export class PlaybookEngine {
     }
   }
 
-  public getMode(): PlaybookMode {
-    return this.mode;
-  }
-
   /**
    * Skaliert die Canvas auf die Auflösung eines Parent Containers
    *  @param {number} [containerWidth] Breite des Parent Containers der Canvas
@@ -141,16 +137,22 @@ export class PlaybookEngine {
     preset: RoutePreset,
     routeType: string = "default",
   ): void {
-    const playerId = this.selectedPlayerIds[0];
-    const player = this.playModel.getPlayer(playerId);
+    const selectedPlayers = this.currentSelection.filter(
+      (item) => item.type === "PLAYER",
+    );
 
-    if (!playerId || !player) {
+    if (selectedPlayers.length === 0) {
       this.eventBus.emit("system:notification", {
         level: "warning",
         message: "Es ist kein Spieler ausgewählt!",
       });
       return;
     }
+
+    const playerId = selectedPlayers[0].id;
+    const player = this.playModel.getPlayer(playerId);
+
+    if (!player) return;
 
     const startX = player.x;
     const startY = player.y;
@@ -197,29 +199,32 @@ export class PlaybookEngine {
    * @param {string} [routeType] setzt den Typ der Route (default, option_1, option_2), standart ist 'default'
    */
   public startDrawingRoute(routeType = "default"): void {
-    const selectedItem = this.currentSelection[0];
-    if (selectedItem.type === "PLAYER") {
-      const player = this.playModel.getPlayer(selectedItem.id);
+    const selectedPlayers = this.currentSelection.filter(
+      (item) => item.type === "PLAYER",
+    );
 
-      if (!player) return;
-
-      this.routeDrawingService.startDrawing(
-        player.id,
-        player.x,
-        player.y,
-        player.color,
-        routeType,
-      );
-
-      this.setMode("DRAW");
+    if (selectedPlayers.length === 0) {
+      this.eventBus.emit("system:notification", {
+        level: "warning",
+        message: "Es ist kein Spieler ausgewählt!",
+      });
       return;
     }
 
-    this.eventBus.emit("system:notification", {
-      level: "warning",
-      message: "Es ist kein Spieler ausgewählt!",
-    });
-    return;
+    const playerId = selectedPlayers[0].id;
+    const player = this.playModel.getPlayer(playerId);
+
+    if (!player) return;
+
+    this.routeDrawingService.startDrawing(
+      player.id,
+      player.x,
+      player.y,
+      player.color,
+      routeType,
+    );
+
+    this.setMode("DRAW");
   }
 
   /**
