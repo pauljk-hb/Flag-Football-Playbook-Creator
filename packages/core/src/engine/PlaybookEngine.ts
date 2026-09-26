@@ -197,26 +197,29 @@ export class PlaybookEngine {
    * @param {string} [routeType] setzt den Typ der Route (default, option_1, option_2), standart ist 'default'
    */
   public startDrawingRoute(routeType = "default"): void {
-    const playerId = this.selectedPlayerIds[0];
-    const player = this.playModel.getPlayer(playerId);
+    const selectedItem = this.currentSelection[0];
+    if (selectedItem.type === "PLAYER") {
+      const player = this.playModel.getPlayer(selectedItem.id);
 
-    if (!playerId || !player) {
-      this.eventBus.emit("system:notification", {
-        level: "warning",
-        message: "Es ist kein Spieler ausgewählt!",
-      });
+      if (!player) return;
+
+      this.routeDrawingService.startDrawing(
+        player.id,
+        player.x,
+        player.y,
+        player.color,
+        routeType,
+      );
+
+      this.setMode("DRAW");
       return;
     }
 
-    this.routeDrawingService.startDrawing(
-      player.id,
-      player.x,
-      player.y,
-      player.color,
-      routeType,
-    );
-
-    this.setMode("DRAW");
+    this.eventBus.emit("system:notification", {
+      level: "warning",
+      message: "Es ist kein Spieler ausgewählt!",
+    });
+    return;
   }
 
   /**
@@ -309,7 +312,7 @@ export class PlaybookEngine {
    * @returns {string} Gibt einen `string` von einem Play Objekt zurück
    */
   public exportPlay(): string {
-    return JSON.stringify(this.playManager.exportPlay());
+    return JSON.stringify(this.playModel.exportDTO());
   }
 
   /**
