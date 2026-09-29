@@ -5,6 +5,9 @@
 > ⚠️ **Achtung: Alpha-Phase & Breaking Changes**
 >
 > Dieses Projekt befindet sich aktuell in einer **frühen Alpha-Phase**. Es finden fortlaufend Datenbank-Migrationen und tiefgreifende Architektur-Änderungen statt. **Es kann aktuell zu Datenverlusten kommen.** Nutze die Anwendung derzeit bitte noch nicht für kritische Produktionsdaten.
+>
+<img width="4377" height="1201" alt="image" src="https://github.com/user-attachments/assets/33c97feb-f0ec-4f87-8829-f91b355da1f9" />
+
 
 # Installation & Schnellstart
 
