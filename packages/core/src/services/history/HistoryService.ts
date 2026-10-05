@@ -1,4 +1,4 @@
-import type { ICommand } from "@/commands/ICommand";
+import type { ICommand } from "../../types/history";
 import type { EventBus } from "../events/EventBus";
 
 export class HistoryService {

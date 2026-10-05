@@ -1,15 +1,18 @@
-import type { PlayModel } from "@/playModel/PlayModel";
 import { PlayerModel } from "../../entities/player/PlayerModel";
+import type { PlayModel } from "../../playModel/PlayModel";
+import type { PlayerDTO } from "../../types/domain";
 import type { ICommand } from "../../types/history";
+import type { ThemeConfig } from "../../types/system";
 
 export class AddPlayerCommand implements ICommand {
   private player: PlayerModel;
 
   constructor(
     private playModel: PlayModel,
-    config: PlayerConfig,
+    config: PlayerDTO,
+    theme: ThemeConfig,
   ) {
-    this.player = new PlayerModel(config);
+    this.player = new PlayerModel(config, theme);
   }
 
   execute(): void {

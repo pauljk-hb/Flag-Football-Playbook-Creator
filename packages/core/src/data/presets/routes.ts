@@ -1,9 +1,9 @@
-import { SegmentType } from "../../types/interfaces.js";
+import { FOOTBALL_METRICS } from "../../constants/constants.js";
+import { SegmentType } from "../../types/domain.js";
 import type { RoutePreset } from "../../types/presets.js";
-import { PIXELS_PER_YARD } from "./fields.js";
 
 const yards = (yards: number) => {
-  return yards * PIXELS_PER_YARD * -1;
+  return yards * FOOTBALL_METRICS.PIXELS_PER_YARD * -1;
 };
 
 export const SYSTEM_ROUTES: Record<string, RoutePreset> = {

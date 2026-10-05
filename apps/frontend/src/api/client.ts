@@ -52,7 +52,7 @@ async function fetchApi<T>(
 }
 
 /**
- * Dein neuer API Client
+ * API Client
  */
 export const api = {
   playbooks: {

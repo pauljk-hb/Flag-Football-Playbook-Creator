@@ -1,10 +1,10 @@
-// Hilfstyp für die Callbacks
+import type { PlaybookEventMap } from "./types/EventTypes";
+
 type EventReceiver<T extends keyof PlaybookEventMap> = (
   payload: PlaybookEventMap[T],
 ) => void;
 
 export class EventBus {
-  // Speichert Arrays von Callbacks pro Event-Name
   private listeners: {
     [K in keyof PlaybookEventMap]?: EventReceiver<K>[];
   } = {};
@@ -17,9 +17,10 @@ export class EventBus {
     callback: EventReceiver<T>,
   ): void {
     if (!this.listeners[event]) {
-      this.listeners[event] = [];
+      this.listeners[event] = [] as any;
     }
-    this.listeners[event]!.push(callback);
+
+    (this.listeners[event] as EventReceiver<T>[]).push(callback);
   }
 
   /**
@@ -31,9 +32,11 @@ export class EventBus {
   ): void {
     if (!this.listeners[event]) return;
 
-    this.listeners[event] = this.listeners[event]!.filter(
+    const currentListeners = this.listeners[event] as EventReceiver<T>[];
+
+    this.listeners[event] = currentListeners.filter(
       (cb) => cb !== callback,
-    );
+    ) as any;
   }
 
   /**
@@ -45,12 +48,14 @@ export class EventBus {
   ): void {
     if (!this.listeners[event]) return;
 
-    this.listeners[event]!.forEach((callback) => {
+    const currentListeners = this.listeners[event] as EventReceiver<T>[];
+
+    currentListeners.forEach((callback) => {
       try {
         callback(payload);
       } catch (error) {
         console.error(
-          `Error in EventBus while executing listener for event: ${event}`,
+          `Error in EventBus while executing listener for event: ${String(event)}`,
           error,
         );
       }

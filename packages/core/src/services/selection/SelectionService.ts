@@ -1,6 +1,5 @@
-// src/services/selection/SelectionService.ts
-import type { EntityType, SelectionItem } from "@/types/interfaces";
 import * as fabric from "fabric";
+import type { SelectionItem } from "../../types/system";
 import type { EventBus } from "../events/EventBus";
 
 export class SelectionService {
@@ -41,18 +40,22 @@ export class SelectionService {
     const items: SelectionItem[] = [];
 
     e.selected.forEach((activeObject: fabric.Object) => {
-      const customData = activeObject.customData;
+      const id = activeObject.entityId;
+      const type = activeObject.entityType;
+      const parentId = activeObject.parentId;
 
-      if (customData && customData.id && customData.type) {
+      if (id && type) {
         items.push({
-          id: customData.id,
-          type: customData.type as EntityType,
-          parentId: customData.parentId,
+          id: id,
+          type: type,
+          parentId: parentId,
         });
       }
     });
 
-    this.eventBus.emit("selection:changed", { items });
+    if (items.length > 0) {
+      this.eventBus.emit("selection:changed", items);
+    }
   }
 
   private handleCleared(): void {

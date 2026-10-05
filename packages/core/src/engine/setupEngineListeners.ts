@@ -1,10 +1,9 @@
-import { MovePlayerCommand } from "@/commands/player/MovePlayerCommand";
-import { AddRouteCommand } from "@/commands/route/AddRouteCommand";
-import { MoveRouteNodeCommand } from "@/commands/route/MoveRouteNodeCommand";
-import type { PlayModel } from "@/playModel/PlayModel";
-import type { EventBus } from "@/services/events/EventBus";
-import type { HistoryService } from "@/services/history/HistoryService";
-import type { SelectionItem } from "@/types/interfaces";
+import { MovePlayerCommand } from "../commands/player/MovePlayerCommand";
+import { AddRouteCommand } from "../commands/route/AddRouteCommand";
+import { MoveRouteNodeCommand } from "../commands/route/MoveRouteNodeCommand";
+import type { PlayModel } from "../playModel/PlayModel";
+import type { EventBus } from "../services/events/EventBus";
+import type { HistoryService } from "../services/history/HistoryService";
 import type { PlaybookEngine } from "./PlaybookEngine";
 
 export function setupEngineListeners(
@@ -13,8 +12,8 @@ export function setupEngineListeners(
   playModel: PlayModel,
   historyService: HistoryService,
 ): void {
-  eventBus.on("selection:changed", (payload: { items: SelectionItem[] }) => {
-    engine.currentSelection = payload.items;
+  eventBus.on("selection:changed", (items) => {
+    engine.currentSelection = items;
   });
 
   eventBus.on("selection:cleared", () => {
@@ -25,10 +24,8 @@ export function setupEngineListeners(
     const command = new MovePlayerCommand(
       playModel,
       payload.playerId,
-      payload.startX,
-      payload.startY,
-      payload.endX,
-      payload.endY,
+      payload.startPosition,
+      payload.endPosition,
     );
     historyService.execute(command);
   });

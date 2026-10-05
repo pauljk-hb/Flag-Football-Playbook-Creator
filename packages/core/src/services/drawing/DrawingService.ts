@@ -1,6 +1,6 @@
 // src/services/drawing/RouteDrawingService.ts
 import * as fabric from "fabric";
-import { type RouteNode, SegmentType } from "../../types/interfaces";
+import { SegmentType, type Point2D, type RouteNode } from "../../types/domain";
 import { generateSvgPathString } from "../../utils/PathUtils";
 import type { EventBus } from "../events/EventBus";
 
@@ -29,8 +29,7 @@ export class RouteDrawingService {
    */
   public startDrawing(
     playerId: string,
-    startX: number,
-    startY: number,
+    startPosition: Point2D,
     color: string,
     routeType: string = "default",
   ): void {
@@ -42,7 +41,7 @@ export class RouteDrawingService {
     this.routeType = routeType;
 
     this.collectedNodes = [
-      { x: startX, y: startY, type: SegmentType.STRAIGHT },
+      { position: startPosition, type: SegmentType.STRAIGHT },
     ];
 
     this.bindEvents();
@@ -74,7 +73,7 @@ export class RouteDrawingService {
 
     const tempNodes = [
       ...this.collectedNodes,
-      { x: pointer.x, y: pointer.y, type: SegmentType.STRAIGHT },
+      { position: pointer, type: SegmentType.STRAIGHT },
     ];
 
     this.updatePreviewPath(tempNodes);
@@ -93,14 +92,16 @@ export class RouteDrawingService {
     if (!pointer) return;
 
     const lastNode = this.collectedNodes[this.collectedNodes.length - 1];
-    const dist = Math.hypot(pointer.x - lastNode.x, pointer.y - lastNode.y);
+    const dist = Math.hypot(
+      pointer.x - lastNode.position.x,
+      pointer.y - lastNode.position.y,
+    );
 
     // Anti-Spam: Knotenpunkte müssen minimalen Abstand haben
     if (dist < 3) return;
 
     this.collectedNodes.push({
-      x: pointer.x,
-      y: pointer.y,
+      position: pointer,
       type: SegmentType.STRAIGHT,
     });
   }

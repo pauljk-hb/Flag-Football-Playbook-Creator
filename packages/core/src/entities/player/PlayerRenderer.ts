@@ -1,5 +1,9 @@
-import { clampPositionWithinBounds, snapToCoordinate } from "@/utils/geometry";
 import * as fabric from "fabric";
+import { CANVAS, FOOTBALL_METRICS } from "../../constants/constants";
+import {
+  clampPositionWithinBounds,
+  snapToCoordinate,
+} from "../../utils/geometry";
 import { BaseRenderer } from "../base/BaseRenderer";
 import type { PlayerModel } from "./PlayerModel";
 
@@ -31,7 +35,7 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
       });
     }
 
-    const labelText = model.style.showLabels !== false ? model.label : "";
+    const labelText = model.style.showLabel !== false ? model.label : "";
     const text = new fabric.Text(labelText, {
       fontSize: 14,
       fill: "#ffffff",
@@ -42,22 +46,21 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
     });
 
     this.fabricObject = new fabric.Group([backgroundShape, text], {
-      left: model.x,
-      top: model.y,
+      left: model.position.x,
+      top: model.position.y,
       hasControls: false,
       hasBorders: false,
       originX: "center",
       originY: "center",
     });
 
-    (this.fabricObject as any).customData = {
-      id: model.id,
-      type: "PLAYER",
-    };
+    this.fabricObject.set({
+      entityId: model.id,
+      entityType: "PLAYER",
+    });
 
     this.setupEvents();
 
-    // CanvasManager abstrahiert hier den direkten fabric-Canvas Aufruf (z.B. this.canvas.add)
     this.canvasManager.addFabricObject(this.fabricObject);
   }
 
@@ -66,13 +69,13 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
 
     this.currentModel = model;
 
-    this.fabricObject.set({ left: model.x, top: model.y });
+    this.fabricObject.set({ left: model.position.x, top: model.position.y });
 
     const backgroundShape = this.fabricObject.item(0);
-    backgroundShape.set("fill", model.color);
+    backgroundShape.set("fill", model.style.color);
 
     const textObj = this.fabricObject.item(1);
-    textObj.set("text", model.label);
+    textObj.set("text", model.style.label);
 
     this.fabricObject.setCoords();
   }
@@ -94,20 +97,22 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
     });
 
     this.fabricObject.on("moving", () => {
-      const SNAP_THRESHOLD = 20;
-
       let currentX = this.fabricObject.left ?? 0;
       let currentY = this.fabricObject.top ?? 0;
 
-      currentY = snapToCoordinate(currentY, DEFAULT_LOS_Y, SNAP_THRESHOLD);
+      currentY = snapToCoordinate(
+        currentY,
+        FOOTBALL_METRICS.DEFAULT_LOS_Y,
+        CANVAS.SNAP_THRESHOLD,
+      );
 
       const clamped = clampPositionWithinBounds(
         currentX,
         currentY,
         this.fabricObject.getScaledWidth(),
         this.fabricObject.getScaledHeight(),
-        CANVAS_SIZE.width,
-        CANVAS_SIZE.height,
+        CANVAS.WIDTH,
+        CANVAS.HEIGHT,
         this.fabricObject.originX as string,
         this.fabricObject.originY as string,
       );
@@ -123,8 +128,6 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
       const currentY = this.fabricObject.top ?? 0;
 
       if (this.dragStartX !== currentX || this.dragStartY !== currentY) {
-        // Die visuelle Schicht feuert nun ein abstraktes Event an das System,
-        // anstatt einen direkten Callback auszuführen.
         this.eventBus.emit("renderer:player_moved", {
           playerId: this.currentModel!.id,
           startX: this.dragStartX,

@@ -1,27 +1,28 @@
+import type { Point2D, RouteNode } from "../../../types/domain";
+import type {
+  CoreNotification,
+  PlaybookMode,
+  SelectionItem,
+} from "../../../types/system";
+
 export interface PublicPlaybookEventMap {
   "history:changed": { canUndo: boolean; canRedo: boolean };
 
-  "system:notification": {
-    level: "info" | "success" | "warning" | "error";
-    message: string;
-    code?: string;
-  };
-  "system:mode_changed": { mode: "DEFAULT" | "DRAW" | "READ_ONLY" };
+  "system:notification": CoreNotification;
+  "system:mode_changed": PlaybookMode;
 
-  "selection:changed": { selectedIds: string[] };
+  "selection:changed": SelectionItem[];
 }
 
 export interface PrivatePlaybookEventMap {
   "player:moved": {
     playerId: string;
-    startX: number;
-    startY: number;
-    endX: number;
-    endY: number;
+    startPosition: Point2D;
+    endPosition: Point2D;
   };
   "player:selected": { playerId: string };
 
-  "route:drawn": { playerId: string; nodes: RouteNode[] };
+  "route:drawn": { playerId: string; nodes: RouteNode[]; routeType: string };
   "route:modified": {
     routeId: string;
     oldNodes: RouteNode[];
@@ -32,8 +33,8 @@ export interface PrivatePlaybookEventMap {
   "canvas:clicked": { x: number; y: number };
   "selection:cleared": undefined;
 
-  "play:updated": { playState: PlayState };
-  "play:loaded": { playState: PlayState };
+  "play:updated": any;
+  "play:loaded": any;
 }
 
 export type PlaybookEventMap = PublicPlaybookEventMap & PrivatePlaybookEventMap;

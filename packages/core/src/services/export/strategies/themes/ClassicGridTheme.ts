@@ -1,5 +1,5 @@
 import type { jsPDF } from "jspdf";
-import type { PDFExportOptions, PlayCell } from "../../types";
+import type { PDFExportOptions, PlayCell } from "../../../../types/export";
 import type { IPDFTheme } from "./IPDFTheme";
 
 export class ClassicGridTheme implements IPDFTheme {

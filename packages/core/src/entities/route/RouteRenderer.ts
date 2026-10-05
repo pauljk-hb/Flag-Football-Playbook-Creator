@@ -1,8 +1,16 @@
-import { generateSvgPathString } from "@/utils/PathUtils";
-import { calculateArrowheadMetrics } from "@/utils/geometry";
 import * as fabric from "fabric";
+import { CANVAS } from "../../constants/constants";
+import { SegmentType, type Point2D, type RouteNode } from "../../types/domain";
+import { generateSvgPathString } from "../../utils/PathUtils";
+import { calculateArrowheadMetrics, clampPoint } from "../../utils/geometry";
 import { BaseRenderer } from "../base/BaseRenderer";
 import type { RouteModel } from "./RouteModel";
+import {
+  BezierHandle,
+  StretchHandle,
+  WaypointHandle,
+  type IControlHandle,
+} from "./controls/ControlHandle";
 
 export class RouteRenderer extends BaseRenderer<RouteModel> {
   private arrowHead?: any;
@@ -18,15 +26,17 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
       pathString,
       this.getPathStyleConfig(model),
     );
-    (this.fabricObject as any).customData = {
-      id: model.id,
-      type: "ROUTE",
-    };
+
+    this.fabricObject.set({
+      entityId: model.id,
+      entityType: "ROUTE",
+      parentId: model.playerId,
+    });
 
     this.arrowHead = new fabric.Triangle({
       width: 24,
       height: 24,
-      fill: model.color,
+      fill: model.style.color,
       originX: "center",
       originY: "center",
       selectable: false,
@@ -56,7 +66,7 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
 
   private getPathStyleConfig(model: RouteModel): any {
     let dashArray: number[] | undefined = undefined;
-    let renderColor = model.color;
+    let renderColor = model.style.color;
 
     switch (model.routeType) {
       case "option_1":
@@ -91,6 +101,17 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     };
   }
 
+  public override getFabricObjects(): fabric.Object[] {
+    const objects: fabric.Object[] = [];
+    if (this.fabricObject) objects.push(this.fabricObject);
+    if (this.arrowHead) objects.push(this.arrowHead);
+    return objects;
+  }
+
+  public override getControlObjects(): fabric.Object[] {
+    return this.handles.flatMap((handle) => handle.getFabricObject());
+  }
+
   public setSelectable(enabled: boolean): void {
     if (this.fabricObject) {
       this.fabricObject.selectable = enabled;
@@ -123,21 +144,20 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
       if (index === 0) return;
 
       const waypoint = new WaypointHandle(
-        node.x,
-        node.y,
+        node.position,
         canvas,
         this.currentModel!.id,
       );
       this.handles.push(waypoint);
 
       const prevNode = nodes[index - 1];
-      const isVerticalLine = Math.abs(node.x - prevNode.x) < 10;
+      const isVerticalLine =
+        Math.abs(node.position.x - prevNode.position.x) < 10;
       let stretchHandle: StretchHandle | undefined;
 
       if (isVerticalLine) {
         stretchHandle = new StretchHandle(
-          node.x,
-          node.y + STRETCH_OFFSET_Y,
+          { x: node.position.x, y: node.position.y + STRETCH_OFFSET_Y },
           "Y",
           canvas,
           this.currentModel!.id,
@@ -149,16 +169,10 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
 
       let bezierHandle: BezierHandle | undefined;
 
-      if (
-        node.type === SegmentType.CURVE &&
-        node.cpInX !== undefined &&
-        node.cpInY !== undefined
-      ) {
+      if (node.type === SegmentType.CURVE && node.cpIn) {
         bezierHandle = new BezierHandle(
-          node.cpInX,
-          node.cpInY,
-          node.x,
-          node.y,
+          node.cpIn,
+          node.position,
           canvas,
           this.currentModel!.id,
         );
@@ -166,20 +180,24 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
 
         waypoint.attachBezier(bezierHandle);
 
-        bezierHandle.onMoved = (newX, newY) => {
+        bezierHandle.onMoved = (newPosition: Point2D) => {
           if (!this.dragStartNodes) {
             this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
           }
 
           const clamped = clampPoint(
-            { x: newX, y: newY },
-            CANVAS_SIZE.width,
-            CANVAS_SIZE.height,
+            newPosition,
+            CANVAS.WIDTH,
+            CANVAS.HEIGHT,
             PADDING,
           );
 
-          nodes[index].cpInX = clamped.x;
-          nodes[index].cpInY = clamped.y;
+          if (nodes[index].cpIn) {
+            nodes[index].cpIn!.x = clamped.x;
+            nodes[index].cpIn!.y = clamped.y;
+          } else {
+            nodes[index].cpIn = clamped;
+          }
 
           this.updatePathVisuals();
           canvas.requestRenderAll();
@@ -199,8 +217,8 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
 
         const clamped = clampPoint(
           { x: waypoint.circle.left ?? 0, y: waypoint.circle.top ?? 0 },
-          CANVAS_SIZE.width,
-          CANVAS_SIZE.height,
+          CANVAS.WIDTH,
+          CANVAS.HEIGHT,
           PADDING,
         );
 
@@ -209,13 +227,13 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
           top: clamped.y,
         });
 
-        nodes[index].x = clamped.x;
-        nodes[index].y = clamped.y;
+        nodes[index].position.x = clamped.x;
+        nodes[index].position.y = clamped.y;
 
         if (stretchHandle) {
           stretchHandle.rect.set({
-            left: nodes[index].x,
-            top: nodes[index].y + STRETCH_OFFSET_Y,
+            left: nodes[index].position.x,
+            top: nodes[index].position.y + STRETCH_OFFSET_Y,
           });
           stretchHandle.rect.setCoords();
         }
@@ -237,25 +255,26 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
             this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
 
           const startNodes = this.dragStartNodes!;
-          const startHandleY = startNodes[index].y + STRETCH_OFFSET_Y;
+          const startHandleY = startNodes[index].position.y + STRETCH_OFFSET_Y;
           const currentHandleY = stretchHandle!.rect.top ?? 0;
           const dy = currentHandleY - startHandleY;
 
           for (let i = index; i < nodes.length; i++) {
-            nodes[i].y = startNodes[i].y + dy;
+            nodes[i].position.y = startNodes[i].position.y + dy;
 
-            if (nodes[i].cpInY !== undefined)
-              nodes[i].cpInY = startNodes[i].cpInY! + dy;
-            if (nodes[i].cpOutY !== undefined)
-              nodes[i].cpOutY = startNodes[i].cpOutY! + dy;
+            if (nodes[i].cpIn && startNodes[i].cpIn)
+              nodes[i].cpIn!.y = startNodes[i].cpIn!.y + dy;
+
+            if (nodes[i].cpOut && startNodes[i].cpOut)
+              nodes[i].cpOut!.y = startNodes[i].cpOut!.y + dy;
 
             if (controlsMap[i]) {
-              controlsMap[i].waypoint.circle.set({ top: nodes[i].y });
+              controlsMap[i].waypoint.circle.set({ top: nodes[i].position.y });
               controlsMap[i].waypoint.circle.setCoords();
 
               if (controlsMap[i].stretch && i !== index) {
                 controlsMap[i].stretch!.rect.set({
-                  top: nodes[i].y + STRETCH_OFFSET_Y,
+                  top: nodes[i].position.y + STRETCH_OFFSET_Y,
                 });
                 controlsMap[i].stretch!.rect.setCoords();
               }
@@ -333,8 +352,10 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
   private updateArrowPosition(): void {
     if (!this.currentModel || !this.arrowHead) return;
 
-    const { x, y, angle } = calculateArrowheadMetrics(this.currentModel.nodes);
-    this.arrowHead.set({ left: x, top: y, angle: angle });
+    const { position, angle } = calculateArrowheadMetrics(
+      this.currentModel.nodes,
+    );
+    this.arrowHead.set({ left: position.x, top: position.y, angle: angle });
   }
 
   // Override destroy from BaseRenderer to also clean up arrowHead and handles

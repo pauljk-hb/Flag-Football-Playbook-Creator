@@ -1,49 +1,64 @@
+import type { PlayerDTO, PlayerStyle, Point2D } from "../../types/domain";
+import type { ThemeConfig } from "../../types/system";
 import { BaseModel } from "../base/BaseModel";
 
-export class PlayerModel extends BaseModel {
-  public x: number;
-  public y: number;
-  public role: string;
-  public style: PlayerStyle;
-  public styleOverride: PlayerStyleOverride;
+type PlayerConstructorPayload = Omit<PlayerDTO, "id"> & { id?: string };
 
-  constructor(config: PlayerImportData) {
+export class PlayerModel extends BaseModel {
+  public position: Point2D;
+  public roleId: string;
+  private playerStyle: PlayerStyle;
+  private playerStyleOverride: Partial<PlayerStyle> = {};
+
+  constructor(config: PlayerConstructorPayload, themeStyle: ThemeConfig) {
     super(config.id);
-    this.x = config.x;
-    this.y = config.y;
-    this.role = config.role;
-    this.style = config.style;
-    this.styleOverride = config.styleOverride || {};
+    this.position = config.position;
+    this.roleId = config.roleId;
+    this.playerStyle = themeStyle.playerRoles[config.roleId];
+    this.playerStyleOverride = config.styleOverride || {};
+  }
+
+  public get style(): PlayerStyle {
+    return {
+      ...this.playerStyle,
+      ...this.playerStyleOverride,
+    };
+  }
+
+  public updateStyle(newOverrides: Partial<PlayerStyle>): void {
+    this.playerStyleOverride = { ...this.playerStyleOverride, ...newOverrides };
   }
 
   public get color(): string {
-    return this.styleOverride.color ?? this.style.color;
+    return this.playerStyleOverride.color ?? this.playerStyle.color;
   }
 
   public set color(newColor: string) {
-    this.style.color = newColor;
-    this.styleOverride.color = newColor;
+    this.playerStyle.color = newColor;
+    this.playerStyleOverride.color = newColor;
   }
 
   public get label(): string {
-    return this.styleOverride.label ?? this.style.label;
+    return this.playerStyleOverride.label ?? this.playerStyle.label;
   }
 
   public set label(newLabel: string) {
-    this.style.label = newLabel;
-    this.styleOverride.label = newLabel;
+    this.playerStyle.label = newLabel;
+    this.playerStyleOverride.label = newLabel;
   }
 
-  public serialize(): PlayerExportData {
-    const exportData: PlayerExportData = {
+  public serialize(): PlayerDTO {
+    const exportData: PlayerDTO = {
       id: this.id,
-      role: this.role,
-      x: this.x,
-      y: this.y,
+      roleId: this.roleId,
+      position: this.position,
     };
 
-    if (this.styleOverride && Object.keys(this.styleOverride).length > 0) {
-      exportData.styleOverride = { ...this.styleOverride };
+    if (
+      this.playerStyleOverride &&
+      Object.keys(this.playerStyleOverride).length > 0
+    ) {
+      exportData.styleOverride = { ...this.playerStyleOverride };
     }
 
     return exportData;

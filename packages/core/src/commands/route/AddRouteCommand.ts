@@ -1,6 +1,8 @@
-import { RouteModel } from "@/entities/route/RouteModel";
-import type { PlayModel } from "@/playModel/PlayModel";
-import { constrainRouteToCanvas } from "@/utils/geometry";
+import { CANVAS } from "../../constants/constants";
+import { RouteModel } from "../../entities/route/RouteModel";
+import type { PlayModel } from "../../playModel/PlayModel";
+import type { RouteNode } from "../../types";
+import { constrainRouteToCanvas } from "../../utils/geometry";
 import type { ICommand } from "../ICommand";
 
 export class AddRouteCommand implements ICommand {
@@ -19,8 +21,8 @@ export class AddRouteCommand implements ICommand {
     // 2. Erzeuge die finalen, sicheren Koordinaten
     const constrainedNodes = constrainRouteToCanvas(
       rawNodes,
-      CANVAS_SIZE.width,
-      CANVAS_SIZE.height,
+      CANVAS.WIDTH,
+      CANVAS.HEIGHT,
     );
 
     const player = this.playModel.getPlayer(playerId);
@@ -29,7 +31,7 @@ export class AddRouteCommand implements ICommand {
       playerId: playerId,
       routeType: routeType,
       nodes: constrainedNodes,
-      color: player?.color || "black",
+      style: { color: player?.style.color || "black" },
     });
   }
 

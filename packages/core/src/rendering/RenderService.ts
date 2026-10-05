@@ -1,13 +1,18 @@
-import { FieldRenderer } from "@/entities/field/FieldRenderer";
-import { PlayerRenderer } from "@/entities/player/PlayerRenderer";
-import { RouteRenderer } from "@/entities/route/RouteRenderer";
-import type { PlayModel } from "@/playModel/PlayModel";
-import type { EventBus } from "@/services/events/EventBus";
+import { FieldRenderer } from "../entities/field/FieldRenderer";
+import { PlayerRenderer } from "../entities/player/PlayerRenderer";
+import { RouteRenderer } from "../entities/route/RouteRenderer";
+import type { PlayModel } from "../playModel/PlayModel";
+import type { EventBus } from "../services/events/EventBus";
+import type { ThumbnailOptions } from "../types/export";
+import type { SelectionItem } from "../types/system";
 import { CanvasManager } from "./canvas/CanvasManager";
+import { LayerManager } from "./canvas/LayerManager";
 
 export class RenderService {
   private canvasManager: CanvasManager;
-  private fieldRenderer: FieldRenderer;
+  private layerManager: LayerManager;
+
+  private fieldRenderer!: FieldRenderer;
   private playerRenderers: Map<string, PlayerRenderer> = new Map();
   private routeRenderers: Map<string, RouteRenderer> = new Map();
 
@@ -17,27 +22,61 @@ export class RenderService {
     private playModel: PlayModel,
   ) {
     this.canvasManager = new CanvasManager(canvasElement);
+    this.layerManager = new LayerManager(this.canvasManager);
 
-    this.eventBus.on("play:updated", () => {
-      this.syncPlay();
-    });
+    this.setupListeners();
+  }
 
+  private setupListeners(): void {
+    this.eventBus.on("play:updated", () => this.syncPlay());
     this.eventBus.on("selection:changed", (payload) =>
-      this.handleSelectionVisually(payload.selectedIds),
+      this.handleSelectionVisually(payload),
     );
-
     this.eventBus.on("selection:cleared", () => this.hideAllControls());
+  }
+
+  public resize(width: number): void {
+    this.canvasManager.handleResize(width);
+  }
+
+  public generateThumbnail(options?: ThumbnailOptions): string {
+    this.hideAllControls();
+    return this.canvasManager.generateThumbnail(options);
+  }
+
+  public getRawCanvas() {
+    return this.canvasManager.getRawCanvas();
+  }
+
+  public dispose(): void {
+    this.canvasManager.dispose();
   }
 
   /**
    * Die Haupt-Synchronisationsschleife.
    * Vergleicht den PlayState mit den aktuellen Renderern.
    */
-  public syncPlay(): void {
-    this.fieldRenderer.syncWithPreset(this.playModel.fieldPresetId);
+  private syncPlay(): void {
+    this.syncField();
     this.syncPlayers();
     this.syncRoutes();
-    this.canvasManager.requestRender();
+
+    this.layerManager.enforceLayering(
+      this.fieldRenderer,
+      this.routeRenderers,
+      this.playerRenderers,
+    );
+  }
+
+  private syncField(): void {
+    const fieldModel = this.playModel.getField();
+
+    if (!this.fieldRenderer) {
+      this.fieldRenderer = new FieldRenderer(this.canvasManager);
+      this.fieldRenderer.syncWithModel(fieldModel);
+    } else {
+      this.fieldRenderer.syncWithModel(fieldModel);
+    }
   }
 
   private syncPlayers(): void {
@@ -94,38 +133,43 @@ export class RenderService {
     this.canvasManager.requestRender();
   }
 
-  private handleSelectionVisually(selectedIds: string[]): void {
+  private handleSelectionVisually(selectedItems: SelectionItem[]): void {
     this.hideAllControls();
 
-    selectedIds.forEach((id) => {
-      const routeRenderer = this.routeRenderers.get(id);
-      if (routeRenderer) routeRenderer.showControls();
+    selectedItems.forEach((item) => {
+      switch (item.type) {
+        case "ROUTE": {
+          const routeRenderer = this.routeRenderers.get(item.id);
+          if (routeRenderer) routeRenderer.showControls();
+          break;
+        }
+        case "PLAYER": {
+          const playerRenderer = this.playerRenderers.get(item.id);
+          if (playerRenderer) {
+            playerRenderer.showControls();
 
-      const playerRenderer = this.playerRenderers.get(id);
-      if (playerRenderer) {
-        playerRenderer.showControls();
+            const playerRoutes = this.playModel.getRoutesFromPlayer(item.id);
+            playerRoutes.forEach((route) => {
+              this.routeRenderers.get(route.id)?.showControls();
+            });
+          }
+          break;
+        }
 
-        const playerRoutes = this.playModel.getRoutesFromPlayer(id);
-        playerRoutes.forEach((route) => {
-          this.routeRenderers.get(route.id)?.showControls();
-        });
+        case "NODE": {
+          if (item.parentId) {
+            const routeRenderer = this.routeRenderers.get(item.parentId);
+            if (routeRenderer) routeRenderer.showControls();
+          }
+          break;
+        }
       }
     });
 
-    this.canvasManager.requestRender();
-  }
-
-  /**
-   * Wird aufgerufen (z.B. vom SelectionService), um die Z-Indizes zu sichern
-   * Spieler müssen immer über den Routen liegen.
-   */
-  public enforceLayering(): void {
-    this.routeRenderers.forEach((r) =>
-      this.canvasManager.sendToBack(r.getFabricObject()),
+    this.layerManager.enforceLayering(
+      this.fieldRenderer,
+      this.routeRenderers,
+      this.playerRenderers,
     );
-    this.playerRenderers.forEach((p) =>
-      this.canvasManager.bringToFront(p.getFabricObject()),
-    );
-    this.canvasManager.requestRender();
   }
 }

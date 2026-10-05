@@ -1,4 +1,5 @@
-import type { PlayModel } from "@/playModel/PlayModel";
+import type { PlayModel } from "../../playModel/PlayModel";
+import type { RouteNode } from "../../types";
 import type { ICommand } from "../ICommand";
 
 export class MoveRouteNodeCommand implements ICommand {

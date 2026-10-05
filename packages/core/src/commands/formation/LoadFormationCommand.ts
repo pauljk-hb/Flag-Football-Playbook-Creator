@@ -1,8 +1,9 @@
-import type { PlayModel } from "@/playModel/PlayModel";
-import type { PlayerImportData } from "@/types/interfaces";
 import { PlayerModel } from "../../entities/player/PlayerModel";
 import { RouteModel } from "../../entities/route/RouteModel";
+import type { PlayModel } from "../../playModel/PlayModel";
 import type { ICommand } from "../../types/history";
+import type { ThemeConfig } from "../../types/system";
+import type { FormationSpawnData } from "../../utils/FormationBuilder";
 
 export class LoadFormationCommand implements ICommand {
   private previousPlayers: PlayerModel[] = [];
@@ -11,12 +12,13 @@ export class LoadFormationCommand implements ICommand {
 
   constructor(
     private playModel: PlayModel,
-    spawnData: PlayerImportData[],
+    spawnData: Array<FormationSpawnData & { id?: string }>,
+    theme: ThemeConfig,
   ) {
     this.previousPlayers = [...this.playModel.getAllPlayers()];
     this.previousRoutes = [...this.playModel.getAllRoutes()];
 
-    this.newPlayers = spawnData.map((data) => new PlayerModel(data));
+    this.newPlayers = spawnData.map((data) => new PlayerModel(data, theme));
   }
 
   public execute(): void {

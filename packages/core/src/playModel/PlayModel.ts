@@ -1,11 +1,26 @@
-import { PlayerModel } from "@/entities/player/PlayerModel";
-import { RouteModel } from "@/entities/route/RouteModel";
+import { SYSTEM } from "../constants/constants";
+import { FieldModel } from "../entities/field/FieldModel";
+import { PlayerModel } from "../entities/player/PlayerModel";
+import { RouteModel } from "../entities/route/RouteModel";
+import type { PlayDTO } from "../types/domain";
+import type { ThemeConfig } from "../types/system";
 
 export class PlayModel {
+  private field: FieldModel;
   private players: Map<string, PlayerModel> = new Map();
   private routes: Map<string, RouteModel> = new Map();
 
-  public fieldPresetId: string = "STANDARD";
+  constructor() {
+    this.field = new FieldModel("STANDARD");
+  }
+
+  public getField(): FieldModel {
+    return this.field;
+  }
+
+  public setFieldPreset(presetId: string): void {
+    this.field.setPreset(presetId);
+  }
 
   /**
    * Spieler-Verwaltung
@@ -67,15 +82,16 @@ export class PlayModel {
   public clearPlay(): void {
     this.players.clear();
     this.routes.clear();
-    this.fieldPresetId = "STANDARD";
+    this.field.setPreset("STANDARD");
   }
 
   /**
    * Exportiert den reinen Datenzustand (Aufruf durch ExportService)
    */
-  public exportDTO(): PlaySavePayload {
+  public exportDTO(): PlayDTO {
     return {
-      fieldPresetId: this.fieldPresetId,
+      version: SYSTEM.DATA_VERSION,
+      fieldPresetId: this.field.getPresetId(),
       players: this.getAllPlayers().map((p) => p.serialize()),
       routes: this.getAllRoutes().map((r) => r.serialize()),
     };
@@ -84,13 +100,13 @@ export class PlayModel {
   /**
    * Baut den State aus reinem JSON auf (Aufruf durch LoadPlayCommand)
    */
-  public loadFromDTO(data: PlayImportData): void {
+  public loadFromDTO(data: PlayDTO, theme: ThemeConfig): void {
     this.clearPlay();
-    this.fieldPresetId = data.fieldPresetId || "STANDARD";
+    this.field.setPreset(data.fieldPresetId || "STANDARD");
 
     if (data.players) {
       data.players.forEach((p) => {
-        this.addPlayer(new PlayerModel(p));
+        this.addPlayer(new PlayerModel(p, theme));
       });
     }
 

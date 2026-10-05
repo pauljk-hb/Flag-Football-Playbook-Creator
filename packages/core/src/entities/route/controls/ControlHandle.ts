@@ -1,30 +1,31 @@
 import * as fabric from "fabric";
+import type { Point2D } from "../../../types/domain";
 
 export interface IControlHandle {
   show(): void;
   hide(): void;
   destroy(): void;
-  onMoved?: (newX: number, newY: number) => void;
+  onMoved?: (newPosition: Point2D) => void;
   onMoveComplete?: () => void;
+  getFabricObject(): fabric.Object[];
 }
 
 const DEFAULT_HANDLE_COLOR = "#ffd147";
 
 export class WaypointHandle implements IControlHandle {
   public circle: fabric.Circle;
-  public onMoved?: (x: number, y: number) => void;
+  public onMoved?: (newPosition: Point2D) => void;
   public onMoveComplete?: () => void;
   private bezierHandles: BezierHandle[] = [];
 
   constructor(
-    x: number,
-    y: number,
+    position: Point2D,
     private canvas: fabric.Canvas,
     routeId: string,
   ) {
     this.circle = new fabric.Circle({
-      left: x,
-      top: y,
+      left: position.x,
+      top: position.y,
       radius: 6,
       fill: DEFAULT_HANDLE_COLOR,
       stroke: "#000000",
@@ -41,11 +42,17 @@ export class WaypointHandle implements IControlHandle {
 
     this.setupEvents();
 
-    // WICHTIG: Damit der SelectionManager das Handle nicht versehentlich deselektiert
-    this.circle.set("isRouteHandle" as keyof fabric.Object, true);
-    this.circle.set("parentRouteId" as keyof fabric.Object, routeId);
+    this.circle.set({
+      entityId: `node_${routeId}`,
+      entityType: "NODE",
+      parentId: routeId,
+    });
 
     this.canvas.add(this.circle);
+  }
+
+  public getFabricObject(): fabric.Object[] {
+    return [this.circle];
   }
 
   public attachBezier(bezier: BezierHandle) {
@@ -62,7 +69,7 @@ export class WaypointHandle implements IControlHandle {
       });
 
       if (this.onMoved) {
-        this.onMoved(currentX, currentY);
+        this.onMoved({ x: currentX, y: currentY });
       }
     });
 
@@ -88,29 +95,30 @@ export class WaypointHandle implements IControlHandle {
 export class BezierHandle implements IControlHandle {
   public controlPoint: fabric.Circle;
   private tetherLine: fabric.Line;
-  public onMoved?: (x: number, y: number) => void;
+  public onMoved?: (newPosition: Point2D) => void;
   public onMoveComplete?: () => void;
 
   constructor(
-    startX: number,
-    startY: number,
-    anchorX: number,
-    anchorY: number,
+    cpPosition: Point2D,
+    anchorPosition: Point2D,
     private canvas: fabric.Canvas,
     routeId: string,
   ) {
-    this.tetherLine = new fabric.Line([anchorX, anchorY, startX, startY], {
-      stroke: "#424242",
-      strokeWidth: 2,
-      strokeDashArray: [3, 3],
-      selectable: false,
-      evented: false,
-      visible: false,
-    });
+    this.tetherLine = new fabric.Line(
+      [anchorPosition.x, anchorPosition.y, cpPosition.x, cpPosition.y],
+      {
+        stroke: "#424242",
+        strokeWidth: 2,
+        strokeDashArray: [3, 3],
+        selectable: false,
+        evented: false,
+        visible: false,
+      },
+    );
 
     this.controlPoint = new fabric.Circle({
-      left: startX,
-      top: startY,
+      left: cpPosition.x,
+      top: cpPosition.y,
       radius: 4,
       fill: "#ffffff",
       stroke: DEFAULT_HANDLE_COLOR,
@@ -126,10 +134,17 @@ export class BezierHandle implements IControlHandle {
 
     this.setupEvents();
 
-    this.controlPoint.set("isRouteHandle" as keyof fabric.Object, true);
-    this.controlPoint.set("parentRouteId" as keyof fabric.Object, routeId);
+    this.controlPoint.set({
+      entityId: `node_${routeId}`,
+      entityType: "NODE",
+      parentId: routeId,
+    });
 
     this.canvas.add(this.tetherLine, this.controlPoint);
+  }
+
+  public getFabricObject(): fabric.Object[] {
+    return [this.tetherLine, this.controlPoint];
   }
 
   private setupEvents() {
@@ -140,7 +155,10 @@ export class BezierHandle implements IControlHandle {
       });
 
       if (this.onMoved) {
-        this.onMoved(this.controlPoint.left ?? 0, this.controlPoint.top ?? 0);
+        this.onMoved({
+          x: this.controlPoint.left ?? 0,
+          y: this.controlPoint.top ?? 0,
+        });
       }
     });
 
@@ -172,12 +190,11 @@ export class BezierHandle implements IControlHandle {
 
 export class StretchHandle implements IControlHandle {
   public rect: fabric.Triangle;
-  public onMoved?: (x: number, y: number) => void;
+  public onMoved?: (newPosition: Point2D) => void;
   public onMoveComplete?: () => void;
 
   constructor(
-    x: number,
-    y: number,
+    position: Point2D,
     stretchAxis: "X" | "Y" | "BOTH",
     private canvas: fabric.Canvas,
     routeId: string,
@@ -190,8 +207,8 @@ export class StretchHandle implements IControlHandle {
           : "pointer";
 
     this.rect = new fabric.Triangle({
-      left: x,
-      top: y,
+      left: position.x,
+      top: position.y,
       width: 13,
       height: 13,
       fill: DEFAULT_HANDLE_COLOR,
@@ -211,16 +228,23 @@ export class StretchHandle implements IControlHandle {
 
     this.setupEvents();
 
-    this.rect.set("isRouteHandle" as keyof fabric.Object, true);
-    this.rect.set("parentRouteId" as keyof fabric.Object, routeId);
+    this.rect.set({
+      entityId: `node_${routeId}`,
+      entityType: "NODE",
+      parentId: routeId,
+    });
 
     this.canvas.add(this.rect);
+  }
+
+  public getFabricObject(): fabric.Object[] {
+    return [this.rect];
   }
 
   private setupEvents() {
     this.rect.on("moving", () => {
       if (this.onMoved) {
-        this.onMoved(this.rect.left ?? 0, this.rect.top ?? 0);
+        this.onMoved({ x: this.rect.left ?? 0, y: this.rect.top ?? 0 });
       }
     });
 

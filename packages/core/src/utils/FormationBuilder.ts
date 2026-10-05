@@ -1,5 +1,7 @@
-import type { PlayerImportData, PlayerStyle } from "@/types/interfaces";
 import { FORMATION_PRESETS } from "../data/presets/index";
+import type { PlayerDTO, PlayerStyle } from "../types/domain";
+
+export type FormationSpawnData = Omit<PlayerDTO, "id">;
 
 export class FormationBuilder {
   /**
@@ -11,11 +13,11 @@ export class FormationBuilder {
     playerStyles: Record<string, PlayerStyle>,
     originX: number,
     originY: number,
-  ): PlayerImportData[] {
+  ): FormationSpawnData[] {
     const formation = FORMATION_PRESETS[formationId];
     if (!formation) return [];
 
-    const spawnData: PlayerImportData[] = [];
+    const spawnData: FormationSpawnData[] = [];
 
     formation.positions.forEach((pos) => {
       const roleKey = pos.playerPresetId;
@@ -27,10 +29,8 @@ export class FormationBuilder {
       };
 
       spawnData.push({
-        role: roleKey,
-        x: originX + pos.dx,
-        y: originY + pos.dy,
-        style: { ...style },
+        roleId: roleKey,
+        position: { x: originX + pos.dx, y: originY + pos.dy },
       });
     });
 

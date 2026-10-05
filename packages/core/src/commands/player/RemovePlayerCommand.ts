@@ -1,6 +1,6 @@
-import type { PlayerModel } from "@/entities/player/PlayerModel";
-import type { RouteModel } from "@/entities/route/RouteModel";
-import type { PlayModel } from "@/playModel/PlayModel";
+import type { PlayerModel } from "../../entities/player/PlayerModel";
+import type { RouteModel } from "../../entities/route/RouteModel";
+import type { PlayModel } from "../../playModel/PlayModel";
 import type { ICommand } from "../ICommand";
 
 export class RemovePlayerCommand implements ICommand {

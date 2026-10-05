@@ -1,4 +1,5 @@
-import type { PlayModel } from "@/playModel/PlayModel";
+import type { PlayModel } from "../../playModel/PlayModel";
+import type { Point2D, RouteNode } from "../../types/domain";
 import type { ICommand } from "../ICommand";
 
 export class MovePlayerCommand implements ICommand {
@@ -8,29 +9,34 @@ export class MovePlayerCommand implements ICommand {
   constructor(
     private playModel: PlayModel,
     private playerId: string,
-    private startX: number,
-    private startY: number,
-    private endX: number,
-    private endY: number,
+    private startPosition: Point2D,
+    private endPosition: Point2D,
   ) {
-    this.dx = this.endX - this.startX;
-    this.dy = this.endY - this.startY;
+    this.dx = this.endPosition.x - this.startPosition.x;
+    this.dy = this.endPosition.y - this.startPosition.y;
   }
 
   public execute(): void {
     const player = this.playModel.getPlayer(this.playerId);
     if (!player) return;
 
-    player.x = this.endX;
-    player.y = this.endY;
+    player.position.x = this.endPosition.x;
+    player.position.y = this.endPosition.y;
 
     const routes = this.playModel.getRoutesFromPlayer(this.playerId);
     routes.forEach((route) => {
-      route.nodes.forEach((node) => {
-        node.x += this.dx;
-        node.y += this.dy;
-        if (node.cpInX !== undefined) node.cpInX += this.dx;
-        if (node.cpInY !== undefined) node.cpInY += this.dy;
+      route.nodes.forEach((node: RouteNode) => {
+        node.position.x += this.dx;
+        node.position.y += this.dy;
+
+        if (node.cpIn) {
+          node.cpIn.x += this.dx;
+          node.cpIn.y += this.dy;
+        }
+        if (node.cpOut) {
+          node.cpOut.x += this.dx;
+          node.cpOut.y += this.dy;
+        }
       });
     });
   }
@@ -39,16 +45,23 @@ export class MovePlayerCommand implements ICommand {
     const player = this.playModel.getPlayer(this.playerId);
     if (!player) return;
 
-    player.x = this.startX;
-    player.y = this.startY;
+    player.position.x = this.startPosition.x;
+    player.position.y = this.startPosition.y;
 
     const routes = this.playModel.getRoutesFromPlayer(this.playerId);
     routes.forEach((route) => {
-      route.nodes.forEach((node) => {
-        node.x -= this.dx;
-        node.y -= this.dy;
-        if (node.cpInX !== undefined) node.cpInX -= this.dx;
-        if (node.cpInY !== undefined) node.cpInY -= this.dy;
+      route.nodes.forEach((node: RouteNode) => {
+        node.position.x -= this.dx;
+        node.position.y -= this.dy;
+
+        if (node.cpIn) {
+          node.cpIn.x -= this.dx;
+          node.cpIn.y -= this.dy;
+        }
+        if (node.cpOut) {
+          node.cpOut.x -= this.dx;
+          node.cpOut.y -= this.dy;
+        }
       });
     });
   }

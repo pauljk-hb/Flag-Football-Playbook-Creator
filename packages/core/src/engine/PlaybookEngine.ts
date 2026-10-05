@@ -1,60 +1,72 @@
-import { LoadFormationCommand } from "@/commands/formation/LoadFormationCommand";
-import { AddPlayerCommand } from "@/commands/player/AddPlayerCommand";
-import { RemovePlayerCommand } from "@/commands/player/RemovePlayerCommand";
-import { AddRouteCommand } from "@/commands/route/AddRouteCommand";
-import { RemoveRouteCommand } from "@/commands/route/RemoveRouteCommand";
-import { PlayModel } from "@/playModel/PlayModel";
-import { RenderService } from "@/rendering/RenderService";
-import { EventBus } from "@/services/events/EventBus";
-import type { PublicPlaybookEventMap } from "@/services/events/types/EventTypes";
-import { HistoryService } from "@/services/history/HistoryService";
-import type { PDFExportOptions } from "@/types/export";
-import { Line } from "fabric";
+import { LoadFormationCommand } from "../commands/formation/LoadFormationCommand";
+import { AddPlayerCommand } from "../commands/player/AddPlayerCommand";
+import { RemovePlayerCommand } from "../commands/player/RemovePlayerCommand";
+import { AddRouteCommand } from "../commands/route/AddRouteCommand";
+import { RemoveRouteCommand } from "../commands/route/RemoveRouteCommand";
+import { CANVAS, SYSTEM } from "../constants/constants";
 import {
   FIELD_PRESETS,
   FORMATION_PRESETS,
   ROUTE_PRESETS,
 } from "../data/presets";
-import { DEFAULT_LOS_Y } from "../data/presets/fields";
+import { PlayModel } from "../playModel/PlayModel";
+import { RenderService } from "../rendering/RenderService";
 import { RouteDrawingService } from "../services/drawing/DrawingService";
+import { EventBus } from "../services/events/EventBus";
+import type { PublicPlaybookEventMap } from "../services/events/types/EventTypes";
+import { ExportService } from "../services/export/ExportService";
+import { HistoryService } from "../services/history/HistoryService";
 import { SelectionService } from "../services/selection/SelectionService";
 import {
   SegmentType,
-  type PlaybookMode,
-  type PlayerImportData,
+  type PlayDTO,
+  type PlayerDTO,
   type PlayerStyle,
-  type PlayImportData,
   type RouteNode,
-  type SelectionItem,
-  type ThumbnailOptions,
-} from "../types/interfaces";
+} from "../types/domain";
+import type { PDFExportOptions, ThumbnailOptions } from "../types/export";
 import type { RoutePreset } from "../types/presets";
+import type {
+  PlaybookConfig,
+  PlaybookMode,
+  SelectionItem,
+} from "../types/system";
 import { FormationBuilder } from "../utils/FormationBuilder";
 import { setupEngineListeners } from "./setupEngineListeners";
 
 export class PlaybookEngine {
   private eventBus!: EventBus;
   private playModel!: PlayModel;
+  private playbookConfig!: PlaybookConfig;
 
   private historyService!: HistoryService;
   private renderService!: RenderService;
+  private exportService!: ExportService;
   private selectionService!: SelectionService;
   private routeDrawingService!: RouteDrawingService;
 
-  private currentFieldPresetId: string = "STANDARD";
   public currentSelection: SelectionItem[] = [];
 
   /*------------------------*/
   /*  Funktionen für außen  */
   /*------------------------*/
 
-  public init(canvasElement: HTMLCanvasElement): void {
+  public init(
+    canvasElement: HTMLCanvasElement,
+    playbookConfig: PlaybookConfig,
+  ): void {
     this.eventBus = new EventBus();
     this.playModel = new PlayModel();
+    this.playbookConfig = playbookConfig;
 
-    this.playModel.fieldPresetId = this.currentFieldPresetId;
+    this.playModel.setFieldPreset("STANDARD");
 
     this.historyService = new HistoryService(this.eventBus);
+    this.exportService = new ExportService(
+      this.renderService,
+      this.playModel,
+      this.playbookConfig.themeConfig,
+    );
     this.renderService = new RenderService(
       canvasElement,
       this.eventBus,
@@ -76,7 +88,7 @@ export class PlaybookEngine {
       this.historyService,
     );
 
-    this.setMode("EDITOR");
+    this.setMode(this.playbookConfig.playbookMode);
 
     this.eventBus.emit("play:updated", undefined);
   }
@@ -85,7 +97,7 @@ export class PlaybookEngine {
    * Wartet auf Abschluss des Render Cycles und zerstört dann die Canvas
    */
   public dispose(): void {
-    this.canvasManager.dispose();
+    this.renderService.dispose();
   }
 
   /**
@@ -93,7 +105,7 @@ export class PlaybookEngine {
    * @param {PlaybookMode} [newMode] "editor" | "viewer"
    */
   public setMode(mode: PlaybookMode): void {
-    this.eventBus.emit("system:mode_changed", { mode });
+    this.eventBus.emit("system:mode_changed", mode);
 
     switch (mode) {
       case "EDITOR":
@@ -115,15 +127,19 @@ export class PlaybookEngine {
    *  @param {number} [containerWidth] Breite des Parent Containers der Canvas
    */
   public handleResize(containerWidth: number): void {
-    this.canvasManager.handleResize(containerWidth);
+    this.renderService.resize(containerWidth);
   }
 
   /**
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerImportData): void {
-    const command = new AddPlayerCommand(this.playModel, config);
+  public addPlayer(config: PlayerDTO): void {
+    const command = new AddPlayerCommand(
+      this.playModel,
+      config,
+      this.playbookConfig.themeConfig,
+    );
 
     this.historyService.execute(command);
   }
@@ -154,22 +170,23 @@ export class PlaybookEngine {
 
     if (!player) return;
 
-    const startX = player.x;
-    const startY = player.y;
+    const startPosition = player.position;
 
-    const FIELD_CENTER_X = CANVAS_SIZE.width / 2;
-    const isPlayerOnLeftSide = startX < FIELD_CENTER_X;
+    const FIELD_CENTER_X = CANVAS.WIDTH / 2;
+    const isPlayerOnLeftSide = startPosition.x < FIELD_CENTER_X;
     const flipX = isPlayerOnLeftSide ? -1 : 1;
 
     const absoluteNodes: RouteNode[] = [];
 
-    absoluteNodes.push({ x: startX, y: startY, type: SegmentType.STRAIGHT });
+    absoluteNodes.push({ position: startPosition, type: SegmentType.STRAIGHT });
 
     for (const wp of preset.waypoints) {
       const lastNode = absoluteNodes[absoluteNodes.length - 1]!;
       const newNode: RouteNode = {
-        x: lastNode.x + wp.dx * flipX,
-        y: lastNode.y + wp.dy,
+        position: {
+          x: lastNode.position.x + wp.dx * flipX,
+          y: lastNode.position.y + wp.dy,
+        },
         type: wp.type || SegmentType.STRAIGHT,
       };
 
@@ -178,8 +195,10 @@ export class PlaybookEngine {
         wp.cpInDx !== undefined &&
         wp.cpInDy !== undefined
       ) {
-        newNode.cpInX = lastNode.x + wp.cpInDx * flipX;
-        newNode.cpInY = lastNode.y + wp.cpInDy;
+        newNode.cpIn = {
+          x: lastNode.position.x + wp.cpInDx * flipX,
+          y: lastNode.position.y + wp.cpInDy,
+        };
       }
 
       absoluteNodes.push(newNode);
@@ -218,9 +237,8 @@ export class PlaybookEngine {
 
     this.routeDrawingService.startDrawing(
       player.id,
-      player.x,
-      player.y,
-      player.color,
+      player.position,
+      player.style.color,
       routeType,
     );
 
@@ -277,7 +295,8 @@ export class PlaybookEngine {
 
     if (originX === undefined || originY === undefined) {
       const fieldConfig =
-        FIELD_PRESETS[this.currentFieldPresetId] || FIELD_PRESETS["STANDARD"];
+        FIELD_PRESETS[this.playModel.getField().getPresetId()] ||
+        FIELD_PRESETS["STANDARD"];
       originX = fieldConfig ? fieldConfig.anchor.x : 400;
       originY = fieldConfig ? fieldConfig.anchor.y : 600;
     }
@@ -297,7 +316,11 @@ export class PlaybookEngine {
       return;
     }
 
-    const command = new LoadFormationCommand(this.playModel, spawnData);
+    const command = new LoadFormationCommand(
+      this.playModel,
+      spawnData,
+      this.playbookConfig.themeConfig,
+    );
     this.historyService.execute(command);
     this.eventBus.emit("selection:cleared", undefined);
   }
@@ -307,8 +330,7 @@ export class PlaybookEngine {
    * @param {string} [presetId] id eines Untergrund Feldes
    */
   public changeFieldPreset(presetId: string): void {
-    this.currentFieldPresetId = presetId;
-    this.playModel.fieldPresetId = presetId;
+    this.playModel.setFieldPreset(presetId);
     this.eventBus.emit("play:updated", undefined);
   }
 
@@ -326,9 +348,18 @@ export class PlaybookEngine {
    */
   public loadPlay(data: string): void {
     try {
-      const playData = JSON.parse(data) as PlayImportData;
+      const playData = JSON.parse(data) as PlayDTO;
+
+      if (playData.version !== SYSTEM.DATA_VERSION) {
+        this.eventBus.emit("system:notification", {
+          level: "error",
+          message: "Inkompatible Version des Spielzugs!",
+        });
+        return;
+      }
+
       this.historyService.clear();
-      this.playModel.loadFromDTO(playData);
+      this.playModel.loadFromDTO(playData, this.playbookConfig.themeConfig);
 
       this.eventBus.emit("system:notification", {
         level: "success",
@@ -376,103 +407,69 @@ export class PlaybookEngine {
    * @returns {string} Gibt ein `string` von einem Base64 IMG zurück
    */
   public generateThumbnail(options: ThumbnailOptions = {}): string {
-    this.selectionManager.hideAllRouteControls();
-    return this.canvasManager.generateThumbnail(options);
+    this.eventBus.emit("selection:cleared", undefined);
+    return this.exportService.exportPlayAsImage(options);
   }
 
   /**
    * Generiert ein PDF-Playbook im Hintergrund und gibt es als Download-Blob zurück.
-   * @param {PlayExportData & { title?: string }} [plays] Play Daten
+   * @param {PlayDTO & { title?: string }} [plays] Play Daten
    * @param {PDFExportOptions} [options] Export-Optionen
    */
   public async exportToPDF(
-    plays: (PlayImportData & { title?: string })[],
+    plays: (PlayDTO & { title?: string })[],
     options: PDFExportOptions,
   ): Promise<Blob | null> {
     if (!plays || plays.length === 0) {
-      this.notificationManager.sendFeedback(
-        "error",
-        "No plays provided for export.",
-      );
+      this.eventBus.emit("system:notification", {
+        level: "error",
+        message: "No plays provided for export.",
+      });
       return null;
     }
 
-    this.notificationManager.sendFeedback("info", "Generating PDF...");
+    this.eventBus.emit("system:notification", {
+      level: "info",
+      message: "Generating PDF...",
+    });
 
     try {
-      const pdfBlob = await this.exportManager.generatePDF(plays, options);
-      this.notificationManager.sendFeedback(
-        "success",
-        "PDF generated successfully!",
+      const pdfBlob = await this.exportService.exportPlaybookAsPDF(
+        plays,
+        options,
       );
+
+      this.eventBus.emit("system:notification", {
+        level: "success",
+        message: "PDF generated successfully!",
+      });
+
       return pdfBlob;
     } catch (error) {
       console.error("PDF Export failed:", error);
-      this.notificationManager.sendFeedback("error", "Failed to generate PDF.");
+      this.eventBus.emit("system:notification", {
+        level: "error",
+        message: "Failed to generate PDF.",
+      });
       return null;
     }
   }
 
-  public exportFormationThumbnail(): string {
-    const canvas = this.canvasManager.getRawCanvas();
+  // public exportFormationThumbnail(): string {
+  //   try {
+  //     const currentPlayData = this.playModel.exportToDTO();
 
-    // 1. Alles ausblenden (Hintergrund und alle Objekte)
-    this.fieldManager.clearField();
+  //     return await this.exportService.exportFormationThumbnail(currentPlayData, options);
 
-    canvas.getObjects().forEach((obj) => {
-      obj.visible = false;
-    });
-
-    // 2. Nur Spieler herausfiltern und wieder sichtbar machen
-    const players = this.playManager
-      .getAllEntities()
-      .filter((e) => e instanceof PlayerEntity) as PlayerEntity[];
-
-    if (players.length === 0) {
-      console.warn("Keine Spieler gefunden!");
-      return "";
-    }
-
-    players.forEach((player) => {
-      player.getFabricObjects().forEach((obj) => {
-        obj.visible = true;
-      });
-    });
-
-    const finalLosY = DEFAULT_LOS_Y;
-
-    const fabricLine = new Line([-1000, finalLosY, 10000, finalLosY], {
-      stroke: "#121212",
-      strokeWidth: 4,
-      selectable: false,
-      evented: false,
-      hoverCursor: "default",
-    });
-
-    this.canvasManager.addFabricObject(fabricLine);
-
-    this.canvasManager.sendToBack(fabricLine);
-
-    canvas.discardActiveObject();
-    canvas.renderAll(); // Fabric.js zwingen, die Sichtbarkeiten sofort anzuwenden
-
-    // 4. Zuschneiden: Volle Breite, Y-Achse 120px hoch und runter (insgesamt 240px)
-    const cropTop = finalLosY - 120;
-    const cropHeight = 240;
-    const cropWidth = canvas.width || 800; // Volle Breite des Canvas
-
-    // 5. Bild generieren
-    const dataURL = canvas.toDataURL({
-      format: "png",
-      multiplier: 0.7,
-      left: 0,
-      top: cropTop,
-      width: cropWidth,
-      height: cropHeight,
-    });
-
-    return dataURL;
-  }
+  //   } catch (error) {
+  //     console.error("Fehler beim Generieren des Formation-Thumbnails:", error);
+  //     this.eventBus.emit("system:notification", {
+  //       level: "error",
+  //       message: "Formation Thumbnail konnte nicht erstellt werden."
+  //     });
+  //     return "";
+  //   }
+  // }
 
   /**
    * Macht die letzte Aktion rückgänig
@@ -517,29 +514,5 @@ export class PlaybookEngine {
     return () => {
       this.eventBus.off(event as any, callback as any);
     };
-  }
-
-  /*-------------------*/
-  /*  Hilfsfunktionen  */
-  /*-------------------*/
-
-  /**
-   * Entfernt einen Spieler anhand seiner ID.
-   */
-  private removePlayer(playerId: string): void {
-    const command = new RemovePlayerCommand(this.playModel, playerId);
-    this.historyService.execute(command);
-
-    this.eventBus.emit("selection:cleared", undefined);
-  }
-
-  /**
-   * Löscht die Route mithilfe der ID
-   */
-  private deleteRoute(routeId: string): void {
-    const command = new RemoveRouteCommand(this.playModel, routeId);
-    this.historyService.execute(command);
-
-    this.eventBus.emit("selection:cleared", undefined);
   }
 }

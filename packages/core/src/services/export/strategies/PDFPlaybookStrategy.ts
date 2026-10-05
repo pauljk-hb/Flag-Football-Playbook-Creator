@@ -1,17 +1,20 @@
 import { jsPDF } from "jspdf";
-import type { HeadlessEnvironment, PDFExportOptions, PlayCell } from "../types";
+import type { PlayDTO } from "../../../types";
+import type {
+  HeadlessEnvironment,
+  PDFExportOptions,
+  PlayCell,
+} from "../../../types/export";
 import type { IExportStrategy } from "./IExportStrategy";
 import { ClassicGridTheme } from "./themes/ClassicGridTheme";
-// import { ModernHeaderTheme } from "./themes/ModernHeaderTheme";
-import type { PlayImportData } from "../../../types/interfaces";
 import type { IPDFTheme } from "./themes/IPDFTheme";
 
 export class PDFPlaybookStrategy implements IExportStrategy<
-  (PlayImportData & { title?: string })[],
+  (PlayDTO & { title?: string })[],
   PDFExportOptions
 > {
   public async execute(
-    plays: (PlayImportData & { title?: string })[],
+    plays: (PlayDTO & { title?: string })[],
     env: HeadlessEnvironment,
     options: PDFExportOptions,
   ): Promise<Blob> {
@@ -25,7 +28,7 @@ export class PDFPlaybookStrategy implements IExportStrategy<
     });
 
     const cells = await this.generateCells(plays, env);
-    const theme = this.getTheme(options.themeType);
+    const theme = this.getTheme("CLASSIC");
 
     theme.render(doc, cells, options);
 
@@ -42,22 +45,23 @@ export class PDFPlaybookStrategy implements IExportStrategy<
   }
 
   private async generateCells(
-    plays: (PlayImportData & { title?: string })[],
+    plays: (PlayDTO & { title?: string })[],
     env: HeadlessEnvironment,
   ): Promise<PlayCell[]> {
     const cells: PlayCell[] = [];
-    const { playState, eventBus, canvasManager, width } = env;
+    const { playState, eventBus, renderService, width } = env;
 
     for (let i = 0; i < plays.length; i++) {
       const play = plays[i];
 
-      const rawCanvas = canvasManager.getRawCanvas();
+      const rawCanvas = renderService.getRawCanvas();
       if (rawCanvas) rawCanvas.backgroundColor = "#ffffff";
 
-      playState.loadFromDTO(play);
-      eventBus.emit("state:changed", { playState });
+      playState.loadFromDTO(play, env.themeConfig);
 
-      const imgData = canvasManager.generateThumbnail({
+      eventBus.emit("play:updated", undefined);
+
+      const imgData = renderService.generateThumbnail({
         width: width,
         format: "jpeg",
         quality: 0.85,
@@ -67,7 +71,7 @@ export class PDFPlaybookStrategy implements IExportStrategy<
       cells.push({ title, imgData });
 
       playState.clearPlay();
-      canvasManager.clear();
+      renderService.dispose();
     }
 
     return cells;

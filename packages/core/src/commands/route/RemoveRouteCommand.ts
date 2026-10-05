@@ -1,6 +1,5 @@
-// src/commands/RemoveRouteCommand.ts
-import type { RouteModel } from "@/entities/route/RouteModel";
-import type { PlayModel } from "@/playModel/PlayModel";
+import type { RouteModel } from "../../entities/route/RouteModel";
+import type { PlayModel } from "../../playModel/PlayModel";
 import type { ICommand } from "../ICommand";
 
 export class RemoveRouteCommand implements ICommand {

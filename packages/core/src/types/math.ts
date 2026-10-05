@@ -1,7 +1,4 @@
-export interface IPoint {
-  x: number;
-  y: number;
-}
+import type { Point2D } from "./domain";
 
 export interface BoundingBox {
   minX: number;
@@ -15,7 +12,7 @@ export interface BoundingBox {
 export interface PolylineMetrics {
   width: number;
   height: number;
-  pathOffset: IPoint;
+  pathOffset: Point2D;
   dx: number;
   dy: number;
 }

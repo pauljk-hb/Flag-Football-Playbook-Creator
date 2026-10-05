@@ -33,17 +33,19 @@ export function EditorPage() {
   } = useEditor(id);
 
   useEffect(() => {
-    const unsubscribe = engine?.subscribeToDrawingMode(setIsDrawingMode);
-    return () => unsubscribe?.();
+    if (!engine) return;
+    return engine.on("system:mode_changed", (mode) => {
+      setIsDrawingMode(mode === "DRAW");
+    });
   }, [engine]);
 
   useEffect(() => {
     if (!engine) return;
 
     if (device === "mobile") {
-      engine.setMode("viewer");
+      engine.setMode("READ_ONLY");
     } else {
-      engine.setMode("editor");
+      engine.setMode("EDITOR");
     }
   }, [engine, device]);
 

@@ -1,40 +1,41 @@
-import { FabricObject, Line } from "fabric";
-import {
-  DEFAULT_LOS_Y,
-  PIXELS_PER_YARD,
-  SYSTEM_FIELDS,
-} from "../../data/presets/fields";
-import type { CanvasManager } from "../../managers/CanvasManager";
-import type { FieldLineConfig } from "../../types/presets";
+import * as fabric from "fabric";
+import { FOOTBALL_METRICS } from "../../constants/constants";
+import type { CanvasManager } from "../../rendering/canvas/CanvasManager";
+import type { FieldModel } from "./FieldModel";
 
 export class FieldRenderer {
-  private fieldObjects: FabricObject[] = [];
-
-  private currentPresetId: string = "STANDARD";
+  private fieldObjects: fabric.FabricObject[] = [];
+  private renderedPresetId: string | null = null;
 
   constructor(private canvasManager: CanvasManager) {}
 
-  public getCurrentPresetId(): string {
-    return this.currentPresetId;
-  }
+  /**
+   * Synchronisiert das Canvas mit dem aktuellen Stand des FieldModels.
+   */
+  public syncWithModel(model: FieldModel): void {
+    const targetPresetId = model.getPresetId();
 
-  public drawField(presetId: string): void {
-    const preset = SYSTEM_FIELDS[presetId];
-    if (!preset) return;
-
-    this.currentPresetId = presetId;
+    if (
+      this.renderedPresetId === targetPresetId &&
+      this.fieldObjects.length > 0
+    ) {
+      return;
+    }
 
     this.clearField();
+    this.renderedPresetId = targetPresetId;
 
     const LINE_START = -1000;
     const LINE_END = 5000;
 
-    preset.lines.forEach((lineConfig: FieldLineConfig) => {
-      const yPos = DEFAULT_LOS_Y - lineConfig.yardsFromLos * PIXELS_PER_YARD;
+    model.getLines().forEach((lineConfig) => {
+      const yPos =
+        FOOTBALL_METRICS.DEFAULT_LOS_Y -
+        lineConfig.yardsFromLos * FOOTBALL_METRICS.PIXELS_PER_YARD;
 
       let strokeColor = "#ffffff";
       let strokeWidth = 2;
-      let dashArray: number[] | null = null;
+      let dashArray: number[] | undefined = undefined;
 
       if (lineConfig.type === "los") {
         strokeColor = "#121212";
@@ -48,20 +49,22 @@ export class FieldRenderer {
         dashArray = [10, 5];
       }
 
-      const fabricLine = new Line([LINE_START, yPos, LINE_END, yPos], {
+      const fabricLine = new fabric.Line([LINE_START, yPos, LINE_END, yPos], {
         stroke: strokeColor,
         strokeWidth: strokeWidth,
         strokeDashArray: dashArray,
-        selectable: false,
-        evented: false,
+        selectable: false, // Kann vom Nutzer nicht angeklickt werden
+        evented: false, // Blockiert keine Klicks
         hoverCursor: "default",
       });
 
       this.fieldObjects.push(fabricLine);
       this.canvasManager.addFabricObject(fabricLine);
-
-      this.canvasManager.sendToBack(fabricLine);
     });
+  }
+
+  public getFabricObjects(): fabric.Object[] {
+    return this.fieldObjects;
   }
 
   public clearField(): void {
@@ -69,5 +72,6 @@ export class FieldRenderer {
       this.canvasManager.removeFabricObject(obj),
     );
     this.fieldObjects = [];
+    this.renderedPresetId = null;
   }
 }
