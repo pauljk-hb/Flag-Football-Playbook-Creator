@@ -62,15 +62,17 @@ export class PlaybookEngine {
     this.playModel.setFieldPreset("STANDARD");
 
     this.historyService = new HistoryService(this.eventBus);
-    this.exportService = new ExportService(
-      this.renderService,
-      this.playModel,
-      this.playbookConfig.themeConfig,
-    );
+
     this.renderService = new RenderService(
       canvasElement,
       this.eventBus,
       this.playModel,
+    );
+
+    this.exportService = new ExportService(
+      this.renderService,
+      this.playModel,
+      this.playbookConfig.themeConfig,
     );
 
     // Die Sensoren bekommen nur die rohe Canvas
@@ -134,7 +136,7 @@ export class PlaybookEngine {
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerDTO): void {
+  public addPlayer(config: Omit<PlayerDTO, "id">): void {
     const command = new AddPlayerCommand(
       this.playModel,
       config,

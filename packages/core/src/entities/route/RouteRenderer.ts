@@ -36,7 +36,7 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     this.arrowHead = new fabric.Triangle({
       width: 24,
       height: 24,
-      fill: model.style.color,
+      fill: this.getPathStyleConfig(model).stroke,
       originX: "center",
       originY: "center",
       selectable: false,
@@ -60,7 +60,7 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     // Falls die Handles gerade sichtbar sind, müssen sie auch an die neuen Positionen
     if (this.handles.length > 0) {
       this.initializeControls();
-      this.showControls();
+      // this.showControls();
     }
   }
 
@@ -296,7 +296,7 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
 
       if (JSON.stringify(this.dragStartNodes) !== JSON.stringify(newNodes)) {
         // EventBus ersetzt den direkten this.onNodesModified Callback
-        this.eventBus.emit("renderer:route_nodes_modified", {
+        this.eventBus.emit("route:modified", {
           routeId: this.currentModel.id,
           oldNodes: this.dragStartNodes,
           newNodes: newNodes,
@@ -312,6 +312,9 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
       this.initializeControls();
     }
     this.handles.forEach((h) => h.show());
+    console.trace(
+      `DEBUG: showControls aufgerufen für Player ${this.currentModel?.id}`,
+    );
   }
 
   public hideControls(): void {

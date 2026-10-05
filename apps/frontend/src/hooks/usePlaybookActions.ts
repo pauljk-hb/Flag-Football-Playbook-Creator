@@ -1,10 +1,7 @@
 import { api } from "@/api/client";
-import type {
-  PlayerStyle,
-  PlayerStylePreset,
-  ThumbnailOptions,
-} from "@/types/interface";
+import type { PlayerStyle, PlayerStylePreset } from "@/types/interface";
 import { ROUTE_PRESETS } from "@playbook/core";
+import type { ThumbnailOptions } from "@playbook/core/dist/types";
 import { useEffect, useMemo, useState } from "react";
 import { usePlaybookStore } from "./useAppStore";
 import { usePlaybook } from "./usePlaybook";
@@ -162,10 +159,8 @@ export function usePlaybookActions() {
 
       const style = getPresetStyle(presetId);
       engine.addPlayer({
-        role: presetId,
-        x: 200,
-        y: 300,
-        style: style,
+        roleId: presetId,
+        position: { x: 200, y: 300 },
       });
     } catch (error) {
       console.error("Fehler beim Hinzufügen des Spielers:", error);

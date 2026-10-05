@@ -54,7 +54,7 @@ export class PlaybookAPI {
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerDTO): void {
+  public addPlayer(config: Omit<PlayerDTO, "id">): void {
     this.engine.addPlayer(config);
   }
 

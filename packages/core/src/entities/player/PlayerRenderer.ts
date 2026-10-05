@@ -128,12 +128,10 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
       const currentY = this.fabricObject.top ?? 0;
 
       if (this.dragStartX !== currentX || this.dragStartY !== currentY) {
-        this.eventBus.emit("renderer:player_moved", {
+        this.eventBus.emit("player:moved", {
           playerId: this.currentModel!.id,
-          startX: this.dragStartX,
-          startY: this.dragStartY,
-          endX: currentX,
-          endY: currentY,
+          startPosition: { x: this.dragStartX, y: this.dragStartY },
+          endPosition: { x: currentX, y: currentY },
         });
       }
     });

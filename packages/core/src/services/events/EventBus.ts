@@ -52,6 +52,10 @@ export class EventBus {
 
     currentListeners.forEach((callback) => {
       try {
+        console.log(
+          `EventBus: Emitting event "${String(event)}" with payload:`,
+          payload,
+        );
         callback(payload);
       } catch (error) {
         console.error(

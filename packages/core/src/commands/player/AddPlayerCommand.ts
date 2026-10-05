@@ -9,7 +9,7 @@ export class AddPlayerCommand implements ICommand {
 
   constructor(
     private playModel: PlayModel,
-    config: PlayerDTO,
+    config: Omit<PlayerDTO, "id">,
     theme: ThemeConfig,
   ) {
     this.player = new PlayerModel(config, theme);

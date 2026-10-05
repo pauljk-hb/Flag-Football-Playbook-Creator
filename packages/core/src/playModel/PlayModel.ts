@@ -30,6 +30,7 @@ export class PlayModel {
       console.warn(`Player with ID ${player.id} already exists. Overwriting.`);
     }
     this.players.set(player.id, player);
+    console.log(this.players);
   }
 
   public removePlayer(id: string): void {

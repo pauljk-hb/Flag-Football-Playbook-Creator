@@ -72,12 +72,6 @@ export interface UpdatePlayDTO {
   sortOrder?: number;
 }
 
-export interface ThumbnailOptions {
-  format?: "png" | "jpeg" | "webp";
-  quality?: number;
-  width?: number;
-}
-
 export interface Margin {
   top: number;
   right: number;

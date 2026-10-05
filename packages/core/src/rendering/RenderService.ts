@@ -16,6 +16,8 @@ export class RenderService {
   private playerRenderers: Map<string, PlayerRenderer> = new Map();
   private routeRenderers: Map<string, RouteRenderer> = new Map();
 
+  private currentSelection: SelectionItem[] = [];
+
   constructor(
     canvasElement: HTMLCanvasElement,
     private eventBus: EventBus,
@@ -28,11 +30,20 @@ export class RenderService {
   }
 
   private setupListeners(): void {
-    this.eventBus.on("play:updated", () => this.syncPlay());
-    this.eventBus.on("selection:changed", (payload) =>
-      this.handleSelectionVisually(payload),
-    );
-    this.eventBus.on("selection:cleared", () => this.hideAllControls());
+    this.eventBus.on("play:updated", () => {
+      this.syncPlay();
+      this.handleSelectionVisually(this.currentSelection);
+    });
+
+    this.eventBus.on("selection:changed", (items: SelectionItem[]) => {
+      this.currentSelection = items;
+      this.handleSelectionVisually(this.currentSelection);
+    });
+
+    this.eventBus.on("selection:cleared", () => {
+      this.currentSelection = [];
+      this.handleSelectionVisually(this.currentSelection);
+    });
   }
 
   public resize(width: number): void {
