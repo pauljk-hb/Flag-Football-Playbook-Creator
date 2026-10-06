@@ -11,6 +11,9 @@ export interface PDFExportOptions {
   playbookTitle?: string;
   margin?: Margin;
   gap?: number;
+  routeStrokeWidth?: number;
+  showLabel?: boolean;
+  fontSize?: number;
 }
 
 export interface ThumbnailOptions {

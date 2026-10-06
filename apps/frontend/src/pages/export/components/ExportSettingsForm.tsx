@@ -1,7 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { ExportPreset, PDFExportOptions } from "@/types/interface";
+import type { ExportPreset } from "@/types/interface";
+import type { PDFExportOptions } from "@playbook/core/dist/types";
 import { SavePresetPopover } from "./SavePresetPopover";
 
 interface ExportSettingsFormProps {
@@ -13,7 +14,10 @@ interface ExportSettingsFormProps {
     key: K,
     value: PDFExportOptions[K],
   ) => void;
-  onUpdateMargin: (side: keyof PDFExportOptions["margin"], val: number) => void;
+  onUpdateMargin: (
+    side: "top" | "bottom" | "left" | "right",
+    val: number,
+  ) => void;
 }
 
 export function ExportSettingsForm({
@@ -122,7 +126,7 @@ export function ExportSettingsForm({
           <div className="grid grid-cols-4 gap-2">
             <Input
               type="number"
-              value={options.margin.top}
+              value={options.margin?.top}
               onChange={(e) => onUpdateMargin("top", Number(e.target.value))}
               className="h-8 text-xs text-center"
               min={0}
@@ -130,7 +134,7 @@ export function ExportSettingsForm({
             />
             <Input
               type="number"
-              value={options.margin.right}
+              value={options.margin?.right}
               onChange={(e) => onUpdateMargin("right", Number(e.target.value))}
               className="h-8 text-xs text-center"
               min={0}
@@ -138,7 +142,7 @@ export function ExportSettingsForm({
             />
             <Input
               type="number"
-              value={options.margin.bottom}
+              value={options.margin?.bottom}
               onChange={(e) => onUpdateMargin("bottom", Number(e.target.value))}
               className="h-8 text-xs text-center"
               min={0}
@@ -146,7 +150,7 @@ export function ExportSettingsForm({
             />
             <Input
               type="number"
-              value={options.margin.left}
+              value={options.margin?.left}
               onChange={(e) => onUpdateMargin("left", Number(e.target.value))}
               className="h-8 text-xs text-center"
               min={0}

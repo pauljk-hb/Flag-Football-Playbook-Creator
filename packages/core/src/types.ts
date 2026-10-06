@@ -10,5 +10,5 @@ export type {
   SegmentType,
 } from "./types/domain";
 
-export type { ThumbnailOptions } from "./types/export";
+export type { PDFExportOptions, ThumbnailOptions } from "./types/export";
 export type { PlaybookMode } from "./types/system";

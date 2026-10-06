@@ -1,3 +1,5 @@
+import type { PDFExportOptions } from "@playbook/core/dist/types";
+
 export type ExtendedUser = {
   lastPlaybookId?: string | null;
 };
@@ -77,19 +79,6 @@ export interface Margin {
   right: number;
   bottom: number;
   left: number;
-}
-
-export interface PDFExportOptions {
-  pageWidth: number;
-  pageHeight: number;
-  columns: number;
-  rows: number;
-  playbookTitle?: string;
-  margin: Margin;
-  gap: number;
-  routeStrokeWidth?: number;
-  showLabels?: boolean;
-  fontSize?: number;
 }
 
 export interface ExportPreset {

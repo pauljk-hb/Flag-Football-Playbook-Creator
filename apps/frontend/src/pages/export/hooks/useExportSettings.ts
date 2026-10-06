@@ -1,6 +1,7 @@
 import { api } from "@/api/client";
+import type { PDFExportOptions } from "@playbook/core/dist/types";
 import { create } from "zustand";
-import type { ExportPreset, PDFExportOptions } from "../../../types/interface";
+import type { ExportPreset } from "../../../types/interface";
 
 export interface DBPreset {
   id: string;
@@ -37,7 +38,7 @@ function mapDBPresetToFrontend(dbPreset: DBPreset): ExportPreset {
         left: dbPreset.marginLeft ?? 10,
       },
       routeStrokeWidth: dbPreset.routeStrokeWidth ?? 2,
-      showLabels: dbPreset.showLabels ?? true,
+      showLabel: dbPreset.showLabels ?? true,
       fontSize: dbPreset.fontSize ?? 12,
       playbookTitle: dbPreset.playbookTitle || "",
     },
@@ -56,7 +57,7 @@ const FALLBACK_PRESET: ExportPreset = {
     gap: 8,
     playbookTitle: "Offense Playbook",
     routeStrokeWidth: 2,
-    showLabels: true,
+    showLabel: true,
     fontSize: 12,
   },
 };
@@ -73,7 +74,10 @@ interface ExportStore {
     key: K,
     value: PDFExportOptions[K],
   ) => void;
-  updateMargin: (side: keyof PDFExportOptions["margin"], val: number) => void;
+  updateMargin: (
+    side: "top" | "bottom" | "left" | "right",
+    val: number,
+  ) => void;
   setSelectedPlayIds: (
     idsOrUpdater: string[] | ((prev: string[]) => string[]),
   ) => void;
@@ -134,12 +138,24 @@ export const useExportSettings = create<ExportStore>((set) => ({
     })),
 
   updateMargin: (side, val) =>
-    set((state) => ({
-      options: {
-        ...state.options,
-        margin: { ...state.options.margin, [side]: val },
-      },
-    })),
+    set((state) => {
+      const currentMargin = state.options.margin || {
+        top: 15,
+        right: 15,
+        bottom: 15,
+        left: 15,
+      };
+
+      return {
+        options: {
+          ...state.options,
+          margin: {
+            ...currentMargin,
+            [side]: val,
+          },
+        },
+      };
+    }),
 
   setSelectedPlayIds: (idsOrUpdater) =>
     set((state) => ({

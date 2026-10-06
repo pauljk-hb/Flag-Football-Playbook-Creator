@@ -352,7 +352,15 @@ export class PlaybookEngine {
     try {
       const playData = JSON.parse(data) as PlayDTO;
 
-      if (playData.version !== SYSTEM.DATA_VERSION) {
+      console.log("DEBUG VERSION CHECK:", {
+        rawDataVersion: playData.version,
+        systemDataVersion: SYSTEM?.DATA_VERSION,
+        isVersionMissing: !playData.version,
+        isMismatch: playData.version !== SYSTEM?.DATA_VERSION,
+      });
+
+      if (!playData.version || playData.version !== SYSTEM.DATA_VERSION) {
+        console.warn("Laden abgebrochen: Version inkompatibel!");
         this.eventBus.emit("system:notification", {
           level: "error",
           message: "Inkompatible Version des Spielzugs!",
