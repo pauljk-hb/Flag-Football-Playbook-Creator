@@ -25,6 +25,7 @@ export function PlaystyleTab() {
   const [presets, setPresets] = useState<PlayerStylePreset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const { playbookConfig, setPlaybookConfig } = usePlaybookStore();
 
   const loadPresets = useCallback(async () => {
     if (!playbookId) return;
@@ -63,6 +64,24 @@ export function PlaystyleTab() {
         shape: preset.shape,
         showLabels: preset.showLabels ?? true,
       });
+
+      if (playbookConfig) {
+        setPlaybookConfig({
+          ...playbookConfig,
+          themeConfig: {
+            ...playbookConfig.themeConfig,
+            playerRoles: {
+              ...playbookConfig.themeConfig.playerRoles,
+              [preset.playerId]: {
+                color: preset.color,
+                label: preset.label,
+                shape: preset.shape,
+                showLabel: preset.showLabels ?? true,
+              },
+            },
+          },
+        });
+      }
     } catch (error) {
       console.error("Fehler beim Speichern des Player-Styles:", error);
     } finally {

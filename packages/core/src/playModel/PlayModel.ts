@@ -113,7 +113,10 @@ export class PlayModel {
 
     if (data.routes) {
       data.routes.forEach((r) => {
-        this.addRoute(new RouteModel(r));
+        const routeColor = this.getPlayer(r.playerId)?.style.color || "#000000";
+        this.addRoute(
+          new RouteModel({ ...r, style: { ...r.style, color: routeColor } }),
+        );
       });
     }
   }

@@ -2,6 +2,7 @@ import { api } from "@/api/client";
 import { usePlaybookStore } from "@/hooks/useAppStore";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import type { PlayerStyle } from "@playbook/core/dist/types";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -34,7 +35,8 @@ export function AppLayout() {
   const navigate = useNavigate();
 
   const { data: session, isPending } = useSession();
-  const { activePlaybookId, setActivePlaybookId } = usePlaybookStore();
+  const { activePlaybookId, setActivePlaybookId, setPlaybookConfig } =
+    usePlaybookStore();
   const [isInitializingPlaybook, setIsInitializingPlaybook] = useState(true);
 
   const isPlaybookActive =
@@ -82,6 +84,44 @@ export function AppLayout() {
       initializeActivePlaybook();
     }
   }, [session, isPending, activePlaybookId, setActivePlaybookId]);
+
+  useEffect(() => {
+    async function loadConfig() {
+      if (!activePlaybookId) return;
+
+      try {
+        const stylesArray =
+          await api.presets.playerStyles.getByPlaybook(activePlaybookId);
+
+        const playerRoles = stylesArray.reduce(
+          (acc, preset) => {
+            const key = preset.playerId;
+
+            acc[key] = {
+              color: preset.color,
+              label: preset.label,
+              showLabel: preset.showLabels ?? false,
+              shape: preset.shape,
+            };
+
+            return acc;
+          },
+          {} as Record<string, PlayerStyle>,
+        );
+
+        setPlaybookConfig({
+          playbookMode: "EDITOR",
+          themeConfig: {
+            playerRoles,
+          },
+        });
+      } catch (error) {
+        console.error("Fehler beim Laden der Playbook-Konfiguration:", error);
+      }
+    }
+
+    loadConfig();
+  }, [activePlaybookId, setPlaybookConfig]);
 
   if (isPending || !session || isInitializingPlaybook) {
     return (

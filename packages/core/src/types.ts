@@ -11,4 +11,4 @@ export type {
 } from "./types/domain";
 
 export type { PDFExportOptions, ThumbnailOptions } from "./types/export";
-export type { PlaybookMode } from "./types/system";
+export type { PlaybookConfig, PlaybookMode } from "./types/system";

@@ -1,5 +1,5 @@
+import type { PDFExportOptions } from "@playbook/core/dist/types";
 import { useMemo } from "react";
-import type { PDFExportOptions } from "../../../types/interface";
 
 interface PreviewGridCell {
   xPx: number;

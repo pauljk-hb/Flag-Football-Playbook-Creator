@@ -1,3 +1,4 @@
+import { usePlaybookStore } from "@/hooks/useAppStore";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { PlaybookAPI } from "@playbook/core";
 import { useEffect, useRef } from "react";
@@ -6,48 +7,13 @@ export function usePlaybookEngine(initialPlayData?: string) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { setEngine } = usePlaybook();
+  const engineConfig = usePlaybookStore((state) => state.playbookConfig);
 
   useEffect(() => {
     if (!canvasRef.current || !wrapperRef.current) return;
 
     const engineInstance = new PlaybookAPI();
-    engineInstance.init(canvasRef.current, {
-      playbookMode: "EDITOR",
-      themeConfig: {
-        playerRoles: {
-          QB: {
-            color: "#1a1b1b",
-            shape: "circle",
-            label: "QB",
-            showLabel: true,
-          },
-          CENTER: {
-            color: "#469b54",
-            shape: "square",
-            label: "C",
-            showLabel: true,
-          },
-          WR1: {
-            color: "#326FB5",
-            shape: "circle",
-            label: "X",
-            showLabel: true,
-          },
-          WR2: {
-            color: "#3399B5",
-            shape: "circle",
-            label: "Z",
-            showLabel: true,
-          },
-          RED: {
-            color: "#E63D38",
-            shape: "circle",
-            label: "R",
-            showLabel: true,
-          },
-        },
-      },
-    });
+    engineInstance.init(canvasRef.current, engineConfig!);
 
     if (initialPlayData) {
       const dataString =

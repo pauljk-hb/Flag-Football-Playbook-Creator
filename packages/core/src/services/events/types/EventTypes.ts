@@ -32,6 +32,7 @@ export interface PrivatePlaybookEventMap {
 
   "canvas:clicked": { x: number; y: number };
   "selection:cleared": undefined;
+  "selection:set": SelectionItem[];
 
   "play:updated": any;
   "play:loaded": any;

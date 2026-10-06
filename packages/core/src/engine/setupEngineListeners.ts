@@ -49,5 +49,6 @@ export function setupEngineListeners(
       payload.newNodes,
     );
     historyService.execute(command);
+    // eventBus.emit("selection:set", [{ id: payload.routeId, type: "ROUTE" }]);
   });
 }

@@ -1,3 +1,4 @@
+import type { PlaybookConfig } from "@playbook/core/dist/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -40,9 +41,15 @@ export const useAppStore = create<AppState>()(
 interface PlaybookState {
   activePlaybookId: string | null;
   setActivePlaybookId: (id: string | null) => void;
+
+  playbookConfig: PlaybookConfig | null;
+  setPlaybookConfig: (config: PlaybookConfig | null) => void;
 }
 
 export const usePlaybookStore = create<PlaybookState>((set) => ({
   activePlaybookId: null,
   setActivePlaybookId: (id) => set({ activePlaybookId: id }),
+
+  playbookConfig: null,
+  setPlaybookConfig: (config) => set({ playbookConfig: config }),
 }));

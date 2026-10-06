@@ -60,7 +60,7 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     // Falls die Handles gerade sichtbar sind, müssen sie auch an die neuen Positionen
     if (this.handles.length > 0) {
       this.initializeControls();
-      // this.showControls();
+      //this.showControls();
     }
   }
 
@@ -324,6 +324,30 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
   public destroyAllHandles(): void {
     this.handles.forEach((h) => h.destroy());
     this.handles = [];
+  }
+
+  private syncHandlePositions(): void {
+    if (!this.currentModel) return;
+    const nodes = this.currentModel.nodes;
+    let nodeIndex = 1; // Wir starten bei 1, da Node 0 keinen Waypoint hat
+
+    this.handles.forEach((handle) => {
+      if (!nodes[nodeIndex]) return;
+
+      if (handle instanceof WaypointHandle) {
+        handle.circle.set({
+          left: nodes[nodeIndex].position.x,
+          top: nodes[nodeIndex].position.y,
+        });
+        handle.circle.setCoords();
+        // Wenn das nächste Handle KEIN StretchHandle/Bezier ist, gehen wir zum nächsten Node
+        // (Hier musst du evtl. deine Logik leicht anpassen, je nachdem in welcher
+        // Reihenfolge die Handles in this.handles liegen)
+      }
+      // Analog für StretchHandle und BezierHandle...
+    });
+
+    this.canvasManager.getRawCanvas().requestRenderAll();
   }
 
   private updatePathVisuals(): void {
