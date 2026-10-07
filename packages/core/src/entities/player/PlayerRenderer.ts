@@ -88,13 +88,13 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
       this.dragStartY = this.fabricObject.top ?? 0;
     });
 
-    this.fabricObject.on("selected", () => {
-      this.showControls();
-    });
+    // this.fabricObject.on("selected", () => {
+    //   this.showControls();
+    // });
 
-    this.fabricObject.on("deselected", () => {
-      this.hideControls();
-    });
+    // this.fabricObject.on("deselected", () => {
+    //   this.hideControls();
+    // });
 
     this.fabricObject.on("moving", () => {
       let currentX = this.fabricObject.left ?? 0;

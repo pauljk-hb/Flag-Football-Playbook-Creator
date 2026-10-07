@@ -312,9 +312,9 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
       this.initializeControls();
     }
     this.handles.forEach((h) => h.show());
-    console.trace(
-      `DEBUG: showControls aufgerufen für Player ${this.currentModel?.id}`,
-    );
+    // console.trace(
+    //   `DEBUG: showControls aufgerufen für Player ${this.currentModel?.id}`,
+    // );
   }
 
   public hideControls(): void {
@@ -386,12 +386,11 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
   }
 
   // Override destroy from BaseRenderer to also clean up arrowHead and handles
-  public destroy(): void {
-    super.destroy();
-    if (this.arrowHead) {
-      this.canvasManager.removeFabricObject(this.arrowHead);
-      this.arrowHead = undefined;
-    }
+  public override destroy(): void {
     this.destroyAllHandles();
+
+    super.destroy();
+
+    this.arrowHead = undefined;
   }
 }

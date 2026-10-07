@@ -12,6 +12,7 @@ export class RemoveRouteCommand implements ICommand {
     const route = this.playModel.getRoute(this.routeId);
     if (route) {
       this.deletedRoute = route;
+      console.log(route);
     }
   }
 

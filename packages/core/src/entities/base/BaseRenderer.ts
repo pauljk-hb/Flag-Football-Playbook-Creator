@@ -28,9 +28,27 @@ export abstract class BaseRenderer<T extends BaseModel> {
   }
 
   public destroy(): void {
-    if (this.fabricObject) {
-      this.canvasManager.removeFabricObject(this.fabricObject);
-      this.fabricObject = undefined;
+    const canvas = this.canvasManager.getRawCanvas();
+
+    const objects = this.getFabricObjects();
+    const controls = this.getControlObjects();
+
+    const allObjects = [...objects, ...controls];
+
+    if (allObjects.length === 0) return;
+
+    const activeObj = canvas.getActiveObject();
+    if (activeObj && allObjects.includes(activeObj as any)) {
+      canvas.discardActiveObject();
     }
+
+    canvas.remove(...objects);
+
+    if (controls.length > 0) {
+      canvas.remove(...controls);
+    }
+
+    this.fabricObject = undefined;
+    canvas.requestRenderAll();
   }
 }

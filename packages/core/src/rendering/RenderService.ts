@@ -176,11 +176,5 @@ export class RenderService {
         }
       }
     });
-
-    this.layerManager.enforceLayering(
-      this.fieldRenderer,
-      this.routeRenderers,
-      this.playerRenderers,
-    );
   }
 }
