@@ -21,7 +21,8 @@
     "@types/node": "^26.2.0",
     "prisma": "^7.9.1",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "@playbook/core": "^1.0.0"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.6.26",

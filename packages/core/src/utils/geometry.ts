@@ -1,10 +1,10 @@
-import { SegmentType, type RouteNode } from "../types/interfaces";
-import type { BoundingBox, IPoint, PolylineMetrics } from "../types/math";
+import { SegmentType, type Point2D, type RouteNode } from "../types/domain";
+import type { BoundingBox, PolylineMetrics } from "../types/math";
 
 /**
  * Ermittelt die extremsten Punkte einer Reihe von Koordinaten.
  */
-export function calculateBoundingBox(points: IPoint[]): BoundingBox {
+export function calculateBoundingBox(points: Point2D[]): BoundingBox {
   const xs = points.map((p) => p.x);
   const ys = points.map((p) => p.y);
 
@@ -26,7 +26,7 @@ export function calculateBoundingBox(points: IPoint[]): BoundingBox {
 /**
  * Findet den exakten Mittelpunkt einer Bounding Box.
  */
-export function calculateCenterPoint(box: BoundingBox): IPoint {
+export function calculateCenterPoint(box: BoundingBox): Point2D {
   return {
     x: box.minX + box.width / 2,
     y: box.minY + box.height / 2,
@@ -36,7 +36,7 @@ export function calculateCenterPoint(box: BoundingBox): IPoint {
 /**
  * Berechnet die Distanz zwischen zwei Punkten.
  */
-export function calculateDistance(start: IPoint, end: IPoint): number {
+export function calculateDistance(start: Point2D, end: Point2D): number {
   return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
 }
 
@@ -44,7 +44,7 @@ export function calculateDistance(start: IPoint, end: IPoint): number {
  * Berechnet den Winkel zwischen zwei Punkten in Grad.
  * (0° = rechts, 90° = unten, 180° = links, -90° = oben)
  */
-export function calculateAngleInDegrees(p1: IPoint, p2: IPoint): number {
+export function calculateAngleInDegrees(p1: Point2D, p2: Point2D): number {
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   return (Math.atan2(dy, dx) * 180) / Math.PI;
@@ -77,11 +77,11 @@ export function snapToCoordinate(
  * absoluten Punkt auf dem gesamten Spielfeld (Canvas) um.
  */
 export function localToAbsolutePosition(
-  localPoint: IPoint,
+  localPoint: Point2D,
   elementLeft: number,
   elementTop: number,
-  pathOffset: IPoint,
-): IPoint {
+  pathOffset: Point2D,
+): Point2D {
   return {
     x: elementLeft + (localPoint.x - pathOffset.x),
     y: elementTop + (localPoint.y - pathOffset.y),
@@ -93,8 +93,8 @@ export function localToAbsolutePosition(
  * wenn sich ihre Punkte geändert haben.
  */
 export function calculatePolylineMetrics(
-  newPoints: IPoint[],
-  currentPathOffset: IPoint,
+  newPoints: Point2D[],
+  currentPathOffset: Point2D,
 ): PolylineMetrics {
   const box = calculateBoundingBox(newPoints);
   const newCenter = calculateCenterPoint(box);
@@ -120,25 +120,16 @@ export function calculateArrowheadMetrics(nodes: RouteNode[]) {
     throw new Error("Not enough nodes to calculate arrowhead metrics.");
   }
 
-  const absX = lastNode.x;
-  const absY = lastNode.y;
+  const absPosition = lastNode.position;
 
-  let angle = calculateAngleInDegrees(prevNode, lastNode);
+  let angle = calculateAngleInDegrees(prevNode.position, lastNode.position);
 
-  if (
-    lastNode.type === SegmentType.CURVE &&
-    lastNode.cpInX !== undefined &&
-    lastNode.cpInY !== undefined
-  ) {
-    angle = calculateAngleInDegrees(
-      { x: lastNode.cpInX, y: lastNode.cpInY },
-      lastNode,
-    );
+  if (lastNode.type === SegmentType.CURVE && lastNode.cpIn) {
+    angle = calculateAngleInDegrees(lastNode.cpIn, lastNode.position);
   }
 
   const finalAngle = angle + 90;
-
-  return { x: absX, y: absY, angle: finalAngle };
+  return { position: absPosition, angle: finalAngle };
 }
 
 /**
@@ -175,11 +166,11 @@ export function clampPositionWithinBounds(
  * @param padding Puffer zum Rand (z.B. nützlich, damit Pfeilspitzen nicht halb abgeschnitten werden).
  */
 export function clampPoint(
-  p: IPoint,
+  p: Point2D,
   boundsWidth: number,
   boundsHeight: number,
   padding: number = 0,
-): IPoint {
+): Point2D {
   return {
     x: Math.max(padding, Math.min(p.x, boundsWidth - padding)),
     y: Math.max(padding, Math.min(p.y, boundsHeight - padding)),
@@ -189,15 +180,15 @@ export function clampPoint(
 /**
  * Sammelt alle relevanten Punkte eines Nodes (inkl. Kontrollpunkte) für die Bounding Box.
  */
-function extractPointsFromNodes(nodes: RouteNode[]): IPoint[] {
-  const points: IPoint[] = [];
+function extractPointsFromNodes(nodes: RouteNode[]): Point2D[] {
+  const points: Point2D[] = [];
   for (const node of nodes) {
-    points.push({ x: node.x, y: node.y });
-    if (node.cpInX !== undefined && node.cpInY !== undefined) {
-      points.push({ x: node.cpInX, y: node.cpInY });
+    points.push(node.position);
+    if (node.cpIn) {
+      points.push(node.cpIn);
     }
-    if (node.cpOutX !== undefined && node.cpOutY !== undefined) {
-      points.push({ x: node.cpOutX, y: node.cpOutY });
+    if (node.cpOut) {
+      points.push(node.cpOut);
     }
   }
   return points;
@@ -226,24 +217,35 @@ export function constrainRouteToCanvas(
 
   if (!isOutOfBounds) return nodes;
 
-  const startX = nodes[0].x;
-  const startY = nodes[0].y;
+  const startPosition = nodes[0].position;
 
   let scaleX = 1.0;
   let scaleY = 1.0;
 
-  if (box.minX < minX && startX !== box.minX) {
-    scaleX = Math.min(scaleX, (minX - startX) / (box.minX - startX));
+  if (box.minX < minX && startPosition.x !== box.minX) {
+    scaleX = Math.min(
+      scaleX,
+      (minX - startPosition.x) / (box.minX - startPosition.x),
+    );
   }
-  if (box.maxX > maxX && startX !== box.maxX) {
-    scaleX = Math.min(scaleX, (maxX - startX) / (box.maxX - startX));
+  if (box.maxX > maxX && startPosition.x !== box.maxX) {
+    scaleX = Math.min(
+      scaleX,
+      (maxX - startPosition.x) / (box.maxX - startPosition.x),
+    );
   }
 
-  if (box.minY < minY && startY !== box.minY) {
-    scaleY = Math.min(scaleY, (minY - startY) / (box.minY - startY));
+  if (box.minY < minY && startPosition.y !== box.minY) {
+    scaleY = Math.min(
+      scaleY,
+      (minY - startPosition.y) / (box.minY - startPosition.y),
+    );
   }
-  if (box.maxY > maxY && startY !== box.maxY) {
-    scaleY = Math.min(scaleY, (maxY - startY) / (box.maxY - startY));
+  if (box.maxY > maxY && startPosition.y !== box.maxY) {
+    scaleY = Math.min(
+      scaleY,
+      (maxY - startPosition.y) / (box.maxY - startPosition.y),
+    );
   }
 
   scaleX = Math.max(0, scaleX);
@@ -252,18 +254,24 @@ export function constrainRouteToCanvas(
   return nodes.map((node) => {
     const updatedNode: RouteNode = {
       ...node,
-      x: startX + (node.x - startX) * scaleX,
-      y: startY + (node.y - startY) * scaleY,
+      position: {
+        x: startPosition.x + (node.position.x - startPosition.x) * scaleX,
+        y: startPosition.y + (node.position.y - startPosition.y) * scaleY,
+      },
     };
 
-    if (node.cpInX !== undefined && node.cpInY !== undefined) {
-      updatedNode.cpInX = startX + (node.cpInX - startX) * scaleX;
-      updatedNode.cpInY = startY + (node.cpInY - startY) * scaleY;
+    if (node.cpIn) {
+      updatedNode.cpIn = {
+        x: startPosition.x + (node.cpIn.x - startPosition.x) * scaleX,
+        y: startPosition.y + (node.cpIn.y - startPosition.y) * scaleY,
+      };
     }
 
-    if (node.cpOutX !== undefined && node.cpOutY !== undefined) {
-      updatedNode.cpOutX = startX + (node.cpOutX - startX) * scaleX;
-      updatedNode.cpOutY = startY + (node.cpOutY - startY) * scaleY;
+    if (node.cpOut) {
+      updatedNode.cpOut = {
+        x: startPosition.x + (node.cpOut.x - startPosition.x) * scaleX,
+        y: startPosition.y + (node.cpOut.y - startPosition.y) * scaleY,
+      };
     }
 
     return updatedNode;

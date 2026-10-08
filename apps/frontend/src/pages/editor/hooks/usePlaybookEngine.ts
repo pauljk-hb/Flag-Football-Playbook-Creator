@@ -1,3 +1,4 @@
+import { usePlaybookStore } from "@/hooks/useAppStore";
 import { usePlaybook } from "@/hooks/usePlaybook";
 import { PlaybookAPI } from "@playbook/core";
 import { useEffect, useRef } from "react";
@@ -6,12 +7,13 @@ export function usePlaybookEngine(initialPlayData?: string) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { setEngine } = usePlaybook();
+  const engineConfig = usePlaybookStore((state) => state.playbookConfig);
 
   useEffect(() => {
     if (!canvasRef.current || !wrapperRef.current) return;
 
     const engineInstance = new PlaybookAPI();
-    engineInstance.init(canvasRef.current);
+    engineInstance.init(canvasRef.current, engineConfig!);
 
     if (initialPlayData) {
       const dataString =

@@ -1,5 +1,7 @@
-import type { CanvasManager } from "@/managers/CanvasManager";
-import type { PlayManager } from "@/managers/PlayManager";
+import type { PlayModel } from "../playModel/PlayModel";
+import type { RenderService } from "../rendering/RenderService";
+import type { EventBus } from "../services/events/EventBus";
+import type { ThemeConfig } from "./system";
 
 export interface PDFExportOptions {
   pageWidth?: number;
@@ -9,6 +11,15 @@ export interface PDFExportOptions {
   playbookTitle?: string;
   margin?: Margin;
   gap?: number;
+  routeStrokeWidth?: number;
+  showLabel?: boolean;
+  fontSize?: number;
+}
+
+export interface ThumbnailOptions {
+  format?: "png" | "jpeg";
+  quality?: number;
+  width?: number;
 }
 
 export interface Margin {
@@ -32,10 +43,13 @@ export interface GridLayout {
 }
 
 export interface HeadlessEnvironment {
-  canvasManager: CanvasManager;
-  playManager: PlayManager;
+  renderService: RenderService;
+  playState: PlayModel;
+  eventBus: EventBus;
+  themeConfig: ThemeConfig;
   width: number;
   height: number;
+  destroy: () => void;
 }
 
 export interface PlayCell {

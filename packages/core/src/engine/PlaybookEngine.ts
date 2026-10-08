@@ -1,133 +1,127 @@
-import type { PDFExportOptions } from "@/types/export";
-import { Line } from "fabric";
+import { LoadFormationCommand } from "../commands/formation/LoadFormationCommand";
+import { AddPlayerCommand } from "../commands/player/AddPlayerCommand";
+import { RemovePlayerCommand } from "../commands/player/RemovePlayerCommand";
+import { AddRouteCommand } from "../commands/route/AddRouteCommand";
+import { RemoveRouteCommand } from "../commands/route/RemoveRouteCommand";
+import { CANVAS, SYSTEM } from "../constants/constants";
 import {
   FIELD_PRESETS,
   FORMATION_PRESETS,
   ROUTE_PRESETS,
 } from "../data/presets";
-import { DEFAULT_LOS_Y } from "../data/presets/fields";
-import { PlayerEntity } from "../entities/PlayerEntity";
-import { RouteEntity } from "../entities/RouteEntity";
-import { AddPlayerCommand } from "../history/commands/AddPlayerCommand";
-import { AddRouteCommand } from "../history/commands/AddRouteCommand";
-import { LoadFormationCommand } from "../history/commands/LoadFormationCommand";
-import {
-  MovePlayerCommand,
-  MoveRouteCommand,
-} from "../history/commands/MoveCommands";
-import { RemovePlayerCommand } from "../history/commands/RemovePlayerCommand";
-import { RemoveRouteCommand } from "../history/commands/RemoveRouteCommand";
-import { HistoryManager } from "../history/HistoryManager";
-import { CANVAS_SIZE, CanvasManager } from "../managers/CanvasManager";
-import { ExportManager } from "../managers/ExportManager";
-import { FieldManager } from "../managers/FieldManager";
-import { NotificationManager } from "../managers/NotificationManager";
-import { PlayManager } from "../managers/PlayManager";
-import { RouteDrawingManager } from "../managers/RouteDrawingManager";
-import { SelectionManager } from "../managers/SelectionManager";
+import { PlayModel } from "../playModel/PlayModel";
+import { RenderService } from "../rendering/RenderService";
+import { RouteDrawingService } from "../services/drawing/DrawingService";
+import { EventBus } from "../services/events/EventBus";
+import type { PublicPlaybookEventMap } from "../services/events/types/EventTypes";
+import { ExportService } from "../services/export/ExportService";
+import { HistoryService } from "../services/history/HistoryService";
+import { SelectionService } from "../services/selection/SelectionService";
 import {
   SegmentType,
-  type CoreNotification,
-  type PlaybookMode,
-  type PlayerImportData,
+  type PlayDTO,
+  type PlayerDTO,
   type PlayerStyle,
-  type PlayImportData,
   type RouteNode,
-  type ThumbnailOptions,
-} from "../types/interfaces";
+} from "../types/domain";
+import type { PDFExportOptions, ThumbnailOptions } from "../types/export";
 import type { RoutePreset } from "../types/presets";
+import type {
+  PlaybookConfig,
+  PlaybookMode,
+  SelectionItem,
+} from "../types/system";
 import { FormationBuilder } from "../utils/FormationBuilder";
-import { constrainRouteToCanvas } from "../utils/geometry";
+import { setupEngineListeners } from "./setupEngineListeners";
 
 export class PlaybookEngine {
-  private historyManager: HistoryManager;
-  private playManager: PlayManager;
-  private canvasManager: CanvasManager;
-  private exportManager: ExportManager;
-  private selectionManager: SelectionManager;
-  private fieldManager: FieldManager;
-  private routeDrawingManager: RouteDrawingManager;
-  private notificationManager: NotificationManager;
-  private currentFieldPresetId: string = "STANDARD";
-  private mode: PlaybookMode = "editor";
+  private eventBus!: EventBus;
+  private playModel!: PlayModel;
+  private playbookConfig!: PlaybookConfig;
 
-  constructor() {
-    this.historyManager = new HistoryManager();
-    this.canvasManager = new CanvasManager();
-    this.notificationManager = new NotificationManager();
-    this.fieldManager = new FieldManager(this.canvasManager);
-    this.exportManager = new ExportManager();
+  private historyService!: HistoryService;
+  private renderService!: RenderService;
+  private exportService!: ExportService;
+  private selectionService!: SelectionService;
+  private routeDrawingService!: RouteDrawingService;
 
-    this.playManager = new PlayManager(
-      this.canvasManager,
-      this.historyManager,
-      this.fieldManager,
-      this.notificationManager,
-    );
-
-    this.selectionManager = new SelectionManager(
-      this.canvasManager,
-      this.playManager,
-    );
-
-    this.routeDrawingManager = new RouteDrawingManager(
-      this.canvasManager,
-      this.selectionManager,
-    );
-  }
+  public currentSelection: SelectionItem[] = [];
 
   /*------------------------*/
   /*  Funktionen für außen  */
   /*------------------------*/
 
-  public init(canvasElement: HTMLCanvasElement): void {
-    this.canvasManager.init(canvasElement);
+  public init(
+    canvasElement: HTMLCanvasElement,
+    playbookConfig: PlaybookConfig,
+  ): void {
+    this.eventBus = new EventBus();
+    this.playModel = new PlayModel();
+    this.playbookConfig = playbookConfig;
 
-    this.selectionManager.setupSelectionEvents();
+    this.playModel.setFieldPreset("STANDARD");
 
-    this.historyManager.subscribe(() => {
-      this.canvasManager.requestRender();
-    });
+    this.historyService = new HistoryService(this.eventBus);
 
-    this.routeDrawingManager.onDrawingComplete = (player, nodes, routeType) => {
-      this.addRoute(player, nodes, routeType);
-    };
+    this.renderService = new RenderService(
+      canvasElement,
+      this.eventBus,
+      this.playModel,
+    );
 
-    this.fieldManager.drawField(this.currentFieldPresetId);
-    this.canvasManager.requestRender();
+    this.exportService = new ExportService(
+      this.renderService,
+      this.playModel,
+      this.playbookConfig.themeConfig,
+    );
+
+    // Die Sensoren bekommen nur die rohe Canvas
+    const rawCanvas = this.renderService.getRawCanvas();
+    this.selectionService = new SelectionService(rawCanvas, this.eventBus);
+    this.routeDrawingService = new RouteDrawingService(
+      rawCanvas,
+      this.eventBus,
+    );
+
+    setupEngineListeners(
+      this,
+      this.eventBus,
+      this.playModel,
+      this.historyService,
+    );
+
+    this.setMode(this.playbookConfig.playbookMode);
+
+    this.eventBus.emit("play:updated", undefined);
   }
 
   /**
    * Wartet auf Abschluss des Render Cycles und zerstört dann die Canvas
    */
   public dispose(): void {
-    this.canvasManager.dispose();
+    this.renderService.dispose();
   }
 
   /**
    * Wechselt den Modus zwischen Viewer und Editor.
    * @param {PlaybookMode} [newMode] "editor" | "viewer"
    */
-  public setMode(newMode: PlaybookMode): void {
-    this.mode = newMode;
+  public setMode(mode: PlaybookMode): void {
+    this.eventBus.emit("system:mode_changed", mode);
 
-    if (this.mode === "viewer") {
-      if (this.routeDrawingManager.isDrawingActive) {
-        this.routeDrawingManager.cancelDrawing();
-      }
-
-      this.selectionManager.setInteractionsEnabled(false);
-      return;
+    switch (mode) {
+      case "EDITOR":
+        this.routeDrawingService.stopDrawing();
+        this.selectionService.enable();
+        break;
+      case "DRAW":
+        this.selectionService.disable();
+        break;
+      case "READ_ONLY":
+        this.routeDrawingService.stopDrawing();
+        this.selectionService.disable();
+        break;
     }
-
-    if (this.mode === "editor") {
-      this.selectionManager.setInteractionsEnabled(true);
-      return;
-    }
-  }
-
-  public getMode(): PlaybookMode {
-    return this.mode;
   }
 
   /**
@@ -135,36 +129,21 @@ export class PlaybookEngine {
    *  @param {number} [containerWidth] Breite des Parent Containers der Canvas
    */
   public handleResize(containerWidth: number): void {
-    this.canvasManager.handleResize(containerWidth);
+    this.renderService.resize(containerWidth);
   }
 
   /**
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerImportData): void {
-    const playerEntity = new PlayerEntity(config);
+  public addPlayer(config: Omit<PlayerDTO, "id">): void {
     const command = new AddPlayerCommand(
-      playerEntity,
-      this.canvasManager,
-      this.playManager,
+      this.playModel,
+      config,
+      this.playbookConfig.themeConfig,
     );
-    this.historyManager.execute(command);
 
-    playerEntity.onMoveComplete = (playerId, startX, startY, endX, endY) => {
-      const command = new MovePlayerCommand(
-        playerId,
-        startX,
-        startY,
-        endX,
-        endY,
-        this.playManager,
-        this.canvasManager,
-        this.notificationManager,
-      );
-
-      this.historyManager.execute(command);
-    };
+    this.historyService.execute(command);
   }
 
   /**
@@ -176,31 +155,40 @@ export class PlaybookEngine {
     preset: RoutePreset,
     routeType: string = "default",
   ): void {
-    const player = this.selectionManager.getSelectedObject();
-    if (!player || !(player instanceof PlayerEntity)) {
-      this.notificationManager.sendFeedback(
-        "warning",
-        "Es ist kein Spieler ausgewählt!",
-      );
+    const selectedPlayers = this.currentSelection.filter(
+      (item) => item.type === "PLAYER",
+    );
+
+    if (selectedPlayers.length === 0) {
+      this.eventBus.emit("system:notification", {
+        level: "warning",
+        message: "Es ist kein Spieler ausgewählt!",
+      });
       return;
     }
 
-    const startX = player.x;
-    const startY = player.y;
+    const playerId = selectedPlayers[0].id;
+    const player = this.playModel.getPlayer(playerId);
 
-    const FIELD_CENTER_X = CANVAS_SIZE.width / 2;
-    const isPlayerOnLeftSide = startX < FIELD_CENTER_X;
+    if (!player) return;
+
+    const startPosition = player.position;
+
+    const FIELD_CENTER_X = CANVAS.WIDTH / 2;
+    const isPlayerOnLeftSide = startPosition.x < FIELD_CENTER_X;
     const flipX = isPlayerOnLeftSide ? -1 : 1;
 
     const absoluteNodes: RouteNode[] = [];
 
-    absoluteNodes.push({ x: startX, y: startY, type: SegmentType.STRAIGHT });
+    absoluteNodes.push({ position: startPosition, type: SegmentType.STRAIGHT });
 
     for (const wp of preset.waypoints) {
       const lastNode = absoluteNodes[absoluteNodes.length - 1]!;
       const newNode: RouteNode = {
-        x: lastNode.x + wp.dx * flipX,
-        y: lastNode.y + wp.dy,
+        position: {
+          x: lastNode.position.x + wp.dx * flipX,
+          y: lastNode.position.y + wp.dy,
+        },
         type: wp.type || SegmentType.STRAIGHT,
       };
 
@@ -209,14 +197,22 @@ export class PlaybookEngine {
         wp.cpInDx !== undefined &&
         wp.cpInDy !== undefined
       ) {
-        newNode.cpInX = lastNode.x + wp.cpInDx * flipX;
-        newNode.cpInY = lastNode.y + wp.cpInDy;
+        newNode.cpIn = {
+          x: lastNode.position.x + wp.cpInDx * flipX,
+          y: lastNode.position.y + wp.cpInDy,
+        };
       }
 
       absoluteNodes.push(newNode);
     }
 
-    this.addRoute(player, absoluteNodes, routeType);
+    const command = new AddRouteCommand(
+      this.playModel,
+      playerId,
+      routeType,
+      absoluteNodes,
+    );
+    this.historyService.execute(command);
   }
 
   /**
@@ -224,45 +220,63 @@ export class PlaybookEngine {
    * @param {string} [routeType] setzt den Typ der Route (default, option_1, option_2), standart ist 'default'
    */
   public startDrawingRoute(routeType = "default"): void {
-    const player = this.selectionManager.getSelectedObject();
-    if (!player || !(player instanceof PlayerEntity)) {
-      this.notificationManager.sendFeedback(
-        "warning",
-        "Es ist kein Spieler ausgewählt!",
-      );
+    const selectedPlayers = this.currentSelection.filter(
+      (item) => item.type === "PLAYER",
+    );
+
+    if (selectedPlayers.length === 0) {
+      this.eventBus.emit("system:notification", {
+        level: "warning",
+        message: "Es ist kein Spieler ausgewählt!",
+      });
       return;
     }
 
-    this.routeDrawingManager.startDrawing(player, routeType);
+    const playerId = selectedPlayers[0].id;
+    const player = this.playModel.getPlayer(playerId);
+
+    if (!player) return;
+
+    this.routeDrawingService.startDrawing(
+      player.id,
+      player.position,
+      player.style.color,
+      routeType,
+    );
+
+    this.setMode("DRAW");
   }
 
   /**
    * Beendet das freie Zeichnen einer Route
    */
   public stopDrawingRoute(): void {
-    this.routeDrawingManager.cancelDrawing();
+    this.routeDrawingService.cancelDrawing();
   }
 
   /**
    * Löscht die ausgewähtle Entität mit seinen Abhänigkeiten
    */
   public deleteSelectedObject(): void {
-    const selected = this.selectionManager.getSelectedObject();
-
-    if (!selected) {
-      this.notificationManager.sendFeedback(
-        "warning",
-        "Es ist kein Spieler oder Route ausgewählt!",
-      );
+    if (this.currentSelection.length === 0) {
+      this.eventBus.emit("system:notification", {
+        level: "warning",
+        message: "Es ist nichts ausgewählt!",
+      });
       return;
     }
 
-    if (selected instanceof RouteEntity) {
-      this.deleteRoute(selected.id);
-    }
-    if (selected instanceof PlayerEntity) {
-      this.removePlayer(selected.id);
-    }
+    this.currentSelection.forEach((item) => {
+      if (item.type === "PLAYER") {
+        const command = new RemovePlayerCommand(this.playModel, item.id);
+        this.historyService.execute(command);
+      } else if (item.type === "ROUTE") {
+        const command = new RemoveRouteCommand(this.playModel, item.id);
+        this.historyService.execute(command);
+      }
+    });
+
+    this.eventBus.emit("selection:cleared", undefined);
   }
 
   /**
@@ -283,7 +297,8 @@ export class PlaybookEngine {
 
     if (originX === undefined || originY === undefined) {
       const fieldConfig =
-        FIELD_PRESETS[this.currentFieldPresetId] || FIELD_PRESETS["STANDARD"];
+        FIELD_PRESETS[this.playModel.getField().getPresetId()] ||
+        FIELD_PRESETS["STANDARD"];
       originX = fieldConfig ? fieldConfig.anchor.x : 400;
       originY = fieldConfig ? fieldConfig.anchor.y : 600;
     }
@@ -293,20 +308,23 @@ export class PlaybookEngine {
       playerStyles,
       originX,
       originY,
-      this.notificationManager,
     );
 
-    if (spawnData.length === 0) return;
+    if (!spawnData || spawnData.length === 0) {
+      this.eventBus.emit("system:notification", {
+        level: "warning",
+        message: `Formation '${formationId}' konnte nicht geladen werden.`,
+      });
+      return;
+    }
 
     const command = new LoadFormationCommand(
+      this.playModel,
       spawnData,
-      this.playManager,
-      this.canvasManager,
-      this.historyManager,
-      this.notificationManager,
+      this.playbookConfig.themeConfig,
     );
-
-    this.historyManager.execute(command);
+    this.historyService.execute(command);
+    this.eventBus.emit("selection:cleared", undefined);
   }
 
   /**
@@ -314,12 +332,8 @@ export class PlaybookEngine {
    * @param {string} [presetId] id eines Untergrund Feldes
    */
   public changeFieldPreset(presetId: string): void {
-    this.currentFieldPresetId = presetId;
-    if (!this.fieldManager)
-      throw new Error("FieldManager ist nicht initialisiert!");
-
-    this.fieldManager.drawField(presetId);
-    this.canvasManager.requestRender();
+    this.playModel.setFieldPreset(presetId);
+    this.eventBus.emit("play:updated", undefined);
   }
 
   /**
@@ -327,7 +341,7 @@ export class PlaybookEngine {
    * @returns {string} Gibt einen `string` von einem Play Objekt zurück
    */
   public exportPlay(): string {
-    return JSON.stringify(this.playManager.exportPlay());
+    return JSON.stringify(this.playModel.exportDTO());
   }
 
   /**
@@ -335,47 +349,42 @@ export class PlaybookEngine {
    * @param {string} [jsonString] `string` eines Play Objektes
    */
   public loadPlay(data: string): void {
-    const playData = JSON.parse(data) as PlayImportData;
+    try {
+      const playData = JSON.parse(data) as PlayDTO;
 
-    this.historyManager.clear();
-    this.currentFieldPresetId = playData.fieldPresetId;
+      console.log("DEBUG VERSION CHECK:", {
+        rawDataVersion: playData.version,
+        systemDataVersion: SYSTEM?.DATA_VERSION,
+        isVersionMissing: !playData.version,
+        isMismatch: playData.version !== SYSTEM?.DATA_VERSION,
+      });
 
-    const { players, routes } = this.playManager.loadPlay(playData);
+      if (!playData.version || playData.version !== SYSTEM.DATA_VERSION) {
+        console.warn("Laden abgebrochen: Version inkompatibel!");
+        this.eventBus.emit("system:notification", {
+          level: "error",
+          message: "Inkompatible Version des Spielzugs!",
+        });
+        return;
+      }
 
-    players.forEach((player) => {
-      player.onMoveComplete = (playerId, startX, startY, endX, endY) => {
-        const command = new MovePlayerCommand(
-          playerId,
-          startX,
-          startY,
-          endX,
-          endY,
-          this.playManager,
-          this.canvasManager,
-          this.notificationManager,
-        );
-        this.historyManager.execute(command);
-      };
-    });
+      this.historyService.clear();
+      this.playModel.loadFromDTO(playData, this.playbookConfig.themeConfig);
 
-    routes.forEach((route) => {
-      route.onNodesModified = (routeId, oldNodes, newNodes) => {
-        const moveCommand = new MoveRouteCommand(
-          routeId,
-          oldNodes,
-          newNodes,
-          this.playManager,
-          this.canvasManager,
-          this.notificationManager,
-        );
-        this.historyManager.execute(moveCommand);
-      };
-    });
+      this.eventBus.emit("system:notification", {
+        level: "success",
+        message: "Spielzug erfolgreich geladen!",
+      });
 
-    this.notificationManager.sendFeedback(
-      "success",
-      "Spielzug erfolgreich geladen!",
-    );
+      this.eventBus.emit("play:updated", undefined);
+      this.eventBus.emit("selection:cleared", undefined);
+    } catch (error) {
+      console.error("Fehler beim Laden des Spielzugs:", error);
+      this.eventBus.emit("system:notification", {
+        level: "error",
+        message: "Fehler beim Laden des Spielzugs. Datei beschädigt?",
+      });
+    }
   }
 
   /**
@@ -408,116 +417,82 @@ export class PlaybookEngine {
    * @returns {string} Gibt ein `string` von einem Base64 IMG zurück
    */
   public generateThumbnail(options: ThumbnailOptions = {}): string {
-    this.selectionManager.hideAllRouteControls();
-    return this.canvasManager.generateThumbnail(options);
+    this.eventBus.emit("selection:cleared", undefined);
+    return this.exportService.exportPlayAsImage(options);
   }
 
   /**
    * Generiert ein PDF-Playbook im Hintergrund und gibt es als Download-Blob zurück.
-   * @param {PlayExportData & { title?: string }} [plays] Play Daten
+   * @param {PlayDTO & { title?: string }} [plays] Play Daten
    * @param {PDFExportOptions} [options] Export-Optionen
    */
   public async exportToPDF(
-    plays: (PlayImportData & { title?: string })[],
+    plays: (PlayDTO & { title?: string })[],
     options: PDFExportOptions,
   ): Promise<Blob | null> {
     if (!plays || plays.length === 0) {
-      this.notificationManager.sendFeedback(
-        "error",
-        "No plays provided for export.",
-      );
+      this.eventBus.emit("system:notification", {
+        level: "error",
+        message: "No plays provided for export.",
+      });
       return null;
     }
 
-    this.notificationManager.sendFeedback("info", "Generating PDF...");
+    this.eventBus.emit("system:notification", {
+      level: "info",
+      message: "Generating PDF...",
+    });
 
     try {
-      const pdfBlob = await this.exportManager.generatePDF(plays, options);
-      this.notificationManager.sendFeedback(
-        "success",
-        "PDF generated successfully!",
+      const pdfBlob = await this.exportService.exportPlaybookAsPDF(
+        plays,
+        options,
       );
+
+      this.eventBus.emit("system:notification", {
+        level: "success",
+        message: "PDF generated successfully!",
+      });
+
       return pdfBlob;
     } catch (error) {
       console.error("PDF Export failed:", error);
-      this.notificationManager.sendFeedback("error", "Failed to generate PDF.");
+      this.eventBus.emit("system:notification", {
+        level: "error",
+        message: "Failed to generate PDF.",
+      });
       return null;
     }
   }
 
-  public exportFormationThumbnail(): string {
-    const canvas = this.canvasManager.getRawCanvas();
+  // public exportFormationThumbnail(): string {
+  //   try {
+  //     const currentPlayData = this.playModel.exportToDTO();
 
-    // 1. Alles ausblenden (Hintergrund und alle Objekte)
-    this.fieldManager.clearField();
+  //     return await this.exportService.exportFormationThumbnail(currentPlayData, options);
 
-    canvas.getObjects().forEach((obj) => {
-      obj.visible = false;
-    });
-
-    // 2. Nur Spieler herausfiltern und wieder sichtbar machen
-    const players = this.playManager
-      .getAllEntities()
-      .filter((e) => e instanceof PlayerEntity) as PlayerEntity[];
-
-    if (players.length === 0) {
-      console.warn("Keine Spieler gefunden!");
-      return "";
-    }
-
-    players.forEach((player) => {
-      player.getFabricObjects().forEach((obj) => {
-        obj.visible = true;
-      });
-    });
-
-    const finalLosY = DEFAULT_LOS_Y;
-
-    const fabricLine = new Line([-1000, finalLosY, 10000, finalLosY], {
-      stroke: "#121212",
-      strokeWidth: 4,
-      selectable: false,
-      evented: false,
-      hoverCursor: "default",
-    });
-
-    this.canvasManager.addFabricObject(fabricLine);
-
-    this.canvasManager.sendToBack(fabricLine);
-
-    canvas.discardActiveObject();
-    canvas.renderAll(); // Fabric.js zwingen, die Sichtbarkeiten sofort anzuwenden
-
-    // 4. Zuschneiden: Volle Breite, Y-Achse 120px hoch und runter (insgesamt 240px)
-    const cropTop = finalLosY - 120;
-    const cropHeight = 240;
-    const cropWidth = canvas.width || 800; // Volle Breite des Canvas
-
-    // 5. Bild generieren
-    const dataURL = canvas.toDataURL({
-      format: "png",
-      multiplier: 0.7,
-      left: 0,
-      top: cropTop,
-      width: cropWidth,
-      height: cropHeight,
-    });
-
-    return dataURL;
-  }
+  //   } catch (error) {
+  //     console.error("Fehler beim Generieren des Formation-Thumbnails:", error);
+  //     this.eventBus.emit("system:notification", {
+  //       level: "error",
+  //       message: "Formation Thumbnail konnte nicht erstellt werden."
+  //     });
+  //     return "";
+  //   }
+  // }
 
   /**
    * Macht die letzte Aktion rückgänig
    */
   public undo(): void {
-    this.historyManager.undo();
+    this.historyService.undo();
   }
 
   /**
    * Stellt die letzte Aktion wieder her
    */
   public redo(): void {
-    this.historyManager.redo();
+    this.historyService.redo();
   }
 
   /**
@@ -525,7 +500,7 @@ export class PlaybookEngine {
    * @returns {boolean} `boolean`
    */
   public canUndo(): boolean {
-    return this.historyManager.canUndo();
+    return this.historyService.canUndo();
   }
 
   /**
@@ -533,121 +508,21 @@ export class PlaybookEngine {
    * @returns {boolean} `boolean`
    */
   public canRedo(): boolean {
-    return this.historyManager.canRedo();
+    return this.historyService.canRedo();
   }
 
   /**
-   * Aboniert über Änderungen im History Stack (undo/redo)
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   * Stellt das Event-Abonnement für die Außenwelt (React) bereit.
+   * Strikt limitiert auf PublicPlaybookEventMap!
    */
-  public subscribeToHistoryChanges(callback: () => void): () => void {
-    const unsubscribe = this.historyManager.subscribe(callback);
-    return unsubscribe;
-  }
-
-  /**
-   * Erlaubt dem Frontend, sich für Benachrichtigungen aus dem Core anzumelden.
-   *
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
-   */
-  public onNotification(
-    callback: (notification: CoreNotification) => void,
+  public on<T extends keyof PublicPlaybookEventMap>(
+    event: T,
+    callback: (payload: PublicPlaybookEventMap[T]) => void,
   ): () => void {
-    const unsubscribe = this.notificationManager.subscribe(callback);
-    return unsubscribe;
-  }
+    this.eventBus.on(event as any, callback as any);
 
-  /**
-   * Aboniert über Änderungen für den Drawing Mode
-   *
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
-   */
-  public subscribeToDrawingMode(
-    callback: (isDrawing: boolean) => void,
-  ): () => void {
-    return this.routeDrawingManager.onStateChange(callback);
-  }
-
-  /*-------------------*/
-  /*  Hilfsfunktionen  */
-  /*-------------------*/
-
-  /**
-   * Entfernt einen Spieler anhand seiner ID.
-   */
-  private removePlayer(playerId: string): void {
-    const command = new RemovePlayerCommand(
-      playerId,
-      this.playManager,
-      this.canvasManager,
-      this.notificationManager,
-    );
-    this.historyManager.execute(command);
-  }
-
-  /**
-   * Weist einem bestimmten Spieler eine Route zu.
-   */
-  private addRoute(
-    player: PlayerEntity,
-    nodes: RouteNode[],
-    routeType: string = "default",
-  ): void {
-    const existingRoute = this.playManager.getRouteByPlayerAndType(
-      player.id,
-      routeType,
-    );
-
-    nodes = constrainRouteToCanvas(
-      nodes,
-      CANVAS_SIZE.width,
-      CANVAS_SIZE.height,
-    );
-
-    const routeEntity = new RouteEntity({
-      playerId: player.id,
-      nodes: JSON.parse(JSON.stringify(nodes)),
-      routeType: routeType,
-      color: player.color,
-    });
-
-    const command = new AddRouteCommand(
-      routeEntity,
-      this.playManager,
-      this.canvasManager,
-      existingRoute || null,
-    );
-
-    this.historyManager.execute(command);
-
-    routeEntity.onNodesModified = (routeId, oldNodes, newNodes) => {
-      const moveCommand = new MoveRouteCommand(
-        routeId,
-        oldNodes,
-        newNodes,
-        this.playManager,
-        this.canvasManager,
-        this.notificationManager,
-      );
-      this.historyManager.execute(moveCommand);
+    return () => {
+      this.eventBus.off(event as any, callback as any);
     };
-
-    this.canvasManager.bringObjectToFront(player);
-  }
-
-  /**
-   * Löscht die Route mithilfe der ID
-   */
-  private deleteRoute(routeID: string): void {
-    const command = new RemoveRouteCommand(
-      routeID,
-      this.playManager,
-      this.canvasManager,
-      this.notificationManager,
-    );
-    this.historyManager.execute(command);
   }
 }

@@ -1,8 +1,6 @@
-import {
-  cleanCanvasDataForStorage,
-  hydrateCanvasData,
-} from "../../lib/canvasHydration.js";
+import { cleanCanvasDataForStorage } from "../../lib/canvasHydration.js";
 import { prisma } from "../../lib/prisma.js";
+import { CURRENT_PLAY_VERSION, playMigrator } from "../../migrations/index.js";
 
 export const PlayService = {
   async getPlays(playbookId: string, userId: string) {
@@ -19,30 +17,22 @@ export const PlayService = {
       include: { tags: true },
     });
 
-    const presets = await prisma.playerStylePreset.findMany({
-      where: { playbookId },
+    const processedPlays = plays.map((play) => {
+      return processPlayData(play);
     });
 
-    for (const play of plays) {
-      play.canvasData = hydrateCanvasData(play.canvasData, presets);
-    }
-
-    return plays;
+    return processedPlays;
   },
 
   async getPlayById(id: string, userId: string) {
-    const play = await prisma.play.findFirst({
+    let play = await prisma.play.findFirst({
       where: { id, playbook: { userId } },
       include: { tags: true },
     });
 
     if (!play) throw new Error("Play nicht gefunden oder keine Berechtigung.");
 
-    const presets = await prisma.playerStylePreset.findMany({
-      where: { playbookId: play.playbookId },
-    });
-
-    play.canvasData = hydrateCanvasData(play.canvasData, presets);
+    play = processPlayData(play);
 
     return play;
   },
@@ -161,3 +151,31 @@ export const PlayService = {
     });
   },
 };
+
+function processPlayData(dbPlay: any) {
+  if (!dbPlay.canvasData) return dbPlay;
+
+  const parsedData = JSON.parse(dbPlay.canvasData);
+
+  if (parsedData.version === CURRENT_PLAY_VERSION) {
+    return dbPlay;
+  }
+
+  const result = playMigrator.run(parsedData);
+
+  if (result.wasMigrated) {
+    prisma.play
+      .update({
+        where: { id: dbPlay.id },
+        data: { canvasData: JSON.stringify(result.data) },
+      })
+      .catch((err) =>
+        console.error(`Auto-Migration failed für Play ${dbPlay.id}:`, err),
+      );
+  }
+
+  return {
+    ...dbPlay,
+    canvasData: JSON.stringify(result.data),
+  };
+}

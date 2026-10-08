@@ -1,6 +1,6 @@
+import { usePlaybook } from "@/hooks/usePlaybook";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { usePlaybook } from "@/hooks/usePlaybook";
 
 export function useEngineNotifications() {
   const { engine } = usePlaybook();
@@ -8,7 +8,7 @@ export function useEngineNotifications() {
   useEffect(() => {
     if (!engine) return;
 
-    const unsubscribe = engine.subscribeToNotification((notification) => {
+    return engine.on("system:notification", (notification) => {
       switch (notification.level) {
         case "warning":
           toast.warning(notification.message);
@@ -25,11 +25,5 @@ export function useEngineNotifications() {
           break;
       }
     });
-
-    return () => {
-      if (typeof unsubscribe === "function") {
-        unsubscribe();
-      }
-    };
   }, [engine]);
 }

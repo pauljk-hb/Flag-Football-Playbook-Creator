@@ -1,3 +1,5 @@
+import type { PDFExportOptions } from "@playbook/core/dist/types";
+
 export type ExtendedUser = {
   lastPlaybookId?: string | null;
 };
@@ -72,30 +74,11 @@ export interface UpdatePlayDTO {
   sortOrder?: number;
 }
 
-export interface ThumbnailOptions {
-  format?: "png" | "jpeg" | "webp";
-  quality?: number;
-  width?: number;
-}
-
 export interface Margin {
   top: number;
   right: number;
   bottom: number;
   left: number;
-}
-
-export interface PDFExportOptions {
-  pageWidth: number;
-  pageHeight: number;
-  columns: number;
-  rows: number;
-  playbookTitle?: string;
-  margin: Margin;
-  gap: number;
-  routeStrokeWidth?: number;
-  showLabels?: boolean;
-  fontSize?: number;
 }
 
 export interface ExportPreset {

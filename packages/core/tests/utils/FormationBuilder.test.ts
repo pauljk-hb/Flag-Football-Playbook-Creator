@@ -1,4 +1,4 @@
-import type { NotificationManager } from "@/managers/NotificationManager";
+import type { NotificationService } from "@/services/notification/NotificationService";
 import type { PlayerStyle } from "@/types/interfaces";
 import { FormationBuilder } from "@/utils/FormationBuilder";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -28,7 +28,7 @@ vi.mock("@/data/presets/index", () => {
 
 describe("FormationBuilder", () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
-  let mockNotificationManager: NotificationManager;
+  let mockNotificationManager: NotificationService;
   let mockPlayerStyles: Record<string, PlayerStyle>;
 
   beforeEach(() => {

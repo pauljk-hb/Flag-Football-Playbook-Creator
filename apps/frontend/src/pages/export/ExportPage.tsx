@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { RouteTreeIcon } from "@/components/ui/icons/RouteTreeIcon";
 import { PlaybookAPI } from "@playbook/core";
+import type { PlayDTO } from "@playbook/core/dist/types";
 import { Download, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ExportPageList } from "./components/ExportPageList";
@@ -37,9 +38,47 @@ export function ExportPage() {
 
   const handleExport = async () => {
     const engine = new PlaybookAPI();
+    const virtualCanvas = document.createElement("canvas");
+    engine.init(virtualCanvas, {
+      playbookMode: "READ_ONLY",
+      themeConfig: {
+        playerRoles: {
+          QB: {
+            color: "#1a1b1b",
+            shape: "circle",
+            label: "QB",
+            showLabel: true,
+          },
+          CENTER: {
+            color: "#469b54",
+            shape: "square",
+            label: "C",
+            showLabel: true,
+          },
+          WR1: {
+            color: "#326FB5",
+            shape: "circle",
+            label: "X",
+            showLabel: true,
+          },
+          WR2: {
+            color: "#3399B5",
+            shape: "circle",
+            label: "Z",
+            showLabel: true,
+          },
+          RED: {
+            color: "#E63D38",
+            shape: "circle",
+            label: "R",
+            showLabel: true,
+          },
+        },
+      },
+    });
     setIsExporting(true);
     try {
-      const payload = selectedPlays.map((p) => ({
+      const payload: PlayDTO[] = selectedPlays.map((p) => ({
         ...JSON.parse(p.data || "{}"),
         title: p.title,
       }));

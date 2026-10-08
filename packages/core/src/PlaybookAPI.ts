@@ -1,14 +1,9 @@
 import { PlaybookEngine } from "./engine/PlaybookEngine";
-import type { PDFExportOptions } from "./types/export";
-import type {
-  CoreNotification,
-  PlaybookMode,
-  PlayerImportData,
-  PlayerStyle,
-  PlayImportData,
-  ThumbnailOptions,
-} from "./types/interfaces";
+import type { PublicPlaybookEventMap } from "./services/events/types/EventTypes";
+import type { PlayDTO, PlayerDTO, PlayerStyle } from "./types";
+import type { PDFExportOptions, ThumbnailOptions } from "./types/export";
 import type { RoutePreset } from "./types/presets";
+import type { PlaybookConfig, PlaybookMode } from "./types/system";
 
 /**
  * Die PlaybookAPI ist die Fassade für das Frontend.
@@ -24,9 +19,10 @@ export class PlaybookAPI {
 
   /** Bindet die Canvas an die Engine
    * @param {HTMLCanvasElement} [canvas] html Canvas in der die Playbook Engine initzialisiert wird.
+   * @param {PlaybookConfig} [playbookConfig] Konfiguration für das Playbook
    */
-  public init(canvas: HTMLCanvasElement): void {
-    this.engine.init(canvas);
+  public init(canvas: HTMLCanvasElement, playbookConfig: PlaybookConfig): void {
+    this.engine.init(canvas, playbookConfig);
   }
 
   //Canvas Elemente
@@ -58,7 +54,7 @@ export class PlaybookAPI {
    * Fügt einen neuen Spieler hinzu.
    * @param {PlayerConfig} [config] Konfiguration für einen neuen Spieler
    */
-  public addPlayer(config: PlayerImportData): void {
+  public addPlayer(config: Omit<PlayerDTO, "id">): void {
     this.engine.addPlayer(config);
   }
 
@@ -142,7 +138,7 @@ export class PlaybookAPI {
    * @param {PDFExportOptions} [options] Export-Optionen
    */
   public async exportToPDF(
-    plays: (PlayImportData & { title?: string })[],
+    plays: (PlayDTO & { title?: string })[],
     options: PDFExportOptions,
   ): Promise<Blob | null> {
     return this.engine.exportToPDF(plays, options);
@@ -215,37 +211,13 @@ export class PlaybookAPI {
   }
 
   /**
-   * Aboniert über Änderungen im History Stack (undo/redo)
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. isRedo anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
+   * Abonniert ein Event.
+   * @returns Eine Cleanup-Funktion (unsubscribe), die das Event wieder entfernt.
    */
-  public subscribeToHistoryChanges(callback: () => void): () => void {
-    const unsubscribe = this.engine.subscribeToHistoryChanges(callback);
-    return unsubscribe;
-  }
-
-  /**
-   * Erlaubt dem Frontend, sich für Benachrichtigungen aus dem Core anzumelden.
-   *
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
-   */
-  public subscribeToNotification(
-    callback: (notification: CoreNotification) => void,
+  public on<T extends keyof PublicPlaybookEventMap>(
+    event: T,
+    callback: (payload: PublicPlaybookEventMap[T]) => void,
   ): () => void {
-    const unsubscribe = this.engine.onNotification(callback);
-    return unsubscribe;
-  }
-
-  /**
-   * Aboniert über Änderungen für den Drawing Mode
-   *
-   * @param callback Die Funktion, die das Frontend ausführt (z.B. Toast anzeigen)
-   * @returns Eine Unsubscribe-Funktion (wichtig für z.B. React useEffect Cleanup)
-   */
-  public subscribeToDrawingMode(
-    callback: (isDrawing: boolean) => void,
-  ): () => void {
-    return this.engine.subscribeToDrawingMode(callback);
+    return this.engine.on(event, callback);
   }
 }

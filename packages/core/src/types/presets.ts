@@ -1,4 +1,4 @@
-import type { SegmentType } from "./interfaces";
+import type { SegmentType } from "./domain";
 
 export interface RoutePreset {
   id: string;

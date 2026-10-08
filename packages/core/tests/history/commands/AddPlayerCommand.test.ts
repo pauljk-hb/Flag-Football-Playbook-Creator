@@ -1,4 +1,4 @@
-import { PlayerEntity } from "@/entities/PlayerEntity";
+import { PlayerEntity } from "@/entities/player/PlayerModel";
 import { AddPlayerCommand } from "@/history/commands/AddPlayerCommand";
 import type { CanvasManager } from "@/managers/CanvasManager";
 import type { PlayManager } from "@/managers/PlayManager";
