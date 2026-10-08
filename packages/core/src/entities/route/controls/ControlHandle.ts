@@ -5,17 +5,14 @@ export interface IControlHandle {
   show(): void;
   hide(): void;
   destroy(): void;
-  onMoved?: (newPosition: Point2D) => void;
-  onMoveComplete?: () => void;
   getFabricObject(): fabric.Object[];
+  updatePosition(pos1: Point2D, pos2?: Point2D): void;
 }
 
 const DEFAULT_HANDLE_COLOR = "#ffd147";
 
 export class WaypointHandle implements IControlHandle {
   public circle: fabric.Circle;
-  public onMoved?: (newPosition: Point2D) => void;
-  public onMoveComplete?: () => void;
   private bezierHandles: BezierHandle[] = [];
 
   constructor(
@@ -39,9 +36,6 @@ export class WaypointHandle implements IControlHandle {
       evented: true,
       visible: false,
     });
-
-    this.setupEvents();
-
     this.circle.set({
       entityId: `node_${routeId}`,
       entityType: "NODE",
@@ -55,27 +49,13 @@ export class WaypointHandle implements IControlHandle {
     return [this.circle];
   }
 
-  public attachBezier(bezier: BezierHandle) {
-    this.bezierHandles.push(bezier);
+  public updatePosition(newPos: Point2D): void {
+    this.circle.set({ left: newPos.x, top: newPos.y });
+    this.circle.setCoords();
   }
 
-  private setupEvents() {
-    this.circle.on("moving", () => {
-      const currentX = this.circle.left ?? 0;
-      const currentY = this.circle.top ?? 0;
-
-      this.bezierHandles.forEach((handle) => {
-        handle.updateAnchorPosition(currentX, currentY);
-      });
-
-      if (this.onMoved) {
-        this.onMoved({ x: currentX, y: currentY });
-      }
-    });
-
-    this.circle.on("modified", () => {
-      if (this.onMoveComplete) this.onMoveComplete();
-    });
+  public attachBezier(bezier: BezierHandle) {
+    this.bezierHandles.push(bezier);
   }
 
   public show(): void {
@@ -95,8 +75,6 @@ export class WaypointHandle implements IControlHandle {
 export class BezierHandle implements IControlHandle {
   public controlPoint: fabric.Circle;
   private tetherLine: fabric.Line;
-  public onMoved?: (newPosition: Point2D) => void;
-  public onMoveComplete?: () => void;
 
   constructor(
     cpPosition: Point2D,
@@ -132,8 +110,6 @@ export class BezierHandle implements IControlHandle {
       visible: false,
     });
 
-    this.setupEvents();
-
     this.controlPoint.set({
       entityId: `node_${routeId}`,
       entityType: "NODE",
@@ -147,24 +123,17 @@ export class BezierHandle implements IControlHandle {
     return [this.tetherLine, this.controlPoint];
   }
 
-  private setupEvents() {
-    this.controlPoint.on("moving", () => {
-      this.tetherLine.set({
-        x2: this.controlPoint.left,
-        y2: this.controlPoint.top,
-      });
+  public updatePosition(cpPos: Point2D, anchorPos: Point2D): void {
+    this.controlPoint.set({ left: cpPos.x, top: cpPos.y });
+    this.controlPoint.setCoords();
 
-      if (this.onMoved) {
-        this.onMoved({
-          x: this.controlPoint.left ?? 0,
-          y: this.controlPoint.top ?? 0,
-        });
-      }
+    this.tetherLine.set({
+      x1: anchorPos.x,
+      y1: anchorPos.y,
+      x2: cpPos.x,
+      y2: cpPos.y,
     });
-
-    this.controlPoint.on("modified", () => {
-      if (this.onMoveComplete) this.onMoveComplete();
-    });
+    this.tetherLine.setCoords();
   }
 
   public updateAnchorPosition(anchorX: number, anchorY: number) {
@@ -190,8 +159,6 @@ export class BezierHandle implements IControlHandle {
 
 export class StretchHandle implements IControlHandle {
   public rect: fabric.Triangle;
-  public onMoved?: (newPosition: Point2D) => void;
-  public onMoveComplete?: () => void;
 
   constructor(
     position: Point2D,
@@ -226,8 +193,6 @@ export class StretchHandle implements IControlHandle {
       visible: false,
     });
 
-    this.setupEvents();
-
     this.rect.set({
       entityId: `node_${routeId}`,
       entityType: "NODE",
@@ -241,16 +206,9 @@ export class StretchHandle implements IControlHandle {
     return [this.rect];
   }
 
-  private setupEvents() {
-    this.rect.on("moving", () => {
-      if (this.onMoved) {
-        this.onMoved({ x: this.rect.left ?? 0, y: this.rect.top ?? 0 });
-      }
-    });
-
-    this.rect.on("modified", () => {
-      if (this.onMoveComplete) this.onMoveComplete();
-    });
+  public updatePosition(newPos: Point2D): void {
+    this.rect.set({ left: newPos.x, top: newPos.y });
+    this.rect.setCoords();
   }
 
   public show(): void {

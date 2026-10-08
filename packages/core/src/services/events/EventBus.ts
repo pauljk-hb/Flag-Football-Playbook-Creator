@@ -49,13 +49,12 @@ export class EventBus {
     if (!this.listeners[event]) return;
 
     const currentListeners = this.listeners[event] as EventReceiver<T>[];
-
+    console.log(
+      `EventBus: Emitting event "${String(event)}" with payload:`,
+      payload,
+    );
     currentListeners.forEach((callback) => {
       try {
-        console.log(
-          `EventBus: Emitting event "${String(event)}" with payload:`,
-          payload,
-        );
         callback(payload);
       } catch (error) {
         console.error(

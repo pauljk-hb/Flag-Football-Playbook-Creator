@@ -1,6 +1,6 @@
 import * as fabric from "fabric";
 import { CANVAS } from "../../constants/constants";
-import { SegmentType, type Point2D, type RouteNode } from "../../types/domain";
+import { SegmentType, type RouteNode } from "../../types/domain";
 import { generateSvgPathString } from "../../utils/PathUtils";
 import { calculateArrowheadMetrics, clampPoint } from "../../utils/geometry";
 import { BaseRenderer } from "../base/BaseRenderer";
@@ -12,10 +12,18 @@ import {
   type IControlHandle,
 } from "./controls/ControlHandle";
 
+interface HandleGroup {
+  waypoint: WaypointHandle;
+  stretch?: StretchHandle;
+  bezier?: BezierHandle;
+}
+
 export class RouteRenderer extends BaseRenderer<RouteModel> {
   private arrowHead?: any;
   private handles: IControlHandle[] = [];
   private dragStartNodes: RouteNode[] | null = null;
+  private handleMap: Map<number, HandleGroup> = new Map();
+  private areControlsVisible: boolean = false;
 
   public render(model: RouteModel): void {
     this.currentModel = model;
@@ -51,16 +59,12 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
 
   public syncWithModel(model: RouteModel): void {
     if (!this.fabricObject || !this.arrowHead) return;
-
     this.currentModel = model;
 
-    // Visuelles Update der Linie und des Pfeils anhand der neuen Model-Daten
     this.updatePathVisuals();
 
-    // Falls die Handles gerade sichtbar sind, müssen sie auch an die neuen Positionen
-    if (this.handles.length > 0) {
-      this.initializeControls();
-      //this.showControls();
+    if (this.areControlsVisible) {
+      this.syncHandles();
     }
   }
 
@@ -108,10 +112,6 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     return objects;
   }
 
-  public override getControlObjects(): fabric.Object[] {
-    return this.handles.flatMap((handle) => handle.getFabricObject());
-  }
-
   public setSelectable(enabled: boolean): void {
     if (this.fabricObject) {
       this.fabricObject.selectable = enabled;
@@ -126,168 +126,204 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     }
   }
 
-  public initializeControls(): void {
+  private syncHandles(): void {
     if (!this.currentModel) return;
-
-    this.destroyAllHandles();
-    // Nutzt den CanvasManager um an die fabric.Canvas Instanz zu kommen
     const canvas = this.canvasManager.getRawCanvas();
-
     const STRETCH_OFFSET_Y = -25;
-    const PADDING = 10;
     const nodes = this.currentModel.nodes;
 
-    const controlsMap: { waypoint: WaypointHandle; stretch?: StretchHandle }[] =
-      [];
+    const activeIndices = new Set<number>();
 
     nodes.forEach((node, index) => {
       if (index === 0) return;
+      activeIndices.add(index);
 
-      const waypoint = new WaypointHandle(
+      const isVerticalLine =
+        index > 0 &&
+        Math.abs(node.position.x - nodes[index - 1].position.x) < 10;
+      let group = this.handleMap.get(index);
+
+      // Knoten ist neu
+      if (!group) {
+        group = this.buildHandleGroup(index, node, canvas, isVerticalLine);
+        this.handleMap.set(index, group);
+
+        if (this.areControlsVisible) {
+          group.waypoint.show();
+          group.stretch?.show();
+          group.bezier?.show();
+        }
+      }
+      // Knoten existiert
+      else {
+        group.waypoint.updatePosition(node.position);
+
+        // Stretch-Handle Logik
+        if (isVerticalLine && !group.stretch) {
+          group.stretch = this.createStretchHandle(index, node, canvas);
+          if (this.areControlsVisible) group.stretch.show();
+        } else if (!isVerticalLine && group.stretch) {
+          canvas.remove(...group.stretch.getFabricObject());
+          group.stretch.destroy();
+          group.stretch = undefined;
+        } else if (isVerticalLine && group.stretch) {
+          group.stretch.updatePosition({
+            x: node.position.x,
+            y: node.position.y + STRETCH_OFFSET_Y,
+          });
+        }
+
+        // Bezier Logik
+        if (group.bezier && node.cpIn) {
+          group.bezier.updatePosition(node.cpIn, node.position);
+        }
+      }
+    });
+
+    // Aufräumen von gelöschten Knoten
+    for (const [index, group] of this.handleMap.entries()) {
+      if (!activeIndices.has(index)) {
+        this.destroyHandleGroup(group, canvas);
+        this.handleMap.delete(index);
+      }
+    }
+
+    canvas.requestRenderAll();
+  }
+
+  private buildHandleGroup(
+    index: number,
+    node: RouteNode,
+    canvas: fabric.Canvas,
+    isVertical: boolean,
+  ): HandleGroup {
+    const waypoint = new WaypointHandle(
+      node.position,
+      canvas,
+      this.currentModel!.id,
+    );
+    const PADDING = 10;
+
+    waypoint.circle.on("mousedown", () => {
+      this.dragStartNodes = JSON.parse(
+        JSON.stringify(this.currentModel!.nodes),
+      );
+    });
+
+    waypoint.circle.on("moving", () => {
+      if (!this.dragStartNodes)
+        this.dragStartNodes = JSON.parse(
+          JSON.stringify(this.currentModel!.nodes),
+        );
+
+      const clamped = clampPoint(
+        { x: waypoint.circle.left ?? 0, y: waypoint.circle.top ?? 0 },
+        CANVAS.WIDTH,
+        CANVAS.HEIGHT,
+        PADDING,
+      );
+
+      this.currentModel!.nodes[index].position.x = clamped.x;
+      this.currentModel!.nodes[index].position.y = clamped.y;
+
+      this.updatePathVisuals();
+      this.syncHandles();
+    });
+
+    waypoint.circle.on("modified", () => this.fireModifiedEvent());
+
+    let stretch: StretchHandle | undefined;
+    if (isVertical) stretch = this.createStretchHandle(index, node, canvas);
+
+    let bezier: BezierHandle | undefined;
+    if (node.type === SegmentType.CURVE && node.cpIn) {
+      bezier = new BezierHandle(
+        node.cpIn,
         node.position,
         canvas,
         this.currentModel!.id,
       );
-      this.handles.push(waypoint);
 
-      const prevNode = nodes[index - 1];
-      const isVerticalLine =
-        Math.abs(node.position.x - prevNode.position.x) < 10;
-      let stretchHandle: StretchHandle | undefined;
-
-      if (isVerticalLine) {
-        stretchHandle = new StretchHandle(
-          { x: node.position.x, y: node.position.y + STRETCH_OFFSET_Y },
-          "Y",
-          canvas,
-          this.currentModel!.id,
+      bezier.controlPoint.on("mousedown", () => {
+        this.dragStartNodes = JSON.parse(
+          JSON.stringify(this.currentModel!.nodes),
         );
-        this.handles.push(stretchHandle);
-      }
-
-      controlsMap[index] = { waypoint, stretch: stretchHandle };
-
-      let bezierHandle: BezierHandle | undefined;
-
-      if (node.type === SegmentType.CURVE && node.cpIn) {
-        bezierHandle = new BezierHandle(
-          node.cpIn,
-          node.position,
-          canvas,
-          this.currentModel!.id,
-        );
-        this.handles.push(bezierHandle);
-
-        waypoint.attachBezier(bezierHandle);
-
-        bezierHandle.onMoved = (newPosition: Point2D) => {
-          if (!this.dragStartNodes) {
-            this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
-          }
-
-          const clamped = clampPoint(
-            newPosition,
-            CANVAS.WIDTH,
-            CANVAS.HEIGHT,
-            PADDING,
-          );
-
-          if (nodes[index].cpIn) {
-            nodes[index].cpIn!.x = clamped.x;
-            nodes[index].cpIn!.y = clamped.y;
-          } else {
-            nodes[index].cpIn = clamped;
-          }
-
-          this.updatePathVisuals();
-          canvas.requestRenderAll();
-        };
-
-        bezierHandle.onMoveComplete = () => this.fireModifiedEvent();
-      }
-
-      // Event für WaypointHandle
-      waypoint.circle.on("mousedown", () => {
-        this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
       });
 
-      waypoint.circle.on("moving", () => {
+      bezier.controlPoint.on("moving", () => {
         if (!this.dragStartNodes)
-          this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
-
+          this.dragStartNodes = JSON.parse(
+            JSON.stringify(this.currentModel!.nodes),
+          );
         const clamped = clampPoint(
-          { x: waypoint.circle.left ?? 0, y: waypoint.circle.top ?? 0 },
+          {
+            x: bezier!.controlPoint.left ?? 0,
+            y: bezier!.controlPoint.top ?? 0,
+          },
           CANVAS.WIDTH,
           CANVAS.HEIGHT,
           PADDING,
         );
 
-        waypoint.circle.set({
-          left: clamped.x,
-          top: clamped.y,
-        });
-
-        nodes[index].position.x = clamped.x;
-        nodes[index].position.y = clamped.y;
-
-        if (stretchHandle) {
-          stretchHandle.rect.set({
-            left: nodes[index].position.x,
-            top: nodes[index].position.y + STRETCH_OFFSET_Y,
-          });
-          stretchHandle.rect.setCoords();
+        if (this.currentModel!.nodes[index].cpIn) {
+          this.currentModel!.nodes[index].cpIn!.x = clamped.x;
+          this.currentModel!.nodes[index].cpIn!.y = clamped.y;
         }
 
         this.updatePathVisuals();
-        canvas.requestRenderAll();
+        this.syncHandles();
       });
 
-      waypoint.circle.on("modified", () => this.fireModifiedEvent());
+      bezier.controlPoint.on("modified", () => this.fireModifiedEvent());
+    }
 
-      // Event für StretchHandle
-      if (stretchHandle) {
-        stretchHandle.rect.on("mousedown", () => {
-          this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
-        });
+    return { waypoint, stretch, bezier };
+  }
 
-        stretchHandle.rect.on("moving", () => {
-          if (!this.dragStartNodes)
-            this.dragStartNodes = JSON.parse(JSON.stringify(nodes));
+  private createStretchHandle(
+    index: number,
+    node: RouteNode,
+    canvas: fabric.Canvas,
+  ): StretchHandle {
+    const STRETCH_OFFSET_Y = -25;
+    const stretch = new StretchHandle(
+      { x: node.position.x, y: node.position.y + STRETCH_OFFSET_Y },
+      "Y",
+      canvas,
+      this.currentModel!.id,
+    );
 
-          const startNodes = this.dragStartNodes!;
-          const startHandleY = startNodes[index].position.y + STRETCH_OFFSET_Y;
-          const currentHandleY = stretchHandle!.rect.top ?? 0;
-          const dy = currentHandleY - startHandleY;
-
-          for (let i = index; i < nodes.length; i++) {
-            nodes[i].position.y = startNodes[i].position.y + dy;
-
-            if (nodes[i].cpIn && startNodes[i].cpIn)
-              nodes[i].cpIn!.y = startNodes[i].cpIn!.y + dy;
-
-            if (nodes[i].cpOut && startNodes[i].cpOut)
-              nodes[i].cpOut!.y = startNodes[i].cpOut!.y + dy;
-
-            if (controlsMap[i]) {
-              controlsMap[i].waypoint.circle.set({ top: nodes[i].position.y });
-              controlsMap[i].waypoint.circle.setCoords();
-
-              if (controlsMap[i].stretch && i !== index) {
-                controlsMap[i].stretch!.rect.set({
-                  top: nodes[i].position.y + STRETCH_OFFSET_Y,
-                });
-                controlsMap[i].stretch!.rect.setCoords();
-              }
-            }
-          }
-
-          this.updatePathVisuals();
-          canvas.requestRenderAll();
-        });
-
-        stretchHandle.rect.on("modified", () => this.fireModifiedEvent());
-      }
+    stretch.rect.on("mousedown", () => {
+      this.dragStartNodes = JSON.parse(
+        JSON.stringify(this.currentModel!.nodes),
+      );
     });
+
+    stretch.rect.on("moving", () => {
+      if (!this.dragStartNodes)
+        this.dragStartNodes = JSON.parse(
+          JSON.stringify(this.currentModel!.nodes),
+        );
+      const startNodes = this.dragStartNodes!;
+      const dy =
+        (stretch.rect.top ?? 0) -
+        (startNodes[index].position.y + STRETCH_OFFSET_Y);
+
+      for (let i = index; i < this.currentModel!.nodes.length; i++) {
+        this.currentModel!.nodes[i].position.y = startNodes[i].position.y + dy;
+        if (this.currentModel!.nodes[i].cpIn && startNodes[i].cpIn) {
+          this.currentModel!.nodes[i].cpIn!.y = startNodes[i].cpIn!.y + dy;
+        }
+        if (this.currentModel!.nodes[i].cpOut && startNodes[i].cpOut) {
+          this.currentModel!.nodes[i].cpOut!.y = startNodes[i].cpOut!.y + dy;
+        }
+      }
+      this.updatePathVisuals();
+      this.syncHandles();
+    });
+
+    stretch.rect.on("modified", () => this.fireModifiedEvent());
+    return stretch;
   }
 
   private fireModifiedEvent(): void {
@@ -295,7 +331,6 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
       const newNodes = JSON.parse(JSON.stringify(this.currentModel.nodes));
 
       if (JSON.stringify(this.dragStartNodes) !== JSON.stringify(newNodes)) {
-        // EventBus ersetzt den direkten this.onNodesModified Callback
         this.eventBus.emit("route:modified", {
           routeId: this.currentModel.id,
           oldNodes: this.dragStartNodes,
@@ -307,47 +342,23 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
   }
 
   public showControls(): void {
-    // Da Handles bei Routes dynamisch gebaut werden müssen, prüfen wir ob sie existieren
-    if (this.handles.length === 0) {
-      this.initializeControls();
+    this.areControlsVisible = true;
+    this.syncHandles();
+
+    for (const group of this.handleMap.values()) {
+      group.waypoint.show();
+      if (group.stretch) group.stretch.show();
+      if (group.bezier) group.bezier.show();
     }
-    this.handles.forEach((h) => h.show());
-    // console.trace(
-    //   `DEBUG: showControls aufgerufen für Player ${this.currentModel?.id}`,
-    // );
   }
 
   public hideControls(): void {
-    this.handles.forEach((h) => h.hide());
-  }
-
-  public destroyAllHandles(): void {
-    this.handles.forEach((h) => h.destroy());
-    this.handles = [];
-  }
-
-  private syncHandlePositions(): void {
-    if (!this.currentModel) return;
-    const nodes = this.currentModel.nodes;
-    let nodeIndex = 1; // Wir starten bei 1, da Node 0 keinen Waypoint hat
-
-    this.handles.forEach((handle) => {
-      if (!nodes[nodeIndex]) return;
-
-      if (handle instanceof WaypointHandle) {
-        handle.circle.set({
-          left: nodes[nodeIndex].position.x,
-          top: nodes[nodeIndex].position.y,
-        });
-        handle.circle.setCoords();
-        // Wenn das nächste Handle KEIN StretchHandle/Bezier ist, gehen wir zum nächsten Node
-        // (Hier musst du evtl. deine Logik leicht anpassen, je nachdem in welcher
-        // Reihenfolge die Handles in this.handles liegen)
-      }
-      // Analog für StretchHandle und BezierHandle...
-    });
-
-    this.canvasManager.getRawCanvas().requestRenderAll();
+    this.areControlsVisible = false;
+    for (const group of this.handleMap.values()) {
+      group.waypoint.hide();
+      if (group.stretch) group.stretch.hide();
+      if (group.bezier) group.bezier.hide();
+    }
   }
 
   private updatePathVisuals(): void {
@@ -385,12 +396,44 @@ export class RouteRenderer extends BaseRenderer<RouteModel> {
     this.arrowHead.set({ left: position.x, top: position.y, angle: angle });
   }
 
-  // Override destroy from BaseRenderer to also clean up arrowHead and handles
+  public destroyAllHandles(): void {
+    const canvas = this.canvasManager.getRawCanvas();
+    for (const group of this.handleMap.values()) {
+      this.destroyHandleGroup(group, canvas);
+    }
+    this.handleMap.clear();
+  }
+
+  private destroyHandleGroup(group: HandleGroup, canvas: fabric.Canvas): void {
+    canvas.remove(...group.waypoint.getFabricObject());
+    group.waypoint.destroy();
+
+    if (group.stretch) {
+      canvas.remove(...group.stretch.getFabricObject());
+      group.stretch.destroy();
+    }
+
+    if (group.bezier) {
+      canvas.remove(...group.bezier.getFabricObject());
+      group.bezier.destroy();
+    }
+  }
+
   public override destroy(): void {
     this.destroyAllHandles();
 
     super.destroy();
 
     this.arrowHead = undefined;
+  }
+
+  public override getControlObjects(): fabric.Object[] {
+    const objects: fabric.Object[] = [];
+    for (const group of this.handleMap.values()) {
+      objects.push(...group.waypoint.getFabricObject());
+      if (group.stretch) objects.push(...group.stretch.getFabricObject());
+      if (group.bezier) objects.push(...group.bezier.getFabricObject());
+    }
+    return objects;
   }
 }
