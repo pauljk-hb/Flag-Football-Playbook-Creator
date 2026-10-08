@@ -20,7 +20,7 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
       backgroundShape = new fabric.Rect({
         width: 32,
         height: 32,
-        fill: model.color,
+        fill: model.style.color,
         originX: "center",
         originY: "center",
         rx: 6,
@@ -29,13 +29,13 @@ export class PlayerRenderer extends BaseRenderer<PlayerModel> {
     } else {
       backgroundShape = new fabric.Circle({
         radius: 16,
-        fill: model.color,
+        fill: model.style.color,
         originX: "center",
         originY: "center",
       });
     }
 
-    const labelText = model.style.showLabel !== false ? model.label : "";
+    const labelText = model.style.showLabel !== false ? model.style.label : "";
     const text = new fabric.Text(labelText, {
       fontSize: 14,
       fill: "#ffffff",

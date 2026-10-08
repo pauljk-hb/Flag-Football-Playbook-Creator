@@ -27,8 +27,42 @@ export class FieldRenderer {
 
     const LINE_START = -1000;
     const LINE_END = 5000;
+    const lines = model.getLines();
 
-    model.getLines().forEach((lineConfig) => {
+    const endzoneLines = lines.filter((l) => l.type === "endzone");
+    if (endzoneLines.length === 2) {
+      // Y-Koordinaten der beiden Linien berechnen
+      const y1 =
+        FOOTBALL_METRICS.DEFAULT_LOS_Y -
+        endzoneLines[0].yardsFromLos * FOOTBALL_METRICS.PIXELS_PER_YARD;
+      const y2 =
+        FOOTBALL_METRICS.DEFAULT_LOS_Y -
+        endzoneLines[1].yardsFromLos * FOOTBALL_METRICS.PIXELS_PER_YARD;
+
+      const topY = Math.min(y1, y2);
+      const height = Math.abs(y1 - y2);
+
+      console.log(y1, y2, topY, height);
+
+      const endzoneRect = new fabric.Rect({
+        left: LINE_START,
+        top: topY,
+        width: LINE_END - LINE_START,
+        height: height,
+        fill: this.createEndzonePattern(),
+        selectable: false,
+        evented: false,
+        hoverCursor: "default",
+        originX: "left",
+        originY: "top",
+      });
+
+      // Wir fügen das Rechteck ZUERST hinzu, damit es visuell UNTER den Linien liegt
+      this.fieldObjects.push(endzoneRect);
+      this.canvasManager.addFabricObject(endzoneRect);
+    }
+
+    lines.forEach((lineConfig) => {
       const yPos =
         FOOTBALL_METRICS.DEFAULT_LOS_Y -
         lineConfig.yardsFromLos * FOOTBALL_METRICS.PIXELS_PER_YARD;
@@ -53,13 +87,48 @@ export class FieldRenderer {
         stroke: strokeColor,
         strokeWidth: strokeWidth,
         strokeDashArray: dashArray,
-        selectable: false, // Kann vom Nutzer nicht angeklickt werden
-        evented: false, // Blockiert keine Klicks
+        selectable: false,
+        evented: false,
         hoverCursor: "default",
       });
 
       this.fieldObjects.push(fabricLine);
       this.canvasManager.addFabricObject(fabricLine);
+    });
+  }
+
+  /**
+   * Generiert ein nahtlos kachelbares 45-Grad Streifenmuster
+   */
+  private createEndzonePattern(): fabric.Pattern {
+    const patternCanvas = document.createElement("canvas");
+    patternCanvas.width = 40;
+    patternCanvas.height = 40;
+    const ctx = patternCanvas.getContext("2d");
+
+    if (ctx) {
+      // Optional: Ein extrem heller roter Hintergrund (auskommentieren für transparent)
+      // ctx.fillStyle = "rgba(239, 68, 68, 0.03)";
+      // ctx.fillRect(0, 0, 40, 40);
+
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.25)";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+
+      ctx.moveTo(0, 40);
+      ctx.lineTo(40, 0);
+
+      ctx.moveTo(-10, 10);
+      ctx.lineTo(10, -10);
+      ctx.moveTo(30, 50);
+      ctx.lineTo(50, 30);
+
+      ctx.stroke();
+    }
+
+    return new fabric.Pattern({
+      source: patternCanvas,
+      repeat: "repeat",
     });
   }
 

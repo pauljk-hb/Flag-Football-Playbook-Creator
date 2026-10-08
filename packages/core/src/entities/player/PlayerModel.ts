@@ -29,22 +29,20 @@ export class PlayerModel extends BaseModel {
     this.playerStyleOverride = { ...this.playerStyleOverride, ...newOverrides };
   }
 
-  public get color(): string {
-    return this.playerStyleOverride.color ?? this.playerStyle.color;
+  public set label(newLabel: string) {
+    this.playerStyleOverride.label = newLabel;
   }
 
   public set color(newColor: string) {
-    this.playerStyle.color = newColor;
     this.playerStyleOverride.color = newColor;
   }
 
-  public get label(): string {
-    return this.playerStyleOverride.label ?? this.playerStyle.label;
+  public set showLabel(show: boolean) {
+    this.playerStyleOverride.showLabel = show;
   }
 
-  public set label(newLabel: string) {
-    this.playerStyle.label = newLabel;
-    this.playerStyleOverride.label = newLabel;
+  public set shape(newShape: PlayerStyle["shape"]) {
+    this.playerStyleOverride.shape = newShape;
   }
 
   public serialize(): PlayerDTO {
